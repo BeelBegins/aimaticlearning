@@ -243,7 +243,11 @@
 			signal: controller.signal,
 		})
 			.then(function (response) {
-				if (!response.ok) throw new Error("Revision request returned HTTP " + response.status);
+				if (!response.ok) {
+					const httpError = new Error("Revision request returned HTTP " + response.status);
+					httpError.status = response.status;
+					throw httpError;
+				}
 				return response.json();
 			})
 			.then(function (payload) {
@@ -259,7 +263,15 @@
 			.catch(function (error) {
 				if (!finish()) return;
 				console.error("Revision board request failed", error);
-				showLoadError("Revision could not be loaded. Sign in and try again.", course, learningModule);
+				let message;
+				if (error.name === "AbortError") {
+					message = "Revision is taking too long to respond. Check your connection and try again.";
+				} else if (error.status === 401 || error.status === 403) {
+					message = "Revision could not be loaded. Sign in and try again.";
+				} else {
+					message = "Revision could not be loaded. Try again.";
+				}
+				showLoadError(message, course, learningModule);
 			})
 			.finally(function () { window.clearTimeout(requestTimeout); });
 	}
