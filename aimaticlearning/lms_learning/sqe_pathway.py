@@ -1,4 +1,4 @@
-"""Safe, idempotent structure sync for the published SQE1 FLK1 pathway."""
+"""Safe, idempotent structure sync for the published SQE1 pathways."""
 
 from __future__ import annotations
 

@@ -5,8 +5,8 @@ import re
 import frappe
 from frappe import _
 
-from aimaticlearning.lms_learning.lesson_macros import chapter_hub_renderer
 from aimaticlearning.lms_learning.outline_sync import (
+	build_editorjs_content,
 	link_chapter_to_course,
 	link_lesson_to_chapter,
 )
@@ -80,7 +80,7 @@ def _repair_introduction_blob(profiles: list[dict]) -> bool:
 			[
 				"Welcome to Business Law & Practice (BLP) on Examic Study.",
 				"This module covers UK tax and VAT topics aligned to your SQE study path.",
-				"Open each chapter in order: read the protected study notes, complete practice MCQs, "
+				"Open each chapter in order: read the chapter notes, complete practice MCQs, "
 				"then review flashcards before moving on.",
 				"The full company-law question bank is linked separately in MCQ sections — "
 				"it is not part of this introductory chapter.",
@@ -130,57 +130,41 @@ def _reorder_course_chapters(course_name: str, profiles: list[dict]) -> int:
 
 
 def _consolidate_chapter_hub_lesson(profile: frappe.Document, course_name: str) -> bool:
-	"""One lesson per chapter: tabbed notes / MCQs / flashcards inline (Kinnu-style)."""
-	if not profile.course_chapter:
+	"""Keep chapter notes as a normal lesson; MCQs and flashcards stay separate lessons."""
+	if not profile.course_chapter or not profile.notes_lesson:
 		return False
 
 	chapter_title = frappe.db.get_value("Course Chapter", profile.course_chapter, "title") or profile.chapter_title
-	lesson_title = chapter_title if chapter_title.lower().startswith("chapter") else f"Chapter — {profile.chapter_title}"
-	hub_html = chapter_hub_renderer(profile.name)
-	# LMS lesson body does not run Aimatic macros — store collapsed HTML as one block.
-	hub_body = hub_html.replace("\n\n", " ").replace("\n", " ").strip()
-
-	lesson_name = profile.notes_lesson
-	if lesson_name:
-		lesson = frappe.get_doc("Course Lesson", lesson_name)
-	else:
-		lesson = frappe.get_doc(
-			{
-				"doctype": "Course Lesson",
-				"course": course_name,
-				"chapter": profile.course_chapter,
-			}
-		)
-		lesson.insert(ignore_permissions=True)
-		lesson_name = lesson.name
-		frappe.db.set_value("Learning Chapter Profile", profile.name, "notes_lesson", lesson_name)
-
-	lesson.title = lesson_title
-	lesson.body = hub_body
+	lesson = frappe.get_doc("Course Lesson", profile.notes_lesson)
+	lesson.title = chapter_title if chapter_title.lower().startswith("chapter") else f"Chapter — {profile.chapter_title}"
+	lesson.body = profile.notes_html or "<p>No study notes are available for this chapter yet.</p>"
 	lesson.content = ""
 	lesson.quiz_id = ""
 	lesson.save(ignore_permissions=True)
 
 	chapter = frappe.get_doc("Course Chapter", profile.course_chapter)
-	lesson_rows = [{"lesson": lesson_name, "idx": 1}]
-	assessment_lessons = frappe.get_all(
+	lesson_rows = [{"lesson": lesson.name, "idx": 1}]
+	other_lessons = frappe.get_all(
 		"Course Lesson",
-		filters={
-			"course": course_name,
-			"chapter": profile.course_chapter,
-			"title": ["like", "%Module Assessment%"],
-		},
-		pluck="name",
+		filters={"course": course_name, "chapter": profile.course_chapter, "name": ["!=", lesson.name]},
+		fields=["name", "title", "quiz_id", "body", "creation"],
 	)
-	for extra_name in assessment_lessons:
-		if extra_name != lesson_name:
-			lesson_rows.append({"lesson": extra_name, "idx": len(lesson_rows) + 1})
-
+	def lesson_bucket(row: dict) -> tuple[int, str]:
+		title = (row.title or "").lower()
+		if "module assessment" in title:
+			return (3, title)
+		if row.quiz_id:
+			return (1, title)
+		if "flashcard" in title:
+			return (2, title)
+		return (1, title)
+	for idx, row in enumerate(sorted(other_lessons, key=lesson_bucket), start=2):
+		lesson_rows.append({"lesson": row.name, "idx": idx})
 	chapter.set("lessons", lesson_rows)
 	chapter.save(ignore_permissions=True)
-	frappe.db.set_value("Course Lesson", lesson_name, "idx", 1)
+	for row in lesson_rows:
+		frappe.db.set_value("Course Lesson", row["lesson"], "idx", row["idx"])
 	return True
-
 
 def _lesson_rename(lesson_name: str, title: str) -> None:
 	frappe.db.set_value("Course Lesson", lesson_name, "title", title)
@@ -195,55 +179,68 @@ def _find_quiz_lesson(course_name: str, chapter_name: str, quiz_id: str) -> str 
 
 
 def _ensure_flashcard_lesson(profile: frappe.Document, course_name: str) -> str | None:
+	"""Create or refresh one canonical, API-backed Flashcards lesson for a chapter."""
 	if not profile.course_chapter:
 		return None
 
-	title = f"Flashcards — {profile.chapter_title}"
-	existing = frappe.db.get_value(
+	candidates = frappe.get_all(
 		"Course Lesson",
-		{"course": course_name, "chapter": profile.course_chapter, "title": title},
-		"name",
+		filters={"course": course_name, "chapter": profile.course_chapter},
+		fields=["name", "title", "body", "creation"],
+		order_by="creation asc",
 	)
-	link = f"/learning-flashcards?chapter_profile={profile.name}"
-	body = (
-		f"## Flashcards\n\n"
-		f"Review key concepts for **{profile.chapter_title}**.\n\n"
-		f"[Open flashcard deck →]({link})"
-	)
-	content = build_editorjs_content(
-		title,
-		[
-			f"Review memory cards for {profile.chapter_title}. "
-			"Rate each card to track your revision."
-		],
-	)
+	canonical = next((row for row in candidates if "data-aimatic-flashcard-deck" in (row.body or "")), None)
+	if not canonical:
+		canonical = next((row for row in candidates if row.title == "Flashcards"), None)
+	if not canonical:
+		canonical = next((row for row in candidates if "flashcard" in (row.title or "").lower()), None)
 
-	if existing:
-		lesson = frappe.get_doc("Course Lesson", existing)
-		lesson.body = body
-		lesson.content = content
-		lesson.save(ignore_permissions=True)
-		lesson_name = existing
+	if canonical:
+		lesson = frappe.get_doc("Course Lesson", canonical.name)
 	else:
 		lesson = frappe.get_doc(
 			{
 				"doctype": "Course Lesson",
-				"title": title,
+				"title": "Flashcards",
 				"course": course_name,
 				"chapter": profile.course_chapter,
-				"body": body,
-				"content": content,
 			}
 		)
 		lesson.insert(ignore_permissions=True)
-		lesson_name = lesson.name
 
-	link_lesson_to_chapter(profile.course_chapter, lesson_name)
-	return lesson_name
+	from aimaticlearning.lms_learning.kinnu_course import _flashcard_lesson_html
+	lesson.title = "Flashcards"
+	lesson.body = _flashcard_lesson_html(profile)
+	lesson.content = ""
+	lesson.quiz_id = ""
+	lesson.save(ignore_permissions=True)
+	link_lesson_to_chapter(profile.course_chapter, lesson.name)
+	return lesson.name
+
+def repair_flashcard_lesson_rendering(learning_module: str | None = None) -> dict:
+	"""Clear stale EditorJS payloads so Flashcard deck hosts render."""
+	filters = {}
+	if learning_module:
+		filters["learning_module"] = learning_module
+	profiles = frappe.get_all(
+		"Learning Chapter Profile",
+		filters=filters,
+		fields=["name", "course_chapter"],
+		order_by="creation asc",
+	)
+	updated = []
+	for row in profiles:
+		profile = frappe.get_doc("Learning Chapter Profile", row.name)
+		course = frappe.db.get_value("Course Chapter", profile.course_chapter, "course")
+		lesson_name = _ensure_flashcard_lesson(profile, course)
+		if lesson_name:
+			updated.append(lesson_name)
+	frappe.db.commit()
+	return {"updated": len(updated), "lessons": updated}
 
 
 def _seed_chapter_flashcards(
-	learning_module: str, limit_chapters: int = 8, per_chapter: int = 6
+	learning_module: str, limit_chapters: int = 8, per_chapter: int = 6, only_empty: bool = False
 ) -> int:
 	"""Seed published flashcards from chapter note paragraphs (skip mega intro)."""
 	profiles = frappe.get_all(
@@ -259,12 +256,12 @@ def _seed_chapter_flashcards(
 		if used_chapters >= limit_chapters:
 			break
 		html = profile.notes_html or ""
-		if len(html) > MEGA_NOTES_BYTES or len(html) < 200:
+		if only_empty and frappe.db.count("Learning Flashcard", {"learning_module": learning_module, "course_chapter": profile.course_chapter, "status": "Published"}):
+			continue
+		if len(html) < 200:
 			continue
 
-		paragraphs = re.findall(r"<p>(.*?)</p>", html, flags=re.DOTALL)
-		paragraphs = [re.sub(r"<[^>]+>", "", p).strip() for p in paragraphs]
-		paragraphs = [p for p in paragraphs if len(p) > 40][:per_chapter]
+		paragraphs = _flashcard_source_segments(html)[:per_chapter]
 		if not paragraphs:
 			continue
 
@@ -303,6 +300,28 @@ def _seed_chapter_flashcards(
 	return created
 
 
+def _flashcard_source_segments(notes_html: str) -> list[str]:
+	"""Extract readable, source-grounded blocks from imported chapter HTML."""
+	blocks = re.findall(
+		r"<(?:p|li|h[1-6]|td|th|div)[^>]*>(.*?)</(?:p|li|h[1-6]|td|th|div)>",
+		notes_html or "",
+		flags=re.DOTALL | re.IGNORECASE,
+	)
+	if not blocks:
+		blocks = re.split(r"<br\s*/?>|\n+", notes_html or "", flags=re.IGNORECASE)
+	segments = []
+	seen = set()
+	for block in blocks:
+		text = re.sub(r"<[^>]+>", " ", block)
+		text = re.sub(r"&(?:nbsp|amp|quot|#39);", " ", text)
+		text = re.sub(r"\s+", " ", text).strip()
+		if len(text) < 40 or text in seen:
+			continue
+		seen.add(text)
+		segments.append(text)
+	return segments
+
+
 def _reorder_chapter_lessons(chapter_name: str, course_name: str) -> None:
 	"""Notes → MCQs → Flashcards within each chapter."""
 	if not chapter_name:
@@ -310,14 +329,23 @@ def _reorder_chapter_lessons(chapter_name: str, course_name: str) -> None:
 	lessons = frappe.get_all(
 		"Course Lesson",
 		filters={"course": course_name, "chapter": chapter_name},
-		fields=["name", "title", "quiz_id"],
+		fields=["name", "title", "quiz_id", "body", "creation"],
 	)
+	flashcard_lessons = [lesson for lesson in lessons if "flashcard" in (lesson.title or "").lower()]
+	canonical_flashcard = next(
+		(lesson for lesson in flashcard_lessons if "data-aimatic-flashcard-deck" in (lesson.body or "")),
+		next((lesson for lesson in flashcard_lessons if lesson.title == "Flashcards"), None),
+	)
+	if not canonical_flashcard and flashcard_lessons:
+		canonical_flashcard = sorted(flashcard_lessons, key=lambda lesson: (lesson.creation or "", lesson.name))[0]
 	order = {0: [], 1: [], 2: []}
 	for lesson in lessons:
 		title = (lesson.title or "").lower()
 		if lesson.quiz_id:
 			order[1].append(lesson.name)
 		elif "flashcard" in title:
+			if canonical_flashcard and lesson.name != canonical_flashcard.name:
+				continue
 			order[2].append(lesson.name)
 		else:
 			order[0].append(lesson.name)

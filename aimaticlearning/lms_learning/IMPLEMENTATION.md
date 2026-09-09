@@ -7,7 +7,7 @@ Source: private file `0732ba20ab` → `/private/files/BLP notes.docx` (21 chapte
 
 | Layer | Requirement | Implementation |
 |-------|-------------|----------------|
-| 1 | Read-only notes, no download | `Learning Chapter Profile.notes_html` + `/learning-notes/<profile>` viewer with enrolment gate |
+| 1 | Chapter notes | `Learning Chapter Profile.notes_html` rendered in the normal chapter lesson pages |
 | 1b | 20 MCQs per chapter + feedback | Native `LMS Quiz` per chapter + `LMS Question` explanations + `Learning Question Meta` tags |
 | 2 | Strengths/weaknesses + visual map | `Learning Attempt Detail` + `analytics.build_learning_map()` + Desk page **Learning Map** |
 | 3 | 200 AI flashcards (review before publish) | `Learning Flashcard` (`Draft` → `Under Review` → `Published`) |
@@ -120,7 +120,7 @@ Selects evenly across chapters from the chapter MCQ pool (no silent duplicate qu
 ### 7. Learner flow (manual QA)
 
 1. Enrol a test user on the BLP course.
-2. Open chapter lesson → **Open protected notes** link → confirm HTML renders, no file download.
+2. Open each chapter lesson → confirm the notes render directly; confirm separate MCQ and Flashcard lessons are linked.
 3. Complete chapter quiz → confirm per-option explanations (LMS `show_answers`).
 4. Desk → **Learning Map** → strengths/weaknesses populate after attempts.
 5. Flashcard deck API: `aimaticlearning.lms_learning.api.get_flashcard_deck`.
@@ -143,14 +143,14 @@ frappe.call("aimaticlearning.lms_learning.api.record_attempt_detail", {
 ## DocTypes
 
 - `Learning Module Config` — module blueprint + targets
-- `Learning Chapter Profile` — protected HTML + links to chapter/quiz/lesson
+- `Learning Chapter Profile` — chapter HTML + links to quiz/lesson
 - `Learning Question Meta` — tags on `LMS Question`
 - `Learning Flashcard` — flashcard bank with review status
 - `Learning Attempt Detail` — granular attempt telemetry
 
 ## APIs (whitelisted)
 
-- `aimaticlearning.lms_learning.api.get_protected_chapter_notes`
+- Chapter notes are rendered directly in the normal chapter lesson; the legacy viewer endpoint is not linked from lessons.
 - `aimaticlearning.lms_learning.api.get_learning_map`
 - `aimaticlearning.lms_learning.api.record_attempt_detail`
 - `aimaticlearning.lms_learning.api.get_flashcard_deck`
@@ -223,7 +223,7 @@ Or: `aimaticlearning.lms_learning.api.configure_student_access`
 
 ### Learning map & analytics
 
-Enrollment is required before protected notes, quizzes, flashcards, and the learning map record attempts.
+Enrollment is required before chapter lessons, quizzes, flashcards, and the learning map record attempts.
 
 
 Notes are server-rendered HTML after enrolment checks. This blocks casual file download but cannot prevent screenshots or copy/paste—do not claim otherwise in learner messaging.

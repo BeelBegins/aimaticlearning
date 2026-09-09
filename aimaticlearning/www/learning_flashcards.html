@@ -1,6 +1,8 @@
 {% extends "templates/web.html" %}
 
 {% block title %}Flashcards — {{ chapter_title }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block page_content %}
 <div class="aimatic-flashcards" id="aimatic-flashcards">
@@ -129,6 +131,54 @@
 		el.card.classList.toggle("is-back", showingBack);
 	}
 
+	function showLoadError(message) {
+		el.loading.classList.remove("is-hidden");
+		el.loading.replaceChildren();
+		const copy = document.createElement("span");
+		copy.textContent = message;
+		const retry = document.createElement("button");
+		retry.type = "button";
+		retry.className = "fc-btn";
+		retry.textContent = "Try again";
+		retry.addEventListener("click", loadDeck);
+		el.loading.append(copy, retry);
+	}
+
+	function loadDeck() {
+		el.loading.textContent = "Loading deck…";
+		const params = new URLSearchParams();
+		if (module) params.set("learning_module", module);
+		if (courseChapter) params.set("course_chapter", courseChapter);
+		params.set("limit", "200");
+		if (ratingFilter) params.set("rating_filter", ratingFilter);
+		const controller = new AbortController();
+		const requestTimeout = window.setTimeout(function () { controller.abort(); }, 14000);
+		fetch("/api/method/aimaticlearning.lms_learning.api.get_flashcard_deck?" + params.toString(), {
+			credentials: "same-origin",
+			headers: { Accept: "application/json" },
+			signal: controller.signal,
+		})
+			.then(function (response) {
+				if (!response.ok) throw new Error("Flashcard request returned HTTP " + response.status);
+				return response.json();
+			})
+			.then(function (payload) {
+				cards = (payload.message && payload.message.cards) || [];
+				el.loading.classList.add("is-hidden");
+				if (!cards.length) {
+					el.empty.classList.remove("is-hidden");
+					return;
+				}
+				el.deck.classList.remove("is-hidden");
+				showCard();
+			})
+			.catch(function (error) {
+				console.error("Flashcard deck request failed", error);
+				showLoadError(error.name === "AbortError" ? "Flashcards are taking too long to respond. Try again." : "Flashcards could not be loaded. Sign in and try again.");
+			})
+			.finally(function () { window.clearTimeout(requestTimeout); });
+	}
+
 	function nextCard() {
 		if (index < cards.length - 1) {
 			index += 1;
@@ -151,25 +201,7 @@
 		});
 	});
 
-	frappe.call({
-		method: "aimaticlearning.lms_learning.api.get_flashcard_deck",
-		args: {
-			learning_module: module,
-			course_chapter: courseChapter || undefined,
-			limit: 200,
-			rating_filter: ratingFilter || undefined,
-		},
-		callback: function (r) {
-			el.loading.classList.add("is-hidden");
-			cards = (r.message && r.message.cards) || [];
-			if (!cards.length) {
-				el.empty.classList.remove("is-hidden");
-				return;
-			}
-			el.deck.classList.remove("is-hidden");
-			showCard();
-		},
-	});
+	loadDeck();
 })();
 </script>
 {% endblock %}
