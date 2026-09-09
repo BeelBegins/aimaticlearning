@@ -2,7 +2,7 @@
 
 {% block meta_block %}
 <meta name="description" content="{{ meta_description }}">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="{{ 'noindex, nofollow' if preview_mode else 'index, follow' }}">
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ meta_description }}">
 <meta property="og:type" content="website">
@@ -27,10 +27,10 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="sqe-site">
+<div class="sqe-site{% if preview_mode %} sqe-preview-site{% endif %}">
 	<header class="sqe-header">
 		<a class="sqe-brand" href="/sqe" aria-label="Examic Study home">
-			<img src="/assets/aimaticlearning/images/examic-study-header.png?v=20260902-4" alt="Examic Study — Examination Preparation Portal" width="320" height="92">
+			<img src="/assets/aimaticlearning/images/examic-study-header.png?v=20260902-4" alt="Examic Study Examination Preparation Portal" width="320" height="92">
 		</a>
 		<nav class="sqe-nav" aria-label="Primary navigation">
 			<a href="#flk1-pathway">FLK1 pathway</a>
@@ -41,15 +41,18 @@
 			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="{{ signup_url }}">Start free trial <span aria-hidden="true">→</span></a>
 		</nav>
 	</header>
+	{% if preview_mode %}
+	<div class="sqe-preview-banner" role="status"><strong>Preview mode</strong><span>Draft learning experience for authorized reviewers. This page is not public.</span></div>
+	{% endif %}
 
 	<main>
 		<section class="sqe-hero">
 			<div class="sqe-hero-copy">
 				<p class="sqe-eyebrow"><span></span> Focused SQE preparation</p>
 				<h1>Study with direction.<br><em>Practise with purpose.</em></h1>
-				<p class="sqe-lead">Clear study notes, targeted questions, flashcards and realistic mocks—organised into one calm learning path that shows you what to do next.</p>
+				<p class="sqe-lead">Clear study notes, targeted questions, flashcards and realistic mocks, organised into one calm learning path that shows you what to do next.</p>
 				<div class="sqe-conversion-block">
-					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="{{ signup_url }}"><span>Start my free 7-day trial</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
+					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="{{ signup_url }}"><span>Start my free 7 day trial</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
 					<p class="sqe-cta-reassurance">No card required <span>·</span> Launch plan $25/month <span>·</span> Cancel anytime</p>
 					<a class="sqe-secondary-link" href="#inside">See what’s included <span aria-hidden="true">↓</span></a>
 				</div>
@@ -88,7 +91,7 @@
 			<div><strong>Notes</strong><span>Structured study notes</span></div>
 			<div><strong>Practice</strong><span>Targeted MCQs</span></div>
 			<div><strong>Flashcards</strong><span>Active recall</span></div>
-			<div><strong>Mocks</strong><span>Exam-style questions</span></div>
+			<div><strong>Mocks</strong><span>Exam style questions</span></div>
 		</section>
 {% endif %}
 
@@ -101,10 +104,14 @@
 			<div class="sqe-feature-grid sqe-flk1-grid">
 {% for course in flk1_courses %}
 				<article class="sqe-feature">
+					<div class="sqe-course-thumb"><img src="{{ course.thumbnail_url }}" alt="" loading="lazy"><span aria-hidden="true">{{ course.thumbnail_label }}</span></div>
 					<span class="sqe-icon">{{ loop.index }}</span>
 					<h3>{{ course.title }}</h3>
 					<p>{{ course.summary }}</p>
 					<p><small>{{ course.activity_label }}</small></p>
+{% if course.review_only %}
+					<p class="sqe-review-note"><strong>Reviewer preview only.</strong> {{ course.review_note }}</p>
+{% endif %}
 {% if viewer.mode == "visitor" %}
 					<a class="sqe-secondary-link" href="{{ signup_url }}">Start this subject <span aria-hidden="true">→</span></a>
 {% else %}
@@ -118,16 +125,20 @@
 		<section class="sqe-section sqe-inside" id="flk2-pathway">
 			<div class="sqe-section-heading">
 				<p class="sqe-eyebrow"><span></span> SQE1 · FLK2</p>
-				<h2>Seven further subject areas.</h2>
+				<h2>{{ flk2_courses | length }} further subject areas.</h2>
 				<p>Move into FLK2 without losing the same clear pattern: choose a subject, open its chapters, then use the available practice tools.</p>
 			</div>
 			<div class="sqe-feature-grid sqe-flk2-grid">
 {% for course in flk2_courses %}
 				<article class="sqe-feature">
+					<div class="sqe-course-thumb"><img src="{{ course.thumbnail_url }}" alt="" loading="lazy"><span aria-hidden="true">{{ course.thumbnail_label }}</span></div>
 					<span class="sqe-icon">{{ loop.index }}</span>
 					<h3>{{ course.title }}</h3>
 					<p>{{ course.summary }}</p>
 					<p><small>{{ course.activity_label }}</small></p>
+{% if course.review_only %}
+					<p class="sqe-review-note"><strong>Reviewer preview only.</strong> {{ course.review_note }}</p>
+{% endif %}
 {% if viewer.mode == "visitor" %}
 					<a class="sqe-secondary-link" href="{{ signup_url }}">Start this subject <span aria-hidden="true">→</span></a>
 {% else %}
@@ -148,7 +159,7 @@
 			<div class="sqe-three">
 				<article><span>01</span><h3>Prepare</h3><p>Read focused, professionally reviewed notes in manageable lesson sections.</p><ul><li>Clear chapter structure</li><li>Readable, distraction-free lessons</li><li>Your progress saved</li></ul></article>
 				<article><span>02</span><h3>Practice</h3><p>Turn knowledge into recall with immediate feedback and explanations.</p><ul><li>Chapter MCQ sessions</li><li>Easy, medium and hard flashcards</li><li>Resume safely when you return</li></ul></article>
-				<article><span>03</span><h3>Perform</h3><p>Measure readiness with a realistic module assessment and useful results.</p><ul><li>Exam-style mock assessment</li><li>Scored results you can review</li><li>Attempt history</li></ul></article>
+				<article><span>03</span><h3>Perform</h3><p>Measure readiness with a realistic module assessment and useful results.</p><ul><li>Exam style mock assessment</li><li>Scored results you can review</li><li>Attempt history</li></ul></article>
 			</div>
 		</section>
 
@@ -160,17 +171,17 @@
 			</div>
 			<div class="sqe-feature-grid">
 				<article class="sqe-feature sqe-feature-large"><span class="sqe-icon">Aa</span><h3>Study notes made to be read</h3><p>Soft typography, focused sections and a persistent chapter path keep long legal material approachable.</p></article>
-				<article class="sqe-feature"><span class="sqe-icon">✓</span><h3>Practice with feedback</h3><p>Check each answer and learn from the explanation—not just the score.</p></article>
+				<article class="sqe-feature"><span class="sqe-icon">✓</span><h3>Practice with feedback</h3><p>Check each answer and learn from the explanation, not just the score.</p></article>
 				<article class="sqe-feature"><span class="sqe-icon">↻</span><h3>Flashcards that remember</h3><p>Rate recall as hard, good or easy, pause safely, and return to your deck.</p></article>
 				<article class="sqe-feature"><span class="sqe-icon">◎</span><h3>Results you can use</h3><p>See your score, attempt history and the next practical step after a session.</p></article>
-				<article class="sqe-feature sqe-feature-gold"><span class="sqe-icon">✦</span><h3>Study Buddy AI</h3><p>Live in beta: a source-grounded assistant that answers from your selected lesson's approved material only, with suggested questions to get started.</p></article>
+				<article class="sqe-feature sqe-feature-gold"><span class="sqe-icon">✦</span><h3>Study Buddy AI</h3><p>Live in beta: a source grounded assistant that answers from your selected lesson's approved material only, with suggested questions to get started.</p></article>
 			</div>
 		</section>
 
 		<section class="sqe-cta-panel">
 			<div><p class="sqe-eyebrow sqe-eyebrow-light"><span></span> Start where you are</p><h2>A clearer path to exam day.</h2><p>Create your account, choose an available course and begin when you are ready.</p></div>
 			<div class="sqe-cta-actions">
-				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="{{ signup_url }}">Start my free 7-day trial <span aria-hidden="true">→</span></a>
+				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="{{ signup_url }}">Start my free 7 day trial <span aria-hidden="true">→</span></a>
 				<span class="sqe-cta-panel-note">No card required · Launch plan $25/month</span>
 				<a class="sqe-cta-login" href="{{ login_url }}">Already studying? Log in</a>
 			</div>

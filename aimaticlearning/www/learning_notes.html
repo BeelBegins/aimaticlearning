@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<div class="aimatic-learning-notes" style="max-width:900px;margin:0 auto;padding:24px;">
+<div class="aimatic-learning-notes" id="chapter-{{ chapter_profile }}" data-focus="{{ focus | e }}" style="max-width:900px;margin:0 auto;padding:24px;">
 	<style>
 		.aimatic-learning-notes {
 			user-select: none;
@@ -10,6 +10,7 @@
 			line-height: 1.6;
 			font-size: 16px;
 		}
+		.aimatic-learning-notes .notes-focus-target { border-left: 4px solid #c69a3b; border-radius: 4px; background: rgba(198, 154, 59, 0.12); box-shadow: 0 0 0 6px rgba(198, 154, 59, 0.08); }
 		.aimatic-learning-notes .notes-banner {
 			background: var(--fg-color);
 			border: 1px solid var(--border-color);
@@ -28,8 +29,23 @@
 	</style>
 	<h2>{{ chapter_title }}</h2>
 	<div class="notes-banner text-muted">
-		Protected read-only notes. Download and export are disabled. Content is served only after enrolment checks.
+		Protected notes for reading. Download and export are disabled. Content is served only after enrolment checks.
 	</div>
 	<div class="notes-body">{{ notes_html | safe }}</div>
+	<script>
+	(function () {
+		const host = document.getElementById("chapter-{{ chapter_profile }}");
+		const focus = (host && host.dataset.focus ? host.dataset.focus : "").trim().toLowerCase();
+		if (!host || !focus) return;
+		const words = focus.split(/\s+/).filter(function (word) { return word.length > 3; });
+		const target = Array.from(host.querySelectorAll("h2, h3, h4, p, li, blockquote, table")).find(function (node) {
+			const value = (node.textContent || "").toLowerCase();
+			return value.includes(focus) || (words.length && words.every(function (word) { return value.includes(word); }));
+		});
+		if (!target) return;
+		target.classList.add("notes-focus-target");
+		window.requestAnimationFrame(function () { target.scrollIntoView({ block: "center", behavior: "smooth" }); });
+	})();
+	</script>
 </div>
 {% endblock %}

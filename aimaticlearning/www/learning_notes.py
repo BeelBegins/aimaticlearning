@@ -14,3 +14,4 @@ def get_context(context):
 	context.chapter_title = notes["chapter_title"]
 	context.notes_html = notes["notes_html"]
 	context.chapter_profile = chapter_profile
+	context.focus = frappe.form_dict.get("focus") or ""

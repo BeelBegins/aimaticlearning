@@ -1,6 +1,8 @@
 import unittest
 
 from aimaticlearning.lms_learning.revision import (
+	_build_quiz_summary,
+	_empty_mock_exam,
 	apply_rating_filter,
 	encode_recall_tags,
 	latest_ratings_from_attempts,
@@ -36,3 +38,28 @@ class TestRevisionRatings(unittest.TestCase):
 		self.assertEqual([card["name"] for card in hard], ["FC-1"])
 		unreviewed = apply_rating_filter(list(cards), ratings, "unreviewed")
 		self.assertEqual([card["name"] for card in unreviewed], ["FC-3"])
+
+
+class TestRevisionAssessments(unittest.TestCase):
+	def test_quiz_summary_separates_chapter_and_mock_attempts(self):
+		history = [
+			{"percentage": 80, "passed": True, "kind": "mock_exam"},
+			{"percentage": 50, "passed": False, "kind": "chapter_mcq"},
+		]
+		self.assertEqual(
+			_build_quiz_summary(history),
+			{
+				"attempts": 2,
+				"passed": 1,
+				"failed": 1,
+				"pass_rate_pct": 50.0,
+				"average_pct": 65.0,
+				"chapter_mcq_attempts": 1,
+				"mock_exam_attempts": 1,
+				"latest": history[0],
+			},
+		)
+
+	def test_empty_mock_exam_is_explicitly_unavailable(self):
+		self.assertFalse(_empty_mock_exam()["available"])
+		self.assertIsNone(_empty_mock_exam()["url"])

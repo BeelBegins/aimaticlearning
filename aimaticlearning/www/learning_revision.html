@@ -138,6 +138,37 @@
 			.rev-counts span { font-size: 0.7rem; }
 		}
 	</style>
+	<style>
+	.rev-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+	.rev-card-heading > div:first-child { min-width: 0; }
+	.rev-card-heading h2 { margin-bottom: 5px; }
+	.rev-card-heading p { margin: 0; color: var(--rev-muted); font-size: 0.82rem; line-height: 1.45; }
+	.rev-mock-slot { flex: 0 0 auto; }
+	.rev-mock-slot .rev-btn { min-height: 38px; padding: 8px 12px; font-size: 0.74rem; }
+	.rev-quiz-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 17px; }
+	.rev-quiz-stat { padding: 12px; border: 1px solid var(--rev-line); border-radius: 13px; background: var(--rev-warm); }
+	.rev-quiz-stat strong { display: block; font-size: 1.28rem; letter-spacing: -0.035em; }
+	.rev-quiz-stat span { display: block; margin-top: 3px; color: var(--rev-muted); font-size: 0.68rem; line-height: 1.25; }
+	.rev-quiz-history { display: grid; gap: 8px; margin-top: 13px; }
+	.rev-quiz-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 13px; align-items: center; padding: 11px 12px; border: 1px solid var(--rev-line); border-radius: 13px; background: var(--rev-warm); }
+	.rev-quiz-row strong { display: block; overflow-wrap: anywhere; font-size: 0.82rem; }
+	.rev-quiz-row small { display: block; margin-top: 3px; color: var(--rev-muted); font-size: 0.7rem; line-height: 1.3; }
+	.rev-quiz-row > a { font-size: 0.74rem; font-weight: 750; text-decoration: none; white-space: nowrap; }
+	.rev-quiz-row.rev-pass { border-color: rgba(76, 137, 105, 0.3); background: var(--rev-easy-bg); }
+	.rev-quiz-row.rev-fail { border-color: rgba(177, 92, 82, 0.22); background: var(--rev-hard-bg); }
+	.rev-missed { display: grid; gap: 9px; }
+	.rev-missed-row { padding: 13px; border: 1px solid var(--rev-line); border-radius: 14px; background: var(--rev-warm); }
+	.rev-missed-row strong { display: block; color: var(--rev-accent); font-size: 0.78rem; }
+	.rev-missed-row p { margin: 6px 0; color: var(--rev-ink); font-size: 0.86rem; line-height: 1.45; }
+	.rev-missed-row small { display: block; margin-bottom: 8px; color: var(--rev-muted); font-size: 0.7rem; }
+	.rev-missed-row a { font-size: 0.74rem; font-weight: 750; text-decoration: none; }
+	@media (max-width: 720px) {
+		.rev-card-heading { flex-direction: column; }
+		.rev-mock-slot { width: 100%; }
+		.rev-quiz-row { grid-template-columns: minmax(0, 1fr) auto; }
+		.rev-quiz-row > a { grid-column: 1 / -1; }
+	}
+	</style>
 
 	<div class="rev-top">
 		<div class="rev-heading">
@@ -160,6 +191,18 @@
 	<div id="rev-body" class="is-hidden">
 		<div class="rev-counts" id="rev-counts"></div>
 		<div class="rev-actions" id="rev-actions"></div>
+		<section class="rev-card rev-assessment-card">
+			<div class="rev-card-heading">
+				<div><h2>Practice and mock exams</h2><p>Review your chapter MCQs and module mock attempts in one place.</p></div>
+				<div id="rev-mock" class="rev-mock-slot"></div>
+			</div>
+			<div id="rev-quiz-summary" class="rev-quiz-summary"></div>
+			<div id="rev-quiz-history" class="rev-quiz-history"></div>
+		</section>
+		<section class="rev-card rev-missed-card">
+			<h2>Missed questions to revisit</h2>
+			<div id="rev-missed" class="rev-missed"></div>
+		</section>
 		<div class="rev-insights">
 		<section class="rev-card">
 			<h2>What to do next</h2>
@@ -189,6 +232,10 @@
 		select: document.getElementById("rev-module"),
 		counts: document.getElementById("rev-counts"),
 		actions: document.getElementById("rev-actions"),
+		mock: document.getElementById("rev-mock"),
+		quizSummary: document.getElementById("rev-quiz-summary"),
+		quizHistory: document.getElementById("rev-quiz-history"),
+		missed: document.getElementById("rev-missed"),
 		recs: document.getElementById("rev-recs"),
 		weak: document.getElementById("rev-weak"),
 		chapters: document.getElementById("rev-chapters"),
@@ -311,6 +358,101 @@
 	}
 
 	function render(data) {
+
+	function quizStat(label, value) {
+		const node = document.createElement("div");
+		node.className = "rev-quiz-stat";
+		const strong = document.createElement("strong");
+		text(strong, String(value));
+		const span = document.createElement("span");
+		text(span, label);
+		node.append(strong, span);
+		return node;
+	}
+
+	function dateLabel(value) {
+		if (!value) return "";
+		const parsed = new Date(String(value).replace(" ", "T"));
+		return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+	}
+
+	function renderAssessment(data) {
+		const summary = data.quiz_summary || {};
+		el.quizSummary.replaceChildren(
+			quizStat("Quiz attempts", summary.attempts || 0),
+			quizStat("Passed", summary.passed || 0),
+			quizStat("Average score", String(summary.average_pct || 0) + "%"),
+			quizStat("Mock attempts", summary.mock_exam_attempts || 0)
+		);
+
+		const mock = data.mock_exam || {};
+		el.mock.replaceChildren();
+		if (mock.available && mock.url) {
+			el.mock.append(button("Start module mock", mock.url, true));
+		} else {
+			const note = document.createElement("span");
+			note.className = "rev-empty";
+			text(note, "The module mock is not available yet.");
+			el.mock.append(note);
+		}
+
+		el.quizHistory.replaceChildren();
+		const history = data.quiz_history || [];
+		if (!history.length) {
+			const empty = document.createElement("p");
+			empty.className = "rev-empty";
+			text(empty, "No quiz attempts yet. Chapter questions and the module mock will appear here after you submit them.");
+			el.quizHistory.append(empty);
+			return;
+		}
+		history.forEach(function (record) {
+			const row = document.createElement("article");
+			row.className = "rev-quiz-row " + (record.passed ? "rev-pass" : "rev-fail");
+			const copy = document.createElement("div");
+			const title = document.createElement("strong");
+			text(title, (record.kind_label || "Quiz") + " · Attempt " + (record.attempt_number || 1));
+			const meta = document.createElement("small");
+			const bits = ["Score " + String(record.percentage || 0) + "%"];
+			if (record.question_count) bits.push(record.question_count + " questions");
+			if (record.modified) bits.push(dateLabel(record.modified));
+			text(meta, bits.join(" · "));
+			copy.append(title, meta);
+			const status = document.createElement("span");
+			text(status, record.passed ? "Pass" : "Review");
+			row.append(copy, status);
+			if (record.url) row.append(button("Review", record.url));
+			el.quizHistory.append(row);
+		});
+	}
+
+	function renderMissed(data) {
+		el.missed.replaceChildren();
+		const rows = data.missed_questions || [];
+		if (!rows.length) {
+			const empty = document.createElement("p");
+			empty.className = "rev-empty";
+			text(empty, "No missed MCQs have been recorded yet.");
+			el.missed.append(empty);
+			return;
+		}
+		rows.forEach(function (record) {
+			const row = document.createElement("article");
+			row.className = "rev-missed-row";
+			const concept = document.createElement("strong");
+			text(concept, record.concept || "Review this question");
+			const question = document.createElement("p");
+			text(question, record.question || "Missed question");
+			const meta = document.createElement("small");
+			const bits = [record.kind === "mock_exam" ? "Module mock exam" : "Chapter MCQ"];
+			if (record.quiz_title) bits.push(record.quiz_title);
+			if (record.modified) bits.push(dateLabel(record.modified));
+			text(meta, bits.join(" · "));
+			row.append(concept, question, meta);
+			if (record.notes_url) row.append(button("Reopen chapter notes", record.notes_url));
+			el.missed.append(row);
+		});
+	}
+
 		const modules = data.modules || [];
 		if (!modules.length) {
 			el.body.classList.add("is-hidden");
@@ -350,6 +492,8 @@
 			el.actions.append(button("Study all flashcards", urls.all));
 		}
 		if (urls.course) el.actions.append(button("Open course notes", urls.course));
+		renderAssessment(data);
+		renderMissed(data);
 
 		fillList(el.recs, data.recommendations, "Rate flashcards or complete chapter questions to build a revision plan.");
 		fillList(el.weak, data.weaknesses, "No weak concepts yet. Hard flashcards and missed questions will appear here.");

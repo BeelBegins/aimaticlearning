@@ -3,6 +3,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from frappe.utils import get_url, validate_email_address
+
 from aimaticlearning.zoho_email import configure_zoho_outgoing_email as _configure_zoho_outgoing_email
 
 ENROLLMENT_TEMPLATE = "Examic Study Course Enrollment"
@@ -102,11 +103,16 @@ def _ensure_brand_file_records() -> None:
 
 def _configure_course_quiz_feedback() -> None:
 	"""Keep scoring server-owned while exposing explanations and attempt history."""
-	if not frappe.db.exists("LMS Course", "business-law-practice-blp"):
+	courses = frappe.get_all(
+		"Learning Module Config",
+		filters={"lms_course": ["is", "set"]},
+		pluck="lms_course",
+	)
+	if not courses:
 		return
 	for quiz_name in frappe.get_all(
 		"LMS Quiz",
-		filters={"course": "business-law-practice-blp"},
+		filters={"course": ["in", courses]},
 		pluck="name",
 	):
 		frappe.db.set_value(
@@ -153,11 +159,13 @@ def create_email_templates() -> None:
 	)
 	_upsert_email_template(
 		WELCOME_TEMPLATE,
-		subject="Welcome to Examic Study",
+		subject="Set your Examic Study password",
 		response="""
 <p>Hello {{ student_name }},</p>
-<p>Your Examic Study account is ready.</p>
-<p><a href="{{ courses_url }}">Browse the available courses</a> and choose what you want to study.</p>
+<p>Your Examic Study account is ready. Set your password to begin your SQE study path.</p>
+<p><a href="{{ password_setup_url }}">Set your password</a></p>
+<p>This secure link can be used once. If it has expired, use <a href="{{ forgot_password_url }}">Forgot Password</a> on the login page.</p>
+<p>After setting your password, <a href="{{ courses_url }}">open your courses</a>.</p>
 """,
 	)
 
@@ -215,6 +223,30 @@ def _queue_email(recipient: str, subject: str, message: str, reference_doctype: 
 	)
 	return True
 
+# Examic onboarding keeps the core password hash flow and uses a setup link.
+
+
+def _is_lms_student_user(doc: frappe.Document) -> bool:
+	"""Recognise LMS website users without changing Frappe's User model."""
+	if doc.user_type != "Website User":
+		return False
+	roles = {row.role for row in doc.get("roles") or []}
+	if "LMS Student" in roles:
+		return True
+	return frappe.db.get_single_value("Portal Settings", "default_role") == "LMS Student"
+
+
+def suppress_lms_random_password_welcome(doc: frappe.Document, method: str | None = None) -> None:
+	"""Keep Frappe's secure password generation but replace its welcome mail."""
+	if not is_lms_site() or doc.user_type != "Website User":
+		return
+	if getattr(doc.flags, "examic_lms_onboarding", False):
+		doc.flags.no_welcome_mail = True
+		return
+	if not getattr(frappe.flags, "examic_signup", False) or not _is_lms_student_user(doc):
+		return
+	doc.flags.no_welcome_mail = True
+
 
 def send_course_enrollment_email(doc: frappe.Document, method: str | None = None) -> None:
 	if not is_lms_site() or doc.flags.skip_lms_enrollment_email:
@@ -242,17 +274,48 @@ def send_student_welcome_email(doc: frappe.Document, method: str | None = None) 
 	if doc.user_type != "Website User":
 		return
 	roles = {row.role for row in doc.get("roles") or []}
-	if "LMS Student" not in roles:
+	if "LMS Student" not in roles and not getattr(doc.flags, "examic_lms_onboarding", False):
 		return
 	if frappe.db.exists("LMS Enrollment", {"member": doc.name}):
 		return
 
+	password_setup_url = doc._reset_password(send_email=False)
 	context = {
 		"student_name": doc.full_name or doc.email,
 		"courses_url": get_url("/lms/courses"),
+		"password_setup_url": password_setup_url,
+		"forgot_password_url": get_url("/login#forgot"),
 	}
 	subject, message = _render_template(WELCOME_TEMPLATE, context)
-	_queue_email(doc.email, subject, message, "User", doc.name)
+	if _queue_email(doc.email, subject, message, "User", doc.name):
+		doc.flags.email_sent = 1
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def sign_up(
+	email: str,
+	full_name: str,
+	verify_terms: bool = False,
+	user_category: str = "",
+):
+	"""Delegate signup validation to LMS core and customise only onboarding."""
+	frappe.flags.examic_signup = True
+	try:
+		from lms.lms.user import sign_up as core_sign_up
+
+		result = core_sign_up(
+			email=email,
+			full_name=full_name,
+			verify_terms=verify_terms,
+			user_category=user_category,
+		)
+		if isinstance(result, (tuple, list)) and result and int(result[0]) == 1:
+			return 1, _("Signup successful. Check your email to set your password.")
+		return result
+	finally:
+		frappe.flags.examic_signup = False
 
 
 def ensure_lms_student_user(
@@ -279,7 +342,7 @@ def ensure_lms_student_user(
 			"send_welcome_email": 1 if send_welcome else 0,
 		}
 	)
-	user.flags.skip_lms_welcome_email = True
+	user.flags.examic_lms_onboarding = bool(send_welcome)
 	user.flags.ignore_permissions = True
 	user.insert()
 	user.add_roles("LMS Student")

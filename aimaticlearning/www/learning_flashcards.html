@@ -1,6 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block title %}Flashcards — {{ chapter_title }}{% endblock %}
+{% block title %}Flashcards: {{ chapter_title }}{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
 
@@ -74,7 +74,7 @@
 	<a class="fc-back-link" href="/learning-revision">← Back to revision</a>
 	<div class="fc-header">
 		<h2>Flashcards</h2>
-		<p>{{ chapter_title }} — tap card to flip, rate recall, then continue.</p>
+		<p>{{ chapter_title }}. Tap card to flip, rate recall, then continue.</p>
 	</div>
 
 	<div id="fc-loading" class="fc-loading">Loading deck…</div>

@@ -25,9 +25,13 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 			"question_revision",
 		],
 	)
+	course = frappe.db.get_value("Learning Module Config", learning_module, "lms_course")
+	module_assessment_quiz = frappe.db.get_value("Learning Module Config", learning_module, "module_assessment_quiz")
 	quiz_rows = frappe.db.sql(
 		"""
-		select s.name, s.quiz, s.percentage, s.course, q.title as quiz_title
+		select s.name, s.quiz, s.percentage, s.course, q.title as quiz_title,
+		       s.score, s.score_out_of, s.passing_percentage, s.creation, s.modified,
+		       (select count(*) from `tabLMS Quiz Result` r where r.parent = s.name) as question_count
 		from `tabLMS Quiz Submission` s
 		inner join `tabLMS Quiz` q on q.name = s.quiz
 		where s.member = %(user)s and s.course = %(course)s
@@ -35,10 +39,21 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 		""",
 		{
 			"user": user,
-			"course": frappe.db.get_value("Learning Module Config", learning_module, "lms_course"),
+			"course": course,
 		},
 		as_dict=True,
 	)
+	attempt_numbers = {}
+	for row in reversed(quiz_rows):
+		key = row.get("quiz") or ""
+		attempt_numbers[key] = attempt_numbers.get(key, 0) + 1
+		row["attempt_number"] = attempt_numbers[key]
+		row["percentage"] = float(row.get("percentage") or 0)
+		row["passing_percentage"] = float(row.get("passing_percentage") or 0)
+		row["passed"] = row["percentage"] >= row["passing_percentage"]
+		row["kind"] = "mock_exam" if key and key == module_assessment_quiz else "chapter_mcq"
+		row["kind_label"] = "Module mock exam" if row["kind"] == "mock_exam" else "Chapter MCQ"
+		row["question_count"] = int(row.get("question_count") or 0)
 
 	chapter_stats: dict[str, dict] = {}
 	for chapter in chapters:

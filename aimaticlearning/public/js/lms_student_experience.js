@@ -32,11 +32,28 @@
 	const SQE1_SUBJECTS = SQE1_PATHWAYS.reduce(function (all, pathway) {
 		return all.concat(pathway.subjects);
 	}, []);
+	const SQE_THUMBNAIL = "/assets/aimaticlearning/images/sqe-course-thumbnail.png?v=20260910-1";
+	const SQE_REVIEW_ONLY = new Set(["dispute-resolution", "legal-services", "criminal-law"]);
 
 
 	function courseIdFromLink(link) {
 		const match = new URL(link.href, window.location.origin).pathname.match(/^\/lms\/courses\/([^/]+)/);
 		return match && SQE1_SUBJECTS.some(function (subject) { return subject[0] === match[1]; }) ? match[1] : null;
+	}
+
+	function makeSqeCourseCardThumbnail(card, course) {
+		const thumbnail = makeNode("div", "aimatic-sqe-card-thumb");
+		const image = document.createElement("img");
+		image.src = SQE_THUMBNAIL;
+		image.alt = "";
+		image.loading = "lazy";
+		image.decoding = "async";
+		const subject = SQE1_SUBJECTS.find(function (item) { return item[0] === course; });
+		const label = subject ? subject[1].replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase() : "SQ";
+		thumbnail.append(image, makeNode("span", "aimatic-sqe-card-thumb-label", label));
+		const nativeImage = card.querySelector('div[class*="bg-cover"], [style*="background-image"]');
+		if (nativeImage) nativeImage.classList.add("aimatic-sqe-native-card-image");
+		card.prepend(thumbnail);
 	}
 
 	function addSqePathwayCatalogue() {
@@ -47,7 +64,7 @@
 		if (!links.length) return;
 		const sourceGrid = links[0].closest(".grid");
 		if (!sourceGrid) return;
-		const mapped = links.map(function (link) { return { link: link, course: courseIdFromLink(link) }; });
+		const mapped = links.map(function (link) { return { link: link, course: courseIdFromLink(link) }; }).filter(function (item) { return !SQE_REVIEW_ONLY.has(item.course); });
 		if (mapped.some(function (item) { return !item.course; })) return;
 		const host = sourceGrid.parentElement;
 		const signature = mapped.map(function (item) { return item.course; }).join(",");
@@ -106,6 +123,7 @@
 			group.items.forEach(function (item) {
 				const card = item.link.cloneNode(true);
 				card.classList.add("aimatic-sqe-course-card");
+				makeSqeCourseCardThumbnail(card, item.course);
 				cards.append(card);
 			});
 			panel.append(cards);
@@ -131,6 +149,49 @@
 	function currentSqeCourse() {
 		const match = window.location.pathname.match(/^\/lms\/courses\/([^/]+)(?:\/|$)/);
 		return match && SQE1_SUBJECTS.some(function (subject) { return subject[0] === match[1]; }) ? match[1] : null;
+	}
+
+	function keepSqeCatalogueHeading() {
+		if (!/^\/lms\/courses\/?$/.test(window.location.pathname)) return;
+		const title = document.querySelector("h1");
+		if (title && title.textContent !== "SQE1 preparation") title.textContent = "SQE1 preparation";
+	}
+
+	function hideLearnerCourseMetadata() {
+		const course = currentSqeCourse();
+		document.body.classList.toggle("aimatic-sqe-course-surface", Boolean(course));
+		if (!course) return;
+
+		document.querySelectorAll(".aimatic-sqe-course-card .avatar-group").forEach(function (node) {
+			node.classList.add("aimatic-sqe-instructor-meta");
+		});
+		document.querySelectorAll(".aimatic-sqe-course-card .lucide-users, .aimatic-sqe-course-card .lucide-star").forEach(function (icon) {
+			const row = icon.closest("div.flex");
+			if (row) row.classList.add("aimatic-sqe-enrolment-meta");
+		});
+
+		const overview = document.querySelector(".p-5");
+		if (!overview) return;
+		overview.querySelectorAll('a[href*="/lms/user/"]').forEach(function (link) {
+			const row = link.closest("div.flex.items-center") || link;
+			row.classList.add("aimatic-sqe-instructor-meta");
+		});
+		overview.querySelectorAll(".lucide-users-round, .lucide-users, .lucide-star").forEach(function (icon) {
+			const row = icon.closest("div.flex.items-center") || icon;
+			row.classList.add("aimatic-sqe-enrolment-meta");
+		});
+		Array.from(overview.querySelectorAll("div.mt-12")).forEach(function (section) {
+			const value = (section.textContent || "").toLowerCase();
+			if (/course rating|user rating|write a review|view all reviews/.test(value)) {
+				section.classList.add("aimatic-sqe-reviews");
+			}
+		});
+		Array.from(overview.querySelectorAll("span, div")).forEach(function (node) {
+			const value = (node.textContent || "").trim().toLowerCase();
+			if (!["course creator", "taught by", "also teaching"].includes(value)) return;
+			const card = node.closest("div.border-2") || node.parentElement;
+			if (card) card.classList.add("aimatic-sqe-course-instructor-card");
+		});
 	}
 
 	function addSqeSwitcher() {
@@ -429,6 +490,8 @@
 
 	function polish() {
 		addSqePathwayCatalogue();
+		keepSqeCatalogueHeading();
+		hideLearnerCourseMetadata();
 		addSqeSwitcher();
 		addRevisionEntry();
 		polishStudyBuddy();

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import frappe
 
-
 FLK1_CATEGORY = "SQE1 · FLK1"
 FLK2_CATEGORY = "SQE1 · FLK2"
 
@@ -156,6 +155,14 @@ def _split_tort_chapters() -> dict:
 	module_name = frappe.db.get_value("Learning Module Config", {"lms_course": course.name}, "name")
 	if not module_name:
 		frappe.throw("Tort Law does not have a learning-module configuration.")
+	existing = frappe.get_all(
+		"Course Chapter",
+		filters={"course": course.name},
+		fields=["name", "title"],
+		order_by="idx asc",
+	)
+	if len(existing) == len(TORT_CHAPTERS) and {row.title for row in existing} == set(TORT_CHAPTERS):
+		return {"chapters": len(existing), "source_preserved": True, "split": []}
 
 	chapter_eight = frappe.db.get_value(
 		"Course Chapter", {"course": course.name, "title": TORT_CHAPTERS[7]}, "name"
