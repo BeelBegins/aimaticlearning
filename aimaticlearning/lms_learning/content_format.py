@@ -325,5 +325,3 @@ def parse_notes_blocks(notes_html: str) -> list[dict[str, Any]]:
     parser.feed(notes_html or "")
     parser.close()
     return parser.blocks
-
-\n
