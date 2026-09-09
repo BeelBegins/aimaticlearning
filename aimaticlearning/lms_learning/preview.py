@@ -3,7 +3,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-PREVIEW_ROLES = frozenset({"System Manager", "Course Creator"})
+PREVIEW_ROLES = frozenset({"Course Creator", "Examic Preview Reviewer", "System Manager"})
 
 
 def has_preview_access(user: str | None = None) -> bool:
