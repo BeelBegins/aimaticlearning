@@ -257,3 +257,29 @@ def _ensure_module_assessment_lesson(
 	link_chapter_to_course(course_name, chapter_name)
 	link_lesson_to_chapter(chapter_name, lesson_name)
 	return lesson_name
+
+
+@frappe.whitelist(allow_guest=True)
+def get_course_details(course: str):
+	"""Native get_course_details() reports quiz_count by scanning each lesson's
+	EditorJS content for an embedded 'quiz' block. Every chapter MCQ on this
+	platform is instead wired via Course Lesson.quiz_id (see ensure_quiz_lesson
+	above), so the native count is always 0 and the frontend's CourseCardOverlay
+	hides its "Quiz topics" row entirely, even on courses with dozens of working
+	quizzes. Patch the count in rather than duplicating the whole function."""
+	from lms.lms.utils import get_course_details as native_get_course_details
+
+	details = native_get_course_details(course)
+	if not details:
+		return details
+
+	quiz_id_count = frappe.db.sql(
+		"""
+		SELECT COUNT(DISTINCT quiz_id) FROM `tabCourse Lesson`
+		WHERE course=%s AND quiz_id IS NOT NULL AND quiz_id != ''
+		""",
+		(course,),
+	)[0][0]
+	if quiz_id_count:
+		details["quiz_count"] = (details.get("quiz_count") or 0) + quiz_id_count
+	return details
