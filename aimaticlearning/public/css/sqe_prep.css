@@ -200,16 +200,3 @@
 	.sqe-footer { align-items: flex-start; flex-direction: column; margin: 0 18px; }
 	.sqe-footer p { display: none; }
 }
-
-/* Reviewer preview and consistent subject imagery. */
-.sqe-preview-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 auto 20px; padding: 11px 16px; border: 1px solid rgba(48, 127, 115, 0.18); border-radius: 12px; background: #f5f8f5; color: #3f6158; font-size: 0.78rem; }
-.sqe-preview-banner strong { color: #2f6f62; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-.sqe-preview-banner span { color: #64776f; }
-.sqe-course-thumb { position: relative; aspect-ratio: 16 / 9; margin-bottom: 18px; overflow: hidden; border-radius: 14px; background: #edf3f0; }
-.sqe-course-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.sqe-course-thumb::after { position: absolute; z-index: 1; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(16, 35, 63, 0.48)); content: ""; }
-.sqe-course-thumb span { position: absolute; z-index: 2; right: 12px; bottom: 10px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 10px; background: rgba(16, 35, 63, 0.72); color: #fff; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; }
-@media (max-width: 620px) {
-	.sqe-preview-banner { align-items: flex-start; flex-direction: column; gap: 4px; margin-inline: 18px; }
-}
-.sqe-review-note { margin: 10px 0 0; padding: 9px 10px; border-left: 3px solid #d1a245; background: #fbf5e9; color: #6d5a35; font-size: 0.73rem; line-height: 1.4; }

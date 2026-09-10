@@ -2,15 +2,8 @@ import frappe
 
 from aimaticlearning.lms_learning.sqe_pathway import FLK1_SUBJECTS, FLK2_SUBJECTS
 
-COURSE_THUMBNAIL_URL = "/assets/aimaticlearning/images/sqe-course-thumbnail.png?v=20260910-1"
-REVIEW_ONLY_COURSES = {
-	"dispute-resolution": "Source Chapter 8 needs a notes and MCQ review.",
-	"legal-services": "Source Chapters 2 and 3 need a notes and MCQ review.",
-	"criminal-law": "Four source answer mappings need academic review.",
-}
 
-
-def get_context(context, preview_mode: bool = False):
+def get_context(context):
 	context.no_cache = 1
 	context.title = "Examic Study | Focused SQE Preparation"
 	context.meta_description = (
@@ -18,7 +11,6 @@ def get_context(context, preview_mode: bool = False):
 		"flashcards and realistic module assessments."
 	)
 	context.body_class = "sqe-public-page"
-	context.preview_mode = bool(preview_mode)
 	# Hardcoded, not frappe.utils.get_url(): this site answers on lms.aimatic.tech,
 	# examic.study, and www.examic.study alike, but examic.study is the public
 	# brand and must be the one consistent canonical/OG host everywhere (matches
@@ -28,8 +20,8 @@ def get_context(context, preview_mode: bool = False):
 	context.login_url = "/login"
 	context.signup_url = "/login#signup"
 	context.courses_url = "/lms/courses"
-	context.flk1_courses = _get_courses(FLK1_SUBJECTS, include_review=preview_mode)
-	context.flk2_courses = _get_courses(FLK2_SUBJECTS, include_review=preview_mode)
+	context.flk1_courses = _get_courses(FLK1_SUBJECTS)
+	context.flk2_courses = _get_courses(FLK2_SUBJECTS)
 	context.viewer = _get_viewer_state()
 	context.course_schema = _get_course_schema(context.flk1_courses + context.flk2_courses)
 	return context
@@ -49,7 +41,6 @@ def _get_course_schema(courses: list[dict]) -> str:
 				"name": course["title"],
 				"description": course["summary"],
 				"url": f"{site_url}{course['course_url']}",
-				"image": f"{site_url}{COURSE_THUMBNAIL_URL.split('?')[0]}",
 				"provider": provider,
 			},
 		}
@@ -59,13 +50,10 @@ def _get_course_schema(courses: list[dict]) -> str:
 	return frappe.as_json(schema)
 
 
-def _get_courses(subjects, include_review: bool = False) -> list[dict]:
+def _get_courses(subjects) -> list[dict]:
 	"""Return published subjects in the pathway's assessment order."""
 	courses = []
 	for subject in subjects:
-		review_note = REVIEW_ONLY_COURSES.get(subject["course"])
-		if review_note and not include_review:
-			continue
 		if not frappe.db.get_value("LMS Course", subject["course"], "published"):
 			continue
 		course = frappe.get_doc("LMS Course", subject["course"])
@@ -75,12 +63,7 @@ def _get_courses(subjects, include_review: bool = False) -> list[dict]:
 				"title": course.title,
 				"summary": course.short_introduction or subject["summary"],
 				"course_url": f"/lms/courses/{course.name}",
-				"image": course.image or "",
-				"thumbnail_url": COURSE_THUMBNAIL_URL,
-				"thumbnail_label": (course.title or subject["course"])[:2].upper(),
 				"activity_label": _activity_label(course.name),
-				"review_only": bool(review_note),
-				"review_note": review_note,
 			}
 		)
 	return courses

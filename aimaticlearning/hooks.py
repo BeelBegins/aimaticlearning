@@ -15,11 +15,7 @@ doc_events = {
 	"LMS Enrollment": {
 		"after_insert": "aimaticlearning.lms_learning.enrollment.send_course_enrollment_email",
 	},
-	"LMS Quiz Submission": {
-		"after_insert": "aimaticlearning.lms_learning.quiz_sync.sync_quiz_submission_event",
-	},
 	"User": {
-		"before_insert": "aimaticlearning.lms_learning.enrollment.suppress_lms_random_password_welcome",
 		"after_insert": "aimaticlearning.lms_learning.enrollment.send_student_welcome_email",
 	},
 }
@@ -34,7 +30,6 @@ website_route_rules = [
 	{"from_route": "/learning-notes/<chapter_profile>", "to_route": "learning_notes"},
 	{"from_route": "/learning-flashcards", "to_route": "learning_flashcards"},
 	{"from_route": "/learning-revision", "to_route": "learning_revision"},
-	{"from_route": "/sqe-preview", "to_route": "sqe_preview"},
 ]
 
 page_renderer = [
@@ -66,6 +61,5 @@ override_whitelisted_methods = {
 	"lms.lms.utils.get_chart_data": "aimaticlearning.lms_learning.statistics.get_chart_data",
 	"lms.lms.utils.get_course_completion_data": "aimaticlearning.lms_learning.statistics.get_course_completion_data",
 	"lms.lms.utils.get_course_details": "aimaticlearning.lms_learning.outline_sync.get_course_details",
-	"lms.lms.user.sign_up": "aimaticlearning.lms_learning.enrollment.sign_up",
 }
 

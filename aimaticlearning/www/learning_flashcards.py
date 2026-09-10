@@ -1,22 +1,9 @@
 import frappe
-from urllib.parse import quote, urlencode
 
 from aimaticlearning.lms_learning.protected_notes import get_notes_for_profile
 
 
 def get_context(context):
-	query = {}
-	for key in ("chapter_profile", "learning_module", "rating"):
-		value = frappe.form_dict.get(key)
-		if value:
-			query[key] = value
-	if frappe.session.user == "Guest":
-		target = "/learning-flashcards"
-		if query:
-			target += "?" + urlencode(query)
-		frappe.local.flags.redirect_location = "/login?redirect-to=" + quote(target, safe="")
-		raise frappe.Redirect
-
 	chapter_profile = frappe.form_dict.chapter_profile
 	learning_module = frappe.form_dict.learning_module
 	if not chapter_profile and not learning_module:

@@ -18,5 +18,5 @@ class LearningModuleConfig(Document):
 		)
 		self.module_mcq_count = frappe.db.count(
 			"Learning Question Meta",
-			{"learning_module": self.name, "question_role": ["in", ["Module Assessment", "Both"]]},
+			{"learning_module": self.name, "question_role": "Module Assessment"},
 		)

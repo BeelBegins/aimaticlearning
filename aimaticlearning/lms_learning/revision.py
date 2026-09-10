@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from collections import Counter
-from urllib.parse import quote
 
 import frappe
-from frappe.utils import strip_html
 
 from aimaticlearning.lms_learning.analytics import build_learning_map
 from aimaticlearning.lms_learning.utils import user_can_access_course
@@ -107,17 +105,9 @@ def build_revision_board(
 			],
 			"chapters": [],
 			"study_urls": {},
-			"quiz_history": [],
-			"quiz_summary": _empty_quiz_summary(),
-			"missed_questions": [],
-			"mock_exam": _empty_mock_exam(),
 		}
 
 	learning_map = build_learning_map(selected["name"], user)
-	quiz_history = _prepare_quiz_history(learning_map.get("quiz_history") or [], selected["lms_course"])
-	quiz_summary = _build_quiz_summary(quiz_history)
-	missed_questions = _load_missed_questions(user, selected)
-	mock_exam = _build_mock_exam(selected, quiz_history)
 	published_cards = frappe.get_all(
 		"Learning Flashcard",
 		filters={"learning_module": selected["name"], "status": "Published"},
@@ -149,7 +139,7 @@ def build_revision_board(
 				"attempts": stats.get("attempts") or 0,
 				"group": _group(stats.get("mastery_pct") or 0, stats.get("attempts") or 0),
 				"hard_cards": int(hard_by_chapter.get(course_chapter) or 0),
-				"notes_url": _notes_url(selected["name"], selected["lms_course"], course_chapter),
+				"notes_url": _lesson_url(selected["lms_course"], course_chapter),
 				"flashcard_url": _lesson_url(selected["lms_course"], course_chapter, "flashcard"),
 			}
 		)
@@ -171,9 +161,6 @@ def build_revision_board(
 			"This subject does not have published flashcards yet. Use the notes and, when they appear, chapter MCQs.",
 		)
 
-	if missed_questions:
-		recommendations.insert(0, f"Review {len(missed_questions)} missed MCQ{'s' if len(missed_questions) != 1 else ''} and reopen the linked chapter notes.")
-
 	base = f"/learning-flashcards?learning_module={selected['name']}"
 	return {
 		"selected": selected,
@@ -181,7 +168,7 @@ def build_revision_board(
 		"empty_reason": None,
 		"flashcards": flashcards,
 		"has_flashcards": flashcards["published"] > 0,
-		"has_attempts": bool(ratings) or bool(quiz_history) or any((row.get("attempts") or 0) > 0 for row in chapters),
+		"has_attempts": bool(ratings) or any((row.get("attempts") or 0) > 0 for row in chapters),
 		"weaknesses": learning_map.get("weaknesses") or [],
 		"strengths": learning_map.get("strengths") or [],
 		"recommendations": recommendations[:6],
@@ -194,17 +181,13 @@ def build_revision_board(
 			"all": base,
 			"course": f"/lms/courses/{selected['lms_course']}",
 		},
-		"quiz_history": quiz_history,
-		"quiz_summary": quiz_summary,
-		"missed_questions": missed_questions,
-		"mock_exam": mock_exam,
 	}
 
 
 def accessible_modules(user: str) -> list[dict]:
 	rows = frappe.get_all(
 		"Learning Module Config",
-		fields=["name", "title", "lms_course", "module_assessment_quiz", "module_assessment_count"],
+		fields=["name", "title", "lms_course"],
 		order_by="creation asc",
 	)
 	modules = []
@@ -221,8 +204,6 @@ def accessible_modules(user: str) -> list[dict]:
 				"title": row.title,
 				"lms_course": row.lms_course,
 				"published_flashcards": published,
-				"module_assessment_quiz": row.module_assessment_quiz,
-				"module_assessment_count": row.module_assessment_count,
 			}
 		)
 	return modules
@@ -295,200 +276,3 @@ def _split_parts(raw: str | None) -> list[str]:
 	if not raw:
 		return []
 	return [part.strip() for part in str(raw).split(",") if part.strip()]
-
-
-def _prepare_quiz_history(rows: list[dict], course: str) -> list[dict]:
-	history = []
-	for row in rows:
-		item = dict(row)
-		item["url"] = _quiz_url(course, item.get("quiz"))
-		history.append(item)
-	return history
-
-
-def _build_quiz_summary(history: list[dict]) -> dict:
-	attempts = len(history)
-	passed = sum(1 for row in history if row.get("passed"))
-	mock_attempts = sum(1 for row in history if row.get("kind") == "mock_exam")
-	chapter_attempts = attempts - mock_attempts
-	average = (
-		round(sum(float(row.get("percentage") or 0) for row in history) / attempts, 1)
-		if attempts
-		else 0
-	)
-	return {
-		"attempts": attempts,
-		"passed": passed,
-		"failed": max(attempts - passed, 0),
-		"pass_rate_pct": round(100 * passed / attempts, 1) if attempts else 0,
-		"average_pct": average,
-		"chapter_mcq_attempts": chapter_attempts,
-		"mock_exam_attempts": mock_attempts,
-		"latest": history[0] if history else None,
-	}
-
-
-def _build_mock_exam(selected: dict, history: list[dict]) -> dict:
-	quiz = selected.get("module_assessment_quiz")
-	if not quiz:
-		return _empty_mock_exam()
-	attempts = [row for row in history if row.get("quiz") == quiz]
-	question_count = frappe.db.count("LMS Quiz Question", {"parent": quiz})
-	return {
-		"available": True,
-		"quiz": quiz,
-		"title": frappe.db.get_value("LMS Quiz", quiz, "title") or "Module mock exam",
-		"question_count": int(question_count or selected.get("module_assessment_count") or 0),
-		"attempts": len(attempts),
-		"url": _quiz_url(selected["lms_course"], quiz) or f"/lms/courses/{selected['lms_course']}",
-		"latest": attempts[0] if attempts else None,
-	}
-
-
-def _load_missed_questions(user: str, selected: dict) -> list[dict]:
-	rows = frappe.get_all(
-		"Learning Attempt Detail",
-		filters={
-			"user": user,
-			"learning_module": selected["name"],
-			"correct": 0,
-			"quiz_submission": ["is", "set"],
-			"lms_question": ["is", "set"],
-		},
-		fields=[
-			"quiz_submission",
-			"lms_question",
-			"course_chapter",
-			"concept_tags",
-			"question_revision",
-			"modified",
-		],
-		order_by="modified desc",
-		limit_page_length=100,
-	)
-	missed = []
-	seen = set()
-	for row in rows:
-		key = (row.get("quiz_submission"), row.get("lms_question"))
-		if not key[0] or not key[1] or key in seen:
-			continue
-		seen.add(key)
-		meta = frappe.db.get_value(
-			"Learning Question Meta",
-			{"lms_question": row.lms_question},
-			["concept", "course_chapter"],
-			as_dict=True,
-		)
-		course_chapter = row.course_chapter or (meta and meta.course_chapter)
-		profile = (
-			frappe.db.get_value(
-				"Learning Chapter Profile",
-				{"learning_module": selected["name"], "course_chapter": course_chapter},
-				["name", "chapter_title"],
-				as_dict=True,
-			)
-			if course_chapter
-			else None
-		)
-		concept = (meta and meta.concept) or _first_concept(row.concept_tags)
-		notes_url = f"/learning-notes/{profile.name}" if profile else None
-		if notes_url and concept:
-			notes_url += "?focus=" + quote(str(concept))
-		question_text = strip_html(frappe.db.get_value("LMS Question", row.lms_question, "question") or "")
-		quiz_title = frappe.db.get_value("LMS Quiz Submission", row.quiz_submission, "quiz_title")
-		quiz = frappe.db.get_value("LMS Quiz Submission", row.quiz_submission, "quiz")
-		missed.append(
-			{
-				"question": _truncate(question_text) or "Missed question",
-				"concept": concept or "Review the linked chapter",
-				"chapter_title": profile.chapter_title if profile else None,
-				"course_chapter": course_chapter,
-				"quiz_title": quiz_title or "Quiz",
-				"kind": "mock_exam" if quiz == selected.get("module_assessment_quiz") else "chapter_mcq",
-				"question_revision": row.question_revision,
-				"modified": row.modified,
-				"notes_url": notes_url,
-			}
-		)
-		if len(missed) >= 12:
-			break
-	return missed
-
-
-def _notes_url(learning_module: str, course: str, course_chapter: str | None) -> str | None:
-	if not course_chapter:
-		return None
-	profile = frappe.db.get_value(
-		"Learning Chapter Profile",
-		{"learning_module": learning_module, "course_chapter": course_chapter},
-		"name",
-	)
-	if profile:
-		return f"/learning-notes/{profile}"
-	return _lesson_url(course, course_chapter)
-
-
-def _quiz_url(course: str | None, quiz: str | None) -> str | None:
-	if not course or not quiz:
-		return None
-	lesson = frappe.db.get_value(
-		"Course Lesson",
-		{"course": course, "quiz_id": quiz},
-		["name", "chapter"],
-		as_dict=True,
-	)
-	if not lesson or not lesson.chapter:
-		return None
-	chapter_idx = frappe.db.get_value(
-		"Chapter Reference",
-		{"parent": course, "chapter": lesson.chapter},
-		"idx",
-	)
-	lesson_idx = frappe.db.get_value(
-		"Lesson Reference",
-		{"parent": lesson.chapter, "lesson": lesson.name},
-		"idx",
-	)
-	if chapter_idx is None or lesson_idx is None:
-		return None
-	return f"/lms/courses/{course}/learn/{int(chapter_idx)}-{int(lesson_idx)}"
-
-
-def _empty_quiz_summary() -> dict:
-	return {
-		"attempts": 0,
-		"passed": 0,
-		"failed": 0,
-		"pass_rate_pct": 0,
-		"average_pct": 0,
-		"chapter_mcq_attempts": 0,
-		"mock_exam_attempts": 0,
-		"latest": None,
-	}
-
-
-def _empty_mock_exam() -> dict:
-	return {
-		"available": False,
-		"quiz": None,
-		"title": None,
-		"question_count": 0,
-		"attempts": 0,
-		"url": None,
-		"latest": None,
-	}
-
-
-def _first_concept(raw: str | None) -> str | None:
-	for part in str(raw or "").split(","):
-		part = part.strip()
-		if part and not part.lower().startswith("recall:"):
-			return part
-	return None
-
-
-def _truncate(value: str, limit: int = 180) -> str:
-	value = " ".join(str(value or "").split())
-	if len(value) <= limit:
-		return value
-	return value[: limit - 1].rstrip() + "…"
