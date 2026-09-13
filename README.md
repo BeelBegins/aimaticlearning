@@ -1,7 +1,15 @@
-# Aimatic Learning
+# Aimatic Learning (Examic Study)
 
-Aimatic-owned LMS features for the separate `lms.aimatic.tech` product.
+Frappe app for Examic Study: `examic.study`, `www.examic.study`, and
+`lms.aimatic.tech`.
 
-This app depends on upstream Frappe LMS and shared Aimatic services. Install it
-only on the LMS site; do not install it on SZL retail or HSM sites.
+GitHub: [BeelBegins/aimaticlearning](https://github.com/BeelBegins/aimaticlearning).
+The Frappe app name stays `aimaticlearning`.
+
+Depends on upstream Frappe LMS. `required_apps` still lists `aimatic` because
+Study Buddy uses `aimatic.ai.nemotron_client` — vendor that before an LMS-only
+server. Install this app only on the LMS site; never on SZL retail or HSM.
+
+Agent guidance for this product lives in this repository (`AGENTS.md`, `skills/`).
+Open this folder as the Cursor workspace for LMS-only work.
 

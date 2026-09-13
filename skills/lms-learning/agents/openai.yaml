@@ -1,0 +1,4 @@
+interface:
+  display_name: "Aimatic LMS"
+  short_description: "Build and operate Aimatic’s Frappe LMS"
+  default_prompt: "Use $lms-learning to work on the Aimatic Frappe Learning product safely."
