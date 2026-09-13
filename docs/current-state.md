@@ -27,9 +27,10 @@ hosts. Source: `/home/nabeel/caddy/Caddyfile`.
 
 ## Coupling to keep in mind
 
-`aimaticlearning` still lists `aimatic` in `required_apps` because
-`lms_learning/study_buddy.py` imports `aimatic.ai.nemotron_client`. Do not
-install the SZL ERP app on a future LMS-only bench; vendor that client first.
+`required_apps` is `lms` only. Study Buddy no longer imports the SZL `aimatic`
+app. This shared bench still has `aimatic` installed on the LMS site; leave it
+until the server move rather than uninstalling here. A new LMS-only bench
+should not install it.
 
 Do not auto-enrol students on signup.
 

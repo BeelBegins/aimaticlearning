@@ -15,7 +15,7 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import strip_html
 
-from aimatic.ai.nemotron_client import NemotronError, get_chat_completion
+from aimaticlearning.lms_learning.nemotron_client import NemotronError, get_chat_completion
 from aimaticlearning.lms_learning.utils import throw_access_denied, user_can_access_course
 
 

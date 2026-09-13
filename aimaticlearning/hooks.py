@@ -7,7 +7,7 @@ app_license = "mit"
 app_logo_url = "/assets/aimaticlearning/images/examic-study-mark.svg"
 app_home = "/desk/lms-learning"
 
-required_apps = ["lms", "aimatic"]
+required_apps = ["lms"]
 
 after_install = "aimaticlearning.setup.after_install"
 

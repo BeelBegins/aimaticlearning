@@ -7,7 +7,7 @@ Aimatic-owned behaviour is `aimaticlearning/lms_learning/`.
 |---|---|
 | Frappe + LMS | bench apps `frappe`, `lms`, `payments` |
 | Examic features | this app |
-| Temporary AI client | `aimatic.ai.nemotron_client` (vendor before a new server) |
+| Study Buddy AI | `lms_learning/nemotron_client.py` + `openrouter_api_key` |
 | Site data | `sites/lms.aimatic.tech` on the shared bench until cutover |
 | Public DNS | examic.study / www.examic.study → Caddy alias |
 

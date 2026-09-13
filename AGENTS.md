@@ -32,11 +32,12 @@ backup, checks, and a rollback path.
 Keep Word sources private. Do not auto-enrol students. Do not put credentials
 in code, guidance, or prompts.
 
-## Remaining coupling
+## Apps on a new server
 
-`required_apps` still includes `aimatic` because Study Buddy imports
-`aimatic.ai.nemotron_client`. Leave that until it is vendored here. A new LMS
-server should not install the SZL ERP app.
+Install frappe, payments, lms, and this app. Do not install `aimatic` (SZL ERP).
+Study Buddy reads `openrouter_api_key` from site config. This shared bench may
+still have `aimatic` installed until the site moves; that leftover is not a
+code dependency.
 
 ## Skills
 
