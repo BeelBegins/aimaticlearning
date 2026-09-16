@@ -35,13 +35,14 @@ def show_student_signup_form() -> str:
 
 
 def update_website_context(context):
-	"""Use the vector mark on login so the circle stays sharp at any density."""
+	"""LMS site chrome: login mark + hide Built on Frappe footer link."""
 	if not is_lms_site():
 		return
+	# Truthy blank so Frappe skips default footer_powered.html include.
+	context["footer_powered"] = "<!-- -->"
 	request = getattr(frappe.local, "request", None)
-	if not request or request.path.rstrip("/") != "/login":
-		return
-	context["logo"] = LOGIN_MARK
+	if request and request.path.rstrip("/") == "/login":
+		context["logo"] = LOGIN_MARK
 
 
 def configure_lms_student_access() -> dict:
