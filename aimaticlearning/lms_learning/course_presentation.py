@@ -331,3 +331,17 @@ def _reorder_chapter_lessons(chapter_name: str, course_name: str) -> None:
 			frappe.db.set_value("Course Lesson", lesson_name, "idx", idx)
 			idx += 1
 	chapter.save(ignore_permissions=True)
+
+
+def reorder_blp_chapter_lessons(course_name: str = "business-law-practice-blp") -> dict:
+	"""Public entry: Notes → MCQs → Flashcards for every chapter on the course."""
+	chapters = frappe.get_all(
+		"Chapter Reference",
+		filters={"parent": course_name},
+		fields=["chapter", "idx"],
+		order_by="idx asc",
+	)
+	for row in chapters:
+		_reorder_chapter_lessons(row.chapter, course_name)
+	frappe.db.commit()
+	return {"course": course_name, "chapters": len(chapters)}
