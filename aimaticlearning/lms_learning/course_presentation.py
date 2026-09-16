@@ -359,3 +359,26 @@ def reorder_blp_chapter_lessons(course_name: str = "business-law-practice-blp") 
 		_reorder_chapter_lessons(row.chapter, course_name)
 	frappe.db.commit()
 	return {"course": course_name, "chapters": len(chapters)}
+
+
+def reorder_course_chapter_lessons(course_name: str) -> dict:
+	"""Notes → MCQs → Flashcards for every chapter on any LMS course."""
+	chapters = frappe.get_all(
+		"Chapter Reference",
+		filters={"parent": course_name},
+		fields=["chapter", "idx"],
+		order_by="idx asc",
+	)
+	for row in chapters:
+		_reorder_chapter_lessons(row.chapter, course_name)
+	frappe.db.commit()
+	return {"course": course_name, "chapters": len(chapters)}
+
+
+def reorder_all_lms_course_lessons() -> dict:
+	"""Reorder every published (and unpublished) LMS course outline."""
+	courses = frappe.get_all("LMS Course", pluck="name", order_by="name asc")
+	results = []
+	for course_name in courses:
+		results.append(reorder_course_chapter_lessons(course_name))
+	return {"courses": results}
