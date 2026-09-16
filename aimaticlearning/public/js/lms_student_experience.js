@@ -135,8 +135,9 @@
 
 	function addSqeSwitcher() {
 		const course = currentSqeCourse();
-		const rail = document.querySelector(".aimatic-lms-chapter-rail");
+		const rail = lessonAside();
 		if (!course || !rail || rail.querySelector(".aimatic-sqe-switcher")) return;
+		rail.classList.add("aimatic-lms-chapter-rail");
 		const currentPathway = SQE1_PATHWAYS.find(function (pathway) {
 			return pathway.subjects.some(function (subject) { return subject[0] === course; });
 		}) || SQE1_PATHWAYS[0];
@@ -162,8 +163,9 @@
 
 	function addRevisionEntry() {
 		const course = currentSqeCourse();
-		const rail = document.querySelector(".aimatic-lms-chapter-rail");
+		const rail = lessonAside();
 		if (!course || !rail || rail.querySelector(".aimatic-revision-entry")) return;
+		rail.classList.add("aimatic-lms-chapter-rail");
 		const link = document.createElement("a");
 		link.className = "aimatic-revision-entry";
 		link.href = "/learning-revision?course=" + encodeURIComponent(course);
@@ -178,12 +180,30 @@
 		return /^\/lms\/courses\/business-law-practice-blp(?:\/|$)/.test(window.location.pathname);
 	}
 
+	function lessonAside() {
+		return document.querySelector(".aimatic-lms-chapter-rail") || Array.from(document.querySelectorAll("aside")).find(function (node) {
+			return node.querySelector("ul") && node.querySelector("a, button");
+		});
+	}
+
 	function polishStudyBuddy() {
 		if (!currentSqeCourse()) return;
-		const rail = document.querySelector(".aimatic-lms-ai-rail");
-		const heading = document.querySelector(".aimatic-lms-lesson-main h1");
-		const topic = rail && rail.querySelector("[data-study-buddy-topic]");
-		if (topic && heading) topic.textContent = heading.textContent.trim();
+		const topic = document.querySelector(".aimatic-study-buddy-dock [data-study-buddy-topic]");
+		if (!topic) return;
+		const liveQuestion = Array.from(document.querySelectorAll(".text-sm.text-ink-gray-5, .text-sm")).find(function (node) {
+			return /^Question\s+\d+\s+-/.test((node.textContent || "").trim());
+		});
+		if (liveQuestion) {
+			const card = liveQuestion.closest("div.border.rounded-lg") || liveQuestion.closest("div.border");
+			const question = card && card.querySelector(".font-semibold");
+			if (question && question.innerText.trim()) {
+				const value = question.innerText.trim();
+				topic.textContent = value.length > 90 ? value.slice(0, 87) + "…" : value;
+				return;
+			}
+		}
+		const heading = document.querySelector(".aimatic-lms-lesson-main h1, h1");
+		if (heading) topic.textContent = heading.textContent.trim();
 	}
 
 	function hidePoweredByBranding() {

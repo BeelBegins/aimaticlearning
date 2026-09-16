@@ -42,6 +42,51 @@
 		return { course: course[1], chapter: Number(course[2]), lesson: Number(course[3]) };
 	}
 
+	function findLessonAside() {
+		return document.querySelector(".aimatic-lms-chapter-rail") || Array.from(document.querySelectorAll("aside")).find(function (node) {
+			return node.querySelector("ul") && node.querySelector("a, button");
+		});
+	}
+
+	function lessonHeadingText() {
+		const heading = document.querySelector(".aimatic-lms-lesson-main h1, main h1, h1");
+		return heading ? heading.textContent.trim() : "";
+	}
+
+	function liveMcqContext() {
+		const counter = Array.from(document.querySelectorAll(".text-sm.text-ink-gray-5, .text-sm")).find(function (node) {
+			return /^Question\s+\d+\s+-/.test((node.textContent || "").trim());
+		});
+		if (!counter) return null;
+		const card = counter.closest("div.border.rounded-lg") || counter.closest("div.border");
+		if (!card) return null;
+		const match = (counter.textContent || "").match(/^Question\s+(\d+)/);
+		const questionEl = card.querySelector(".text-ink-gray-9.font-semibold, .font-semibold");
+		const options = [];
+		const selected = [];
+		card.querySelectorAll("label").forEach(function (label) {
+			const optionNode = label.querySelector("span.ms-2, span.flex-1, .text-ink-gray-9");
+			const value = ((optionNode && optionNode.innerText) || "").replace(/\s+/g, " ").trim();
+			if (!value || /^mark for review$/i.test(value)) return;
+			options.push(value);
+			const input = label.querySelector("input[type=radio], input[type=checkbox]");
+			if (input && input.checked) selected.push(value);
+		});
+		if (!((questionEl && questionEl.innerText.trim()) || options.length)) return null;
+		let quizTitle = "";
+		document.querySelectorAll(".text-lg-semibold").forEach(function (node) {
+			const value = (node.textContent || "").trim();
+			if (value && value !== "Quiz Summary") quizTitle = value;
+		});
+		return {
+			question_index: match ? Number(match[1]) : null,
+			question: questionEl ? questionEl.innerText.trim() : "",
+			options: options.slice(0, 6),
+			selected_options: selected.slice(0, 6),
+			quiz_title: quizTitle,
+		};
+	}
+
 	function appendStudyBuddyMessage(host, kind, text, sourceLabel) {
 		host.hidden = false;
 		const message = document.createElement("section");
@@ -60,12 +105,37 @@
 		host.scrollTop = host.scrollHeight;
 	}
 
-	function wireStudyBuddy(rail) {
-		const card = rail.querySelector("[data-study-buddy]");
-		if (!card) return;
-		const heading = document.querySelector(".aimatic-lms-lesson-main h1");
+	function setStudyBuddyOpen(dock, open) {
+		const panel = dock.querySelector("[data-study-buddy-panel]");
+		const toggle = dock.querySelector("[data-study-buddy-toggle]");
+		if (!panel || !toggle) return;
+		panel.hidden = !open;
+		toggle.setAttribute("aria-expanded", String(open));
+		dock.classList.toggle("is-open", open);
+		if (open) {
+			const input = panel.querySelector("textarea");
+			if (input) input.focus();
+		}
+	}
+
+	function refreshStudyBuddyTopic(card) {
 		const topic = card.querySelector("[data-study-buddy-topic]");
-		if (heading && topic) topic.textContent = heading.textContent.trim();
+		const hint = card.querySelector("[data-study-buddy-hint]");
+		if (!topic) return;
+		const mcq = liveMcqContext();
+		if (mcq && mcq.question) {
+			topic.textContent = mcq.question.length > 90 ? mcq.question.slice(0, 87) + "…" : mcq.question;
+			if (hint) hint.textContent = "Live MCQ context is included with your question.";
+			return;
+		}
+		topic.textContent = lessonHeadingText() || "This lesson";
+		if (hint) hint.textContent = "Lesson context is selected automatically.";
+	}
+
+	function wireStudyBuddy(dock) {
+		const card = dock.querySelector("[data-study-buddy]");
+		if (!card) return;
+		refreshStudyBuddyTopic(card);
 		if (card.dataset.studyBuddyReady) return;
 		card.dataset.studyBuddyReady = "1";
 		card.dataset.studyBuddyHistory = "[]";
@@ -74,6 +144,15 @@
 		const submit = form.querySelector("button[type=submit]");
 		const status = card.querySelector("[data-study-buddy-status]");
 		const transcript = card.querySelector("[data-study-buddy-transcript]");
+		const toggle = dock.querySelector("[data-study-buddy-toggle]");
+		const closer = dock.querySelector("[data-study-buddy-close]");
+		toggle.addEventListener("click", function () {
+			setStudyBuddyOpen(dock, dock.querySelector("[data-study-buddy-panel]").hidden);
+		});
+		if (closer) closer.addEventListener("click", function () { setStudyBuddyOpen(dock, false); });
+		document.addEventListener("keydown", function (event) {
+			if (event.key === "Escape") setStudyBuddyOpen(dock, false);
+		});
 		card.querySelectorAll("[data-study-buddy-prompt]").forEach(function (button) {
 			button.addEventListener("click", function () {
 				input.value = button.dataset.studyBuddyPrompt;
@@ -98,6 +177,7 @@
 			input.value = "";
 			submit.disabled = true;
 			status.textContent = "Checking the approved material for this lesson…";
+			const mcq = liveMcqContext();
 			fetch("/api/method/aimaticlearning.lms_learning.study_buddy.ask_study_buddy", {
 				method: "POST",
 				credentials: "same-origin",
@@ -108,6 +188,7 @@
 					lesson: context.lesson,
 					question: question,
 					history: JSON.stringify(history),
+					attempt_context: mcq ? JSON.stringify(mcq) : "",
 				}),
 			})
 				.then(function (response) {
@@ -129,20 +210,25 @@
 		});
 	}
 
-	function addAiRail(grid) {
-		const existing = grid.querySelector(".aimatic-lms-ai-rail");
-		if (existing) {
-			wireStudyBuddy(existing);
+	function addStudyBuddyDock() {
+		if (!currentLessonContext()) {
+			const leftover = document.querySelector(".aimatic-study-buddy-dock");
+			if (leftover) leftover.remove();
 			return;
 		}
-
-		const rail = document.createElement("aside");
-		rail.className = "aimatic-lms-ai-rail";
-		rail.setAttribute("aria-label", "Study Buddy AI");
-		rail.innerHTML =
-			'<section class="aimatic-lms-ai-card aimatic-study-buddy" data-study-buddy>' +
-				'<div class="aimatic-lms-ai-kicker"><span class="aimatic-lms-ai-spark">✦</span> Study Buddy AI <b>Source-grounded beta</b></div>' +
-				'<div class="aimatic-lms-ai-context"><span>Grounded in approved material</span><strong data-study-buddy-topic>This lesson</strong><small>Lesson context is selected automatically.</small></div>' +
+		let dock = document.querySelector(".aimatic-study-buddy-dock");
+		if (dock) {
+			refreshStudyBuddyTopic(dock.querySelector("[data-study-buddy]"));
+			return;
+		}
+		dock = document.createElement("div");
+		dock.className = "aimatic-study-buddy-dock";
+		dock.innerHTML =
+			'<button type="button" class="aimatic-study-buddy-fab" data-study-buddy-toggle aria-expanded="false" aria-controls="aimatic-study-buddy-panel">Study Buddy</button>' +
+			'<section id="aimatic-study-buddy-panel" class="aimatic-lms-ai-card aimatic-study-buddy" data-study-buddy data-study-buddy-panel hidden>' +
+				'<div class="aimatic-lms-ai-kicker"><span class="aimatic-lms-ai-spark">✦</span> Study Buddy AI <b>Source-grounded beta</b>' +
+					'<button type="button" class="aimatic-study-buddy-close" data-study-buddy-close aria-label="Close Study Buddy">×</button></div>' +
+				'<div class="aimatic-lms-ai-context"><span>Grounded in approved material</span><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Lesson context is selected automatically.</small></div>' +
 				'<h2>Ask about this lesson.</h2>' +
 				'<p>Designed to explain, test and focus revision using the selected lesson—not generic prompts or copied text.</p>' +
 				'<div class="aimatic-study-buddy-transcript" data-study-buddy-transcript aria-live="polite" hidden></div>' +
@@ -154,32 +240,32 @@
 				'<form class="aimatic-study-buddy-form"><label class="sr-only" for="aimatic-study-buddy-question">Ask Study Buddy</label><textarea id="aimatic-study-buddy-question" rows="3" maxlength="1200" placeholder="Ask a focused question about this lesson"></textarea><button type="submit">Ask Study Buddy <span aria-hidden="true">↗</span></button></form>' +
 				'<p class="aimatic-study-buddy-status" data-study-buddy-status>Your question and this lesson&rsquo;s approved text are sent to Study Buddy for a source-grounded response. Not legal advice.</p>' +
 			'</section>';
-		grid.appendChild(rail);
-		wireStudyBuddy(rail);
+		document.body.appendChild(dock);
+		setStudyBuddyOpen(dock, false);
+		wireStudyBuddy(dock);
 	}
 
 	function decorateLessonPage() {
 		if (!isLmsRoute()) return;
 		document.body.classList.add("aimatic-lms-learner");
 
-		const aside = Array.from(document.querySelectorAll("aside")).find(function (node) {
-			return node.querySelector("ul") && node.querySelector("a, button");
-		});
-		if (!aside) return;
-
-		const grid = aside.parentElement;
-		if (!grid || grid.children.length < 2) return;
-		if (!grid.classList.contains("aimatic-lms-lesson-grid")) {
-			grid.classList.add("aimatic-lms-lesson-grid");
-			Array.from(grid.children).forEach(function (child) {
-				if (child === aside) {
-					child.classList.add("aimatic-lms-chapter-rail");
-				} else if (!child.classList.contains("aimatic-lms-ai-rail")) {
+		const aside = findLessonAside();
+		if (aside) {
+			aside.classList.add("aimatic-lms-chapter-rail");
+			const parent = aside.parentElement;
+			if (parent) {
+				parent.classList.remove("aimatic-lms-lesson-grid");
+				Array.from(parent.children).forEach(function (child) {
+					if (child === aside) return;
+					if (child.classList.contains("aimatic-lms-ai-rail")) {
+						child.remove();
+						return;
+					}
 					child.classList.add("aimatic-lms-lesson-main");
-				}
-			});
+				});
+			}
 		}
-		addAiRail(grid);
+		addStudyBuddyDock();
 	}
 	function initChapterHub(root) {
 		if (!root || root.dataset.aimaticHubReady) return;

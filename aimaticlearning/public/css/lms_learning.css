@@ -215,20 +215,8 @@ body.aimatic-lms-learner {
 	font-family: var(--aimatic-ui-font);
 }
 
-body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-	display: grid !important;
-	grid-template-columns: 272px minmax(0, 1fr) 304px !important;
-	grid-template-rows: minmax(calc(100vh - 112px), auto) !important;
-	height: auto !important;
-	min-height: calc(100vh - 112px);
-	background: var(--aimatic-surface);
-}
-
 body.aimatic-lms-learner .aimatic-lms-lesson-main {
-	grid-column: 2 !important;
-	grid-row: 1 !important;
 	min-width: 0;
-	background: var(--aimatic-surface) !important;
 }
 
 body.aimatic-lms-learner .aimatic-lms-lesson-main > div {
@@ -326,17 +314,7 @@ body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror table {
 }
 
 body.aimatic-lms-learner .aimatic-lms-chapter-rail {
-	grid-column: 1 !important;
-	grid-row: 1 !important;
-	position: sticky !important;
-	top: 0 !important;
-	align-self: start;
-	height: calc(100vh - 112px) !important;
-	border: 0 !important;
-	border-right: 1px solid var(--aimatic-line) !important;
-	background: rgba(251, 253, 250, 0.92) !important;
-	backdrop-filter: blur(14px);
-	overflow: hidden;
+	min-width: 0;
 }
 
 body.aimatic-lms-learner .aimatic-lms-chapter-rail > div {
@@ -384,15 +362,67 @@ body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class*="bg-surface-gray-2"]
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-rail {
-	grid-column: 3;
-	grid-row: 1;
-	align-self: start;
-	position: sticky;
-	top: 0;
-	height: calc(100vh - 112px);
-	padding: 24px 18px;
-	border-left: 1px solid var(--aimatic-line);
-	background: linear-gradient(180deg, #fbfcfd 0%, #f3f0e8 100%);
+	display: none !important;
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-dock,
+.aimatic-study-buddy-dock {
+	position: fixed;
+	right: 18px;
+	bottom: 18px;
+	z-index: 40;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 10px;
+	max-width: min(360px, calc(100vw - 24px));
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-fab,
+.aimatic-study-buddy-fab {
+	min-height: 44px;
+	padding: 10px 16px;
+	border: 1px solid var(--outline-gray-3, rgba(16, 35, 63, 0.16));
+	border-radius: 999px;
+	background: var(--ink-gray-9, #171717);
+	color: #fff;
+	font: inherit;
+	font-size: 0.82rem;
+	font-weight: 650;
+	box-shadow: 0 10px 24px rgba(16, 35, 63, 0.16);
+	cursor: pointer;
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-fab[aria-expanded="true"] {
+	background: var(--ink-gray-8, #2c3338);
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy {
+	width: min(360px, calc(100vw - 24px));
+	max-height: min(72vh, 640px);
+	overflow: auto;
+	padding: 16px !important;
+	border: 1px solid var(--outline-gray-2, rgba(16, 35, 63, 0.13)) !important;
+	border-radius: 14px;
+	background: var(--surface-white, #fff) !important;
+	box-shadow: 0 18px 40px rgba(16, 35, 63, 0.16);
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-close {
+	margin-left: auto;
+	width: 28px;
+	height: 28px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font-size: 1.15rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+	body.aimatic-lms-learner .aimatic-lms-ai-rail { display: none !important; }
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-card {
@@ -742,13 +772,6 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete {
 
 body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete span {
 	color: var(--aimatic-ink-soft);
-}
-
-@media (max-width: 1100px) {
-	body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-		grid-template-columns: 236px minmax(0, 1fr) !important;
-	}
-	body.aimatic-lms-learner .aimatic-lms-ai-rail { display: none; }
 }
 
 @media (max-width: 767px) {

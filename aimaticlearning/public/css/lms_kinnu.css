@@ -17,23 +17,8 @@ body.aimatic-lms-learner {
 	background-size: 4px 4px !important;
 }
 
-body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-	grid-template-columns: 274px minmax(520px, 1fr) 292px !important;
-	gap: 14px;
-	padding: 0 14px 0 0;
-	background: transparent !important;
-}
-
 body.aimatic-lms-learner .aimatic-lms-lesson-main {
-	height: calc(100vh - 60px) !important;
-	margin-top: 10px;
-	border: 1px solid rgba(45, 42, 36, 0.08) !important;
-	border-radius: 24px 24px 0 0 !important;
-	background: #fff !important;
-	box-shadow: var(--aimatic-shadow);
-	overflow-y: auto !important;
-	scrollbar-width: thin;
-	scrollbar-color: #d8d4cc transparent;
+	margin-top: 0;
 }
 
 body.aimatic-lms-learner .aimatic-lms-lesson-main > div,
@@ -58,10 +43,7 @@ body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror {
 }
 
 body.aimatic-lms-learner .aimatic-lms-chapter-rail {
-	height: calc(100vh - 48px) !important;
 	border-right: 0 !important;
-	background: rgba(247, 243, 235, 0.86) !important;
-	backdrop-filter: blur(8px);
 }
 
 body.aimatic-lms-learner .aimatic-lms-chapter-rail [class~="bg-surface-gray-1"] {
@@ -94,10 +76,7 @@ body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class*="bg-surface-gray-2"]
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-rail {
-	height: calc(100vh - 48px);
-	padding: 24px 0 24px 4px;
-	border-left: 0;
-	background: transparent;
+	display: none !important;
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-card {
@@ -265,24 +244,7 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-rate-easy {
 	color: #fff !important;
 }
 
-@media (max-width: 1250px) {
-	body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-		grid-template-columns: 244px minmax(0, 1fr) !important;
-	}
-	body.aimatic-lms-learner .aimatic-lms-ai-rail { display: none; }
-}
-
 @media (max-width: 767px) {
-	body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-		display: block !important;
-		padding: 0 !important;
-	}
-	body.aimatic-lms-learner .aimatic-lms-lesson-main {
-		height: auto !important;
-		margin: 0;
-		border: 0 !important;
-		border-radius: 0 !important;
-	}
 	body.aimatic-lms-learner .aimatic-lms-lesson-main > div > div:first-child {
 		padding: 22px 18px 0 !important;
 	}
@@ -297,31 +259,8 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-rate-easy {
 
 /* Phone learner shell: retain course navigation without a desktop-width rail. */
 @media (max-width: 767px) {
-	body.aimatic-lms-learner .aimatic-lms-lesson-grid {
-		display: flex !important;
-		flex-direction: column;
-		min-height: 0 !important;
-	}
-	body.aimatic-lms-learner .aimatic-lms-chapter-rail {
-		position: relative !important;
-		top: auto !important;
-		width: 100%;
-		height: auto !important;
-		max-height: 38vh;
-		overflow-y: auto !important;
-		border-right: 0 !important;
-		border-bottom: 1px solid var(--aimatic-line) !important;
-		background: rgba(247, 243, 235, 0.96) !important;
-	}
-	body.aimatic-lms-learner .aimatic-lms-chapter-rail [class~="bg-surface-gray-1"] {
-		padding: 16px 18px 12px !important;
-	}
 	body.aimatic-lms-learner .aimatic-lms-lesson-main {
-		grid-column: auto !important;
-		grid-row: auto !important;
 		width: 100%;
-		height: auto !important;
-		overflow: visible !important;
 	}
 	body.aimatic-lms-learner .aimatic-lms-lesson-main > div > div:first-child {
 		padding: 20px 18px 28px !important;
@@ -359,7 +298,6 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-rate-easy {
 }
 
 @media (max-width: 390px) {
-	body.aimatic-lms-learner .aimatic-lms-chapter-rail { max-height: 35vh; }
 	body.aimatic-lms-learner .aimatic-chapter-hub .ach-tab-label,
 	body.aimatic-lms-learner .aimatic-chapter-hub .ach-tab { font-size: 0.7rem; }
 }

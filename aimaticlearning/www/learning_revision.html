@@ -8,19 +8,17 @@
 <div class="aimatic-revision" id="aimatic-revision">
 	<style>
 		.aimatic-revision {
-			--rev-ink: var(--aimatic-ink, #26342f);
-			--rev-muted: var(--aimatic-ink-soft, #68766f);
-			--rev-teal: var(--aimatic-teal, #5f9585);
-			--rev-accent: var(--aimatic-teal-dark, #416d60);
-			--rev-surface: var(--aimatic-surface, #f4f8f5);
-			--rev-card: var(--aimatic-cream, #f8fbf8);
-			--rev-mint: var(--aimatic-mint, #eaf3ed);
-			--rev-warm: var(--aimatic-cream, #f8fbf8);
-			--rev-hard-bg: #f7e9e6;
-			--rev-good-bg: #f6f0dc;
-			--rev-easy-bg: var(--aimatic-mint, #eaf3ed);
-			--rev-unrated-bg: #edf3f0;
-			--rev-line: var(--aimatic-line, rgba(38, 52, 47, 0.12));
+			--rev-ink: var(--ink-gray-9, var(--text-color, #1f272e));
+			--rev-muted: var(--ink-gray-7, var(--text-muted, #5b656e));
+			--rev-accent: var(--ink-gray-8, var(--primary, #171717));
+			--rev-surface: var(--surface-white, var(--bg-color, #fff));
+			--rev-card: var(--surface-white, #fff);
+			--rev-warm: var(--surface-gray-2, var(--control-bg, #f8f8f8));
+			--rev-line: var(--outline-gray-2, var(--border-color, #e2e6eb));
+			--rev-hard-bg: var(--surface-red-2, #fff5f5);
+			--rev-good-bg: var(--surface-amber-2, #fffbec);
+			--rev-easy-bg: var(--surface-green-2, #f4faf6);
+			--rev-unrated-bg: var(--surface-gray-2, #f4f5f6);
 			box-sizing: border-box;
 			max-width: 1040px;
 			margin: 0 auto;
@@ -28,97 +26,69 @@
 			min-height: calc(100vh - 48px);
 			background: var(--rev-surface);
 			color: var(--rev-ink);
-			font-family: "Bricolage Grotesque", system-ui, sans-serif;
-		}
-		html[data-examic-soft-theme="sky"] .aimatic-revision {
-			--rev-ink: #263847;
-			--rev-muted: #687985;
-			--rev-teal: #6f9caf;
-			--rev-accent: #4e7385;
-			--rev-surface: #f4f8fa;
-			--rev-card: #f8fbfc;
-			--rev-mint: #e8f3f7;
-			--rev-warm: #f8fbfc;
-			--rev-hard-bg: #f8ebe9;
-			--rev-good-bg: #edf4f7;
-			--rev-easy-bg: #e8f3f7;
-			--rev-unrated-bg: #f1f5f7;
-			--rev-line: rgba(38, 56, 71, 0.12);
-		}
-		html[data-examic-soft-theme="lilac"] .aimatic-revision {
-			--rev-ink: #3d3650;
-			--rev-muted: #746d83;
-			--rev-teal: #8a7bae;
-			--rev-accent: #665886;
-			--rev-surface: #f7f5fb;
-			--rev-card: #fbfaff;
-			--rev-mint: #f0edf8;
-			--rev-warm: #fbfaff;
-			--rev-hard-bg: #f6eaef;
-			--rev-good-bg: #f1eef8;
-			--rev-easy-bg: #f0edf8;
-			--rev-unrated-bg: #f4f1f8;
-			--rev-line: rgba(61, 54, 80, 0.12);
+			font-family: inherit;
 		}
 		.aimatic-revision *, .aimatic-revision *::before, .aimatic-revision *::after { box-sizing: border-box; }
 		.aimatic-revision a { color: var(--rev-accent); }
 		.aimatic-revision .is-hidden { display: none !important; }
 		.rev-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); gap: 24px; align-items: end; margin-bottom: 24px; }
-		.rev-kicker { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--rev-teal); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
-		.rev-kicker::before { width: 22px; height: 3px; border-radius: 9px; background: #e8b464; content: ""; }
-		.aimatic-revision h1 { margin: 0; color: var(--rev-ink); font-size: clamp(2rem, 4vw, 2.8rem); letter-spacing: -0.045em; line-height: 1.04; }
-		.rev-lead { margin: 11px 0 0; max-width: 38rem; color: var(--rev-muted); font-size: 0.96rem; line-height: 1.55; }
+		.rev-kicker { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--rev-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+		.rev-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--rev-accent); content: ""; }
+		.aimatic-revision h1 { margin: 0; color: var(--rev-ink); font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+		.rev-lead { margin: 11px 0 0; max-width: 40rem; color: var(--rev-muted); font-size: 0.95rem; line-height: 1.55; }
 		.rev-course-control { display: grid; gap: 7px; }
-		.rev-course-control span { color: var(--rev-muted); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-		.rev-select { width: 100%; min-height: 48px; padding: 10px 38px 10px 14px; border: 1px solid var(--rev-line); border-radius: 14px; outline: 0; background: var(--rev-card); color: var(--rev-ink); font: inherit; box-shadow: 0 8px 24px rgba(23, 50, 77, 0.05); }
-		.rev-select:focus { border-color: var(--rev-teal); box-shadow: 0 0 0 4px color-mix(in srgb, var(--rev-teal) 12%, transparent); }
+		.rev-course-control span { color: var(--rev-muted); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+		.rev-select { width: 100%; min-height: 40px; padding: 8px 32px 8px 12px; border: 1px solid var(--rev-line); border-radius: 8px; outline: 0; background: var(--rev-card); color: var(--rev-ink); font: inherit; }
+		.rev-select:focus { border-color: var(--rev-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--rev-accent) 12%, transparent); }
 		.rev-select:disabled { cursor: wait; opacity: 0.62; }
 		.rev-counts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 8px 0 24px; }
 		.rev-counts a, .rev-counts div {
-			position: relative; display: block; min-height: 102px; padding: 17px 16px 14px; overflow: hidden; border: 1px solid transparent; border-radius: 18px; background: var(--rev-warm); color: inherit; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease;
+			position: relative; display: block; min-height: 96px; padding: 16px 14px 12px; overflow: hidden; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-warm); color: inherit; text-decoration: none;
 		}
-		.rev-counts a:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(23, 50, 77, 0.08); }
-		.rev-counts a::after, .rev-counts div::after { position: absolute; right: 14px; bottom: -13px; width: 52px; height: 52px; border: 10px solid rgba(255, 255, 255, 0.48); border-radius: 50%; content: ""; }
-		.rev-counts a:nth-child(1), .rev-counts div:nth-child(1) { background: var(--rev-hard-bg); }
-		.rev-counts a:nth-child(2), .rev-counts div:nth-child(2) { background: var(--rev-good-bg); }
-		.rev-counts a:nth-child(3), .rev-counts div:nth-child(3) { background: var(--rev-easy-bg); }
-		.rev-counts a:nth-child(4), .rev-counts div:nth-child(4) { background: var(--rev-unrated-bg); }
-		.rev-counts strong { position: relative; z-index: 1; display: block; font-size: 1.65rem; letter-spacing: -0.04em; }
+		.rev-counts a:hover { border-color: var(--rev-accent); }
+		.rev-count-hard { background: var(--rev-hard-bg) !important; }
+		.rev-count-good { background: var(--rev-good-bg) !important; }
+		.rev-count-easy { background: var(--rev-easy-bg) !important; }
+		.rev-count-unreviewed, .rev-count-quizzes { background: var(--rev-unrated-bg) !important; }
+		.rev-count-incorrect { background: var(--rev-hard-bg) !important; }
+		.rev-count-correct { background: var(--rev-easy-bg) !important; }
+		.rev-counts strong { position: relative; z-index: 1; display: block; font-size: 1.5rem; letter-spacing: -0.03em; }
 		.rev-counts span { position: relative; z-index: 1; display: block; margin-top: 5px; color: var(--rev-muted); font-size: 0.76rem; line-height: 1.25; }
 		.rev-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 30px; }
 		.rev-btn {
-			display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 16px;
-			border-radius: 999px; border: 1px solid var(--rev-line); background: var(--rev-card);
-			color: var(--rev-ink); font-weight: 750; font-size: 0.82rem; line-height: 1.2; text-align: center; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+			display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 14px;
+			border-radius: 8px; border: 1px solid var(--rev-line); background: var(--rev-card);
+			color: var(--rev-ink); font-weight: 600; font-size: 0.82rem; line-height: 1.2; text-align: center; text-decoration: none;
 		}
-		.rev-btn:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(23, 50, 77, 0.1); text-decoration: none; }
-		.rev-btn-primary { background: var(--rev-teal); border-color: var(--rev-teal); color: #fff !important; box-shadow: 0 8px 16px rgba(11, 154, 132, 0.18); }
+		.rev-btn:hover { text-decoration: none; background: var(--rev-warm); }
+		.rev-btn-primary { background: var(--rev-accent); border-color: var(--rev-accent); color: #fff !important; }
+		.rev-btn-primary:hover { filter: brightness(1.08); }
 		.rev-insights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
-		.rev-card { min-width: 0; margin-bottom: 14px; padding: 20px; border: 1px solid var(--rev-line); border-radius: 20px; background: var(--rev-card); box-shadow: 0 12px 28px rgba(23, 50, 77, 0.045); }
+		.rev-card { min-width: 0; margin-bottom: 14px; padding: 18px; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-card); }
 		.rev-insights .rev-card { margin-bottom: 0; }
-		.rev-card h2 { margin: 0 0 14px; color: var(--rev-ink); font-size: 1.05rem; letter-spacing: -0.02em; }
+		.rev-card h2 { margin: 0 0 14px; color: var(--rev-ink); font-size: 1rem; font-weight: 650; }
 		.rev-card ul { margin: 0; padding-left: 18px; color: var(--rev-ink); }
 		.rev-card li { margin: 0 0 9px; line-height: 1.4; }
 		.rev-empty, .rev-loading { padding: 28px 8px; color: var(--rev-muted); text-align: center; }
-		.rev-loading { min-height: 136px; padding: 55px 16px; border: 1px dashed var(--rev-teal); border-radius: 20px; background: var(--rev-card); }
-		.rev-loading.rev-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: #9a3f38; background: #f7e9e6; }
-		.rev-noaccess { padding: 48px 24px; border: 1px solid var(--rev-line); border-radius: 20px; background: var(--rev-card); text-align: center; box-shadow: 0 12px 28px rgba(23, 50, 77, 0.045); }
+		.rev-loading { min-height: 136px; padding: 55px 16px; border: 1px dashed var(--rev-line); border-radius: 10px; background: var(--rev-card); }
+		.rev-loading.rev-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: var(--ink-red-5, #b52a2a); background: var(--rev-hard-bg); }
+		.rev-noaccess { padding: 48px 24px; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-card); text-align: center; }
 		.rev-noaccess h2 { margin: 0 0 8px; font-size: 1.15rem; }
 		.rev-noaccess p { margin: 0 0 18px; color: var(--rev-muted); }
 		.rev-chapters-card { margin-bottom: 22px; }
 		.rev-chapters { display: grid; gap: 10px; }
 		.rev-chapter {
 			display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center;
-			min-width: 0; padding: 14px; border: 1px solid var(--rev-line); border-radius: 15px; background: var(--rev-warm);
+			min-width: 0; padding: 14px; border: 1px solid var(--rev-line); border-radius: 8px; background: var(--rev-warm);
 		}
 		.rev-chapter strong { display: block; overflow-wrap: anywhere; }
 		.rev-chapter small { display: block; margin-top: 4px; color: var(--rev-muted); line-height: 1.35; }
 		.rev-chapter-links { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-		.rev-pill { display: inline-flex; align-items: center; min-height: 36px; padding: 7px 11px; border-radius: 999px; background: var(--rev-card); font-size: 0.75rem; font-weight: 750; text-decoration: none; }
+		.rev-pill { display: inline-flex; align-items: center; min-height: 32px; padding: 6px 10px; border: 1px solid var(--rev-line); border-radius: 6px; background: var(--rev-card); font-size: 0.75rem; font-weight: 600; text-decoration: none; }
 		.rev-needs { background: var(--rev-hard-bg); }
 		.rev-developing { background: var(--rev-good-bg); }
 		.rev-strong { background: var(--rev-easy-bg); }
-		.rev-back { display: inline-flex; align-items: center; min-height: 40px; color: var(--rev-muted) !important; font-size: 0.82rem; font-weight: 700; text-decoration: none; }
+		.rev-back { display: inline-flex; align-items: center; min-height: 40px; color: var(--rev-muted) !important; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
 		.rev-back::before { margin-right: 7px; content: "←"; font-size: 1.1rem; }
 		@media (prefers-reduced-motion: reduce) {
 			.rev-counts a, .rev-btn { transition: none; }
@@ -130,11 +100,11 @@
 			.rev-chapter { grid-template-columns: 1fr; }
 			.rev-chapter-links { justify-content: flex-start; }
 			.rev-btn { width: 100%; }
-			.rev-card { padding: 17px; }
+			.rev-card { padding: 16px; }
 		}
 		@media (max-width: 380px) {
 			.aimatic-revision { padding-right: 12px; padding-left: 12px; }
-			.rev-counts strong { font-size: 1.45rem; }
+			.rev-counts strong { font-size: 1.35rem; }
 			.rev-counts span { font-size: 0.7rem; }
 		}
 	</style>
@@ -143,7 +113,7 @@
 		<div class="rev-heading">
 			<p class="rev-kicker">Your progress</p>
 			<h1>Revision</h1>
-			<p class="rev-lead">Restudy flashcards you rated Hard, Good or Easy, and open the chapters that need more work.</p>
+			<p class="rev-lead">Restudy flashcards you rated Hard, Good or Easy, retry incorrect MCQs, and open the chapters that need more work.</p>
 		</div>
 		<label class="rev-course-control">
 			<span>Study track</span>
@@ -291,9 +261,10 @@
 		});
 	}
 
-	function countCard(label, value, href) {
+	function countCard(label, value, href, kind) {
 		const node = document.createElement(href ? "a" : "div");
 		if (href) node.href = href;
+		if (kind) node.className = "rev-count-" + kind;
 		const strong = document.createElement("strong");
 		text(strong, String(value));
 		const span = document.createElement("span");
@@ -334,13 +305,21 @@
 		if (data.selected) el.select.value = data.selected.name;
 
 		const cards = data.flashcards || {};
+		const mcqs = data.mcqs || {};
 		const urls = data.study_urls || {};
-		el.counts.replaceChildren(
-			countCard("Hard", cards.hard || 0, cards.hard ? urls.hard : ""),
-			countCard("Good", cards.good || 0, cards.good ? urls.good : ""),
-			countCard("Easy", cards.easy || 0, cards.easy ? urls.easy : ""),
-			countCard("Not yet rated", cards.unreviewed || 0, cards.unreviewed ? urls.unreviewed : "")
-		);
+		const tiles = [
+			countCard("Hard", cards.hard || 0, cards.hard ? urls.hard : "", "hard"),
+			countCard("Good", cards.good || 0, cards.good ? urls.good : "", "good"),
+			countCard("Easy", cards.easy || 0, cards.easy ? urls.easy : "", "easy"),
+			countCard("Not yet rated", cards.unreviewed || 0, cards.unreviewed ? urls.unreviewed : "", "unreviewed"),
+		];
+		if (mcqs.attempted || mcqs.incorrect || mcqs.correct) {
+			tiles.push(
+				countCard("Incorrect MCQs", mcqs.incorrect || 0, mcqs.incorrect ? urls.incorrect_mcq : "", "incorrect"),
+				countCard("Correct MCQs", mcqs.correct || 0, urls.mcq || "", "correct")
+			);
+		}
+		el.counts.replaceChildren(...tiles);
 
 		el.actions.replaceChildren();
 		if (data.has_flashcards) {
@@ -349,10 +328,15 @@
 			if (cards.easy) el.actions.append(button("Revise Easy cards", urls.easy));
 			el.actions.append(button("Study all flashcards", urls.all));
 		}
+		if (mcqs.incorrect && urls.incorrect_mcq) {
+			el.actions.append(button("Retry incorrect MCQs", urls.incorrect_mcq, !cards.hard));
+		} else if (urls.mcq) {
+			el.actions.append(button("Open chapter MCQs", urls.mcq));
+		}
 		if (urls.course) el.actions.append(button("Open course notes", urls.course));
 
-		fillList(el.recs, data.recommendations, "Rate flashcards or complete chapter questions to build a revision plan.");
-		fillList(el.weak, data.weaknesses, "No weak concepts yet. Hard flashcards and missed questions will appear here.");
+		fillList(el.recs, data.recommendations, "Rate flashcards or complete chapter MCQs to build a revision plan.");
+		fillList(el.weak, data.weaknesses, "No weak concepts yet. Hard flashcards and missed MCQs will appear here.");
 
 		el.chapters.replaceChildren();
 		(data.chapters || []).forEach(function (chapter) {
@@ -366,6 +350,7 @@
 			if (chapter.attempts) bits.push(chapter.mastery_pct + "% mastery");
 			else bits.push("Not started");
 			if (chapter.hard_cards) bits.push(chapter.hard_cards + " hard card" + (chapter.hard_cards === 1 ? "" : "s"));
+			if (chapter.incorrect_mcqs) bits.push(chapter.incorrect_mcqs + " incorrect MCQ" + (chapter.incorrect_mcqs === 1 ? "" : "s"));
 			text(meta, bits.join(" · "));
 			copy.append(title, meta);
 			const links = document.createElement("div");
@@ -376,6 +361,13 @@
 				notes.href = chapter.notes_url;
 				text(notes, "Notes");
 				links.append(notes);
+			}
+			if (chapter.mcq_url) {
+				const mcq = document.createElement("a");
+				mcq.className = "rev-pill";
+				mcq.href = chapter.mcq_url;
+				text(mcq, chapter.incorrect_mcqs ? "Retry MCQs" : "MCQs");
+				links.append(mcq);
 			}
 			if (chapter.flashcard_url) {
 				const flash = document.createElement("a");
