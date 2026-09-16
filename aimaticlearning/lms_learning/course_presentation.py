@@ -304,32 +304,46 @@ def _seed_chapter_flashcards(
 
 
 def _reorder_chapter_lessons(chapter_name: str, course_name: str) -> None:
-	"""Notes → MCQs → Flashcards within each chapter."""
+	"""Notes → chapter MCQs → module assessment → Flashcards within each chapter.
+
+	Empty quiz shells and mis-tagged flashcard rows with a quiz_id are pushed last
+	so they do not appear before real notes/practice.
+	"""
 	if not chapter_name:
 		return
 	lessons = frappe.get_all(
 		"Course Lesson",
 		filters={"course": course_name, "chapter": chapter_name},
-		fields=["name", "title", "quiz_id"],
+		fields=["name", "title", "quiz_id", "creation"],
+		order_by="creation asc",
 	)
-	order = {0: [], 1: [], 2: []}
+	notes, chapter_mcq, module_mcq, flashcards, junk = [], [], [], [], []
 	for lesson in lessons:
 		title = (lesson.title or "").lower()
+		qcount = (
+			frappe.db.count("LMS Quiz Question", {"parent": lesson.quiz_id})
+			if lesson.quiz_id
+			else 0
+		)
 		if lesson.quiz_id:
-			order[1].append(lesson.name)
+			if qcount <= 0:
+				junk.append(lesson.name)
+			elif "module assessment" in title or "mock" in title or qcount >= 100:
+				module_mcq.append(lesson.name)
+			else:
+				chapter_mcq.append(lesson.name)
 		elif "flashcard" in title:
-			order[2].append(lesson.name)
+			flashcards.append(lesson.name)
 		else:
-			order[0].append(lesson.name)
+			notes.append(lesson.name)
 
 	chapter = frappe.get_doc("Course Chapter", chapter_name)
 	chapter.set("lessons", [])
 	idx = 1
-	for bucket in (0, 1, 2):
-		for lesson_name in order[bucket]:
-			chapter.append("lessons", {"lesson": lesson_name, "idx": idx})
-			frappe.db.set_value("Course Lesson", lesson_name, "idx", idx)
-			idx += 1
+	for lesson_name in notes + chapter_mcq + module_mcq + flashcards + junk:
+		chapter.append("lessons", {"lesson": lesson_name, "idx": idx})
+		frappe.db.set_value("Course Lesson", lesson_name, "idx", idx)
+		idx += 1
 	chapter.save(ignore_permissions=True)
 
 
