@@ -382,3 +382,23 @@
 		if (observer) observer.run();
 	}
 })();
+
+(function hideBuiltOnFrappe() {
+	function hide() {
+		document.querySelectorAll(".footer-powered, a[href*=\"frappeframework.com?source=website_footer\"]").forEach(function (el) {
+			el.style.setProperty("display", "none", "important");
+			el.setAttribute("aria-hidden", "true");
+		});
+		document.querySelectorAll("span.lucide-zap.size-4.text-ink-gray-7.cursor-pointer").forEach(function (icon) {
+			icon.style.setProperty("display", "none", "important");
+			icon.setAttribute("aria-hidden", "true");
+		});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", hide);
+	} else {
+		hide();
+	}
+	setTimeout(hide, 500);
+	setTimeout(hide, 2000);
+})();

@@ -800,3 +800,10 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete span {
 		font-size: 1.05rem;
 	}
 }
+
+/* Hide Frappe Built-on footer link on LMS web pages */
+.footer-powered,
+.footer-powered a,
+a[href*="frappeframework.com?source=website_footer"] {
+	display: none !important;
+}
