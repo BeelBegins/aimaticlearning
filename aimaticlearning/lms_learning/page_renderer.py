@@ -18,7 +18,7 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20260902-6"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20260916-1"></script>
-<script defer src="/assets/aimaticlearning/js/examic_sessions.js?v=20260902-2"></script>
+<script defer src="/assets/aimaticlearning/js/examic_sessions.js?v=20260916-mcq1"></script>
 <script defer src="/assets/aimaticlearning/js/lesson_audio.js?v=20260909-1"></script>'''
 
 

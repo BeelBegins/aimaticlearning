@@ -62,12 +62,34 @@
 		}).length : 0;
 	}
 
+	function dedupeQuizChrome() {
+		document.querySelectorAll(".examic-quiz-toolbar").forEach(function (toolbar) {
+			const host = toolbar.parentElement;
+			if (!host) return;
+			host.querySelectorAll(":scope > .examic-quiz-toolbar").forEach(function (node, nodeIndex) {
+				if (nodeIndex > 0) node.remove();
+			});
+		});
+		document.querySelectorAll(".examic-quiz-session-controls").forEach(function (controls) {
+			const card = controls.parentElement;
+			if (!card) return;
+			card.querySelectorAll(":scope > .examic-quiz-session-controls").forEach(function (node, nodeIndex) {
+				if (nodeIndex > 0) node.remove();
+			});
+		});
+	}
+
 	function decorateQuizStart(startButton) {
 		const card = startButton.closest("div.border.text-center");
-		if (!card || card.dataset.examicQuizReady) return;
+		if (!card) return;
 		const titleNode = card.querySelector(".text-lg-semibold");
 		const title = titleNode && titleNode.textContent.trim();
 		if (!title) return;
+		if (card.querySelector(":scope > .examic-quiz-session-controls")) {
+			card.dataset.examicQuizReady = "1";
+			return;
+		}
+		if (card.dataset.examicQuizReady === "1") return;
 		card.dataset.examicQuizReady = "1";
 		card.classList.add("examic-quiz-start");
 		const label = startButton.querySelector("span") || startButton;
@@ -101,36 +123,69 @@
 		card.append(controls);
 	}
 
+	function exitQuizWithoutReload(timed) {
+		// Answers already live in localStorage under the quiz title.
+		if (timed) {
+			const submit = Array.from(document.querySelectorAll("button span")).find(function (span) {
+				return /^(Submit|End session & submit)$/.test(span.textContent.trim());
+			});
+			if (submit) {
+				submit.closest("button").click();
+				return;
+			}
+		}
+		const notice = document.createElement("div");
+		notice.className = "examic-quiz-toolbar examic-quiz-saved-notice";
+		notice.setAttribute("role", "status");
+		notice.innerHTML = "<span>Progress saved on this device. Leave this lesson when you want — resume later from Start.</span>";
+		const existing = document.querySelector(".examic-quiz-toolbar");
+		if (existing && existing.parentElement) {
+			existing.replaceWith(notice);
+		}
+	}
+
 	function decorateQuizActivity() {
 		if (!onCourse()) return;
+		dedupeQuizChrome();
 		document.querySelectorAll("button span").forEach(function (span) {
 			if (/^(Start|Start the Quiz)$/.test(span.textContent.trim())) decorateQuizStart(span.closest("button"));
 			if (span.textContent.trim() === "Submit") span.textContent = "End session & submit";
 			if (span.textContent.trim() === "Try Again") span.textContent = "Start another session";
 		});
 
-		document.querySelectorAll(".text-sm.text-ink-gray-5").forEach(function (counter) {
-			if (!/^Question\s+\d+\s+-/.test(counter.textContent.trim())) return;
-			const questionCard = counter.closest("div.border.rounded-lg");
-			const host = questionCard && questionCard.parentElement;
-			if (!host || host.querySelector(":scope > .examic-quiz-toolbar")) return;
-			const instructions = host.parentElement && host.parentElement.textContent;
-			const timed = /complete all the questions in\s+\d+\s+minutes/i.test(instructions || "");
-			host.dataset.examicQuizTimed = timed ? "1" : "0";
-			const toolbar = document.createElement("div");
-			toolbar.className = "examic-quiz-toolbar";
-			const copy = document.createElement("span");
-			copy.textContent = timed ? "Timed attempt in progress" : "Session in progress · answers save on this device";
-			const end = makeButton(timed ? "End & submit attempt" : "End & save for later", "examic-session-link");
-			end.addEventListener("click", function () {
-				const message = timed
-					? "End this timed attempt now? Your current answers will be submitted for scoring."
-					: "End now and keep your answers so you can resume later?";
-				if (window.confirm(message)) window.location.reload();
-			});
-			toolbar.append(copy, end);
-			host.insertBefore(toolbar, questionCard);
+		const counters = Array.from(document.querySelectorAll(".text-sm.text-ink-gray-5")).filter(function (counter) {
+			return /^Question\s+\d+\s+-/.test(counter.textContent.trim());
 		});
+		if (!counters.length) return;
+
+		const questionCard = counters[0].closest("div.border.rounded-lg");
+		const host = questionCard && questionCard.parentElement;
+		if (!host) return;
+
+		// One toolbar for the whole quiz host — never re-insert on each question mutation.
+		if (host.dataset.examicQuizToolbar === "1" || host.querySelector(".examic-quiz-toolbar")) {
+			dedupeQuizChrome();
+			return;
+		}
+
+		const instructions = host.parentElement && host.parentElement.textContent;
+		const timed = /complete all the questions in\s+\d+\s+minutes/i.test(instructions || "");
+		host.dataset.examicQuizTimed = timed ? "1" : "0";
+		host.dataset.examicQuizToolbar = "1";
+		const toolbar = document.createElement("div");
+		toolbar.className = "examic-quiz-toolbar";
+		const copy = document.createElement("span");
+		copy.textContent = timed ? "Timed attempt in progress" : "Session in progress · answers save on this device";
+		const end = makeButton(timed ? "End & submit attempt" : "End & save for later", "examic-session-link");
+		end.addEventListener("click", function () {
+			const message = timed
+				? "End this timed attempt now? Your current answers will be submitted for scoring."
+				: "Keep your answers on this device and pause this session? You can resume from Start without reloading.";
+			if (!window.confirm(message)) return;
+			exitQuizWithoutReload(timed);
+		});
+		toolbar.append(copy, end);
+		host.insertBefore(toolbar, host.firstChild);
 
 		document.querySelectorAll(".text-lg-semibold").forEach(function (heading) {
 			if (heading.textContent.trim() !== "Quiz Summary") return;
