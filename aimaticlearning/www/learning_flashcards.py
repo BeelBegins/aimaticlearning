@@ -11,6 +11,7 @@ def get_context(context):
 
 	context.no_cache = 1
 	context.show_sidebar = False
+	context.body_class = "aimatic-flashcards-page"
 	context.chapter_profile = chapter_profile
 	context.learning_module = learning_module
 	context.chapter_title = ""

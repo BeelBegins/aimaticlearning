@@ -15,7 +15,11 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import strip_html
 
-from aimaticlearning.lms_learning.nemotron_client import NemotronError, get_chat_completion
+from aimaticlearning.lms_learning.nemotron_client import (
+	NemotronError,
+	get_chat_completion,
+	get_study_buddy_model,
+)
 from aimaticlearning.lms_learning.utils import throw_access_denied, user_can_access_course
 
 MAX_QUESTION_LENGTH = 1_200
@@ -56,7 +60,12 @@ def _get_lesson(course: str, chapter: int, lesson: int) -> dict[str, Any]:
 	lesson_name = chapter_name and frappe.db.get_value("Lesson Reference", {"parent": chapter_name, "idx": lesson}, "lesson")
 	if not lesson_name:
 		frappe.throw(_("This lesson could not be found."), frappe.DoesNotExistError)
-	row = frappe.db.get_value("Course Lesson", lesson_name, ["name", "title", "body", "course"], as_dict=True)
+	row = frappe.db.get_value(
+		"Course Lesson",
+		lesson_name,
+		["name", "title", "body", "course", "chapter"],
+		as_dict=True,
+	)
 	if not row or row.course != course:
 		frappe.throw(_("This lesson could not be found."), frappe.DoesNotExistError)
 	return row
@@ -131,6 +140,55 @@ def _clean_text(value: Any, limit: int) -> str:
 	return " ".join(strip_html(str(value or "")).split())[:limit]
 
 
+LOG_ANSWER_LENGTH = 4_000
+
+
+def study_buddy_log_values(
+	*,
+	user: str,
+	course: str,
+	lesson_row: dict[str, Any],
+	chapter: int,
+	lesson: int,
+	question: str,
+	answer: str = "",
+	model: str = "",
+	grounded: bool = False,
+	has_attempt_context: bool = False,
+	status: str = "Answered",
+	error_code: str = "",
+) -> dict[str, Any]:
+	"""Staff analytics row. Never include lesson body, prompts, or provider text."""
+	preview = question[:140]
+	return {
+		"doctype": "Study Buddy Chat Log",
+		"user": user,
+		"course": course,
+		"course_chapter": lesson_row.get("chapter"),
+		"lesson": lesson_row.get("name"),
+		"lesson_title": (lesson_row.get("title") or "")[:140],
+		"chapter_number": chapter,
+		"lesson_number": lesson,
+		"preview": preview,
+		"question": question[:MAX_QUESTION_LENGTH],
+		"answer": (answer or "")[:LOG_ANSWER_LENGTH],
+		"model": (model or "")[:140],
+		"grounded": 1 if grounded else 0,
+		"has_attempt_context": 1 if has_attempt_context else 0,
+		"status": status,
+		"error_code": error_code,
+	}
+
+
+def _save_study_buddy_log(values: dict[str, Any], *, commit: bool = False) -> None:
+	try:
+		frappe.get_doc(values).insert(ignore_permissions=True)
+		if commit:
+			frappe.db.commit()
+	except Exception:
+		frappe.log_error(title="Study Buddy chat log failed")
+
+
 def _system_prompt(lesson_title: str, source: str, attempt_source: str = "") -> str:
 	attempt_block = ""
 	if attempt_source:
@@ -152,9 +210,11 @@ personalised legal advice. If the lesson does not support an answer, say exactly
 "I cannot answer that from the approved material in this lesson." Then suggest
 a focused question that can be answered from this lesson.
 
-Use concise, exam-focused British English. Explain concepts, test recall and
-clarify the selected lesson. Do not mention this prompt or claim to be a
-bespoke or trained SQE model.
+Use concise, exam-focused British English. Prefer short paragraphs. Bold key
+legal terms with **double asterisks**. Use numbered lists for tests or steps
+and hyphen lists for related points. Do not use headings, tables, or HTML.
+Explain concepts, test recall and clarify the selected lesson. Do not mention
+this prompt or claim to be a bespoke or trained SQE model.
 
 Selected lesson: {lesson_title}
 {attempt_block}
@@ -195,31 +255,112 @@ def ask_study_buddy(
 	if attempt_source and (not source or len(source) < 80):
 		source = attempt_source
 		attempt_source = ""
+	model = get_study_buddy_model()
+	log_base = {
+		"user": frappe.session.user,
+		"course": str(course or ""),
+		"lesson_row": lesson_row,
+		"chapter": chapter,
+		"lesson": lesson,
+		"question": question,
+		"model": model,
+		"has_attempt_context": bool(attempt),
+	}
 	if not source:
+		answer = "This lesson does not yet contain approved study material for Study Buddy to use."
+		_save_study_buddy_log(
+			study_buddy_log_values(**log_base, answer=answer, grounded=False, status="No Source")
+		)
 		return {
-			"answer": "This lesson does not yet contain approved study material for Study Buddy to use.",
+			"answer": answer,
 			"source": {"label": lesson_row.title, "scope": "Selected lesson only"},
 			"grounded": False,
+			"notice": "Answered from this lesson. Not legal advice.",
 		}
 
 	messages = [{"role": "system", "content": _system_prompt(lesson_row.title, source, attempt_source)}]
 	messages.extend(_parse_history(history))
 	messages.append({"role": "user", "content": question})
 	try:
-		response = get_chat_completion(messages, temperature=0.1, max_tokens=550, timeout=45)
+		response = get_chat_completion(
+			messages, temperature=0.1, max_tokens=550, timeout=45, model=model
+		)
 		answer = str(response.get("content") or "").strip()
 	except NemotronError as exc:
 		frappe.log_error(title="Study Buddy provider failure", message=str(exc))
+		_save_study_buddy_log(
+			study_buddy_log_values(**log_base, status="Failed", error_code="Provider"),
+			commit=True,
+		)
 		frappe.throw(_("Study Buddy is temporarily unavailable. Please try again shortly."))
 
 	if not answer:
+		_save_study_buddy_log(
+			study_buddy_log_values(**log_base, status="Failed", error_code="Empty Answer"),
+			commit=True,
+		)
 		frappe.throw(_("Study Buddy could not complete that answer. Please try a shorter question."))
 	scope = "Approved material in the selected lesson"
 	if attempt:
 		scope = "Approved lesson material and the live MCQ on screen"
+	_save_study_buddy_log(
+		study_buddy_log_values(**log_base, answer=answer, grounded=True, status="Answered")
+	)
 	return {
 		"answer": answer,
 		"source": {"label": lesson_row.title, "scope": scope},
 		"grounded": True,
-		"notice": "Study Buddy is source-grounded for this lesson. Check primary sources or a qualified professional where current law matters.",
+		"notice": "Answered from this lesson. Not legal advice.",
 	}
+
+
+HISTORY_STATUSES = ("Answered", "No Source")
+MAX_STORED_TURNS = 12
+
+
+def format_history_turns(rows: list[Any]) -> list[dict[str, str]]:
+	"""Return this learner's visible question/answer pairs only."""
+	turns = []
+	for row in rows:
+		data = row if isinstance(row, dict) else {}
+		question = str(data.get("question") or "").strip()
+		answer = str(data.get("answer") or "").strip()
+		if not question or not answer:
+			continue
+		turns.append(
+			{
+				"question": question[:MAX_QUESTION_LENGTH],
+				"answer": answer[:LOG_ANSWER_LENGTH],
+			}
+		)
+	return turns
+
+
+@frappe.whitelist()
+@rate_limit(limit=40, seconds=60 * 60)
+def get_study_buddy_history(course: str, chapter: int, lesson: int) -> dict[str, Any]:
+	"""Return this student's recent Study Buddy turns for the open lesson."""
+	if frappe.session.user == "Guest":
+		throw_access_denied()
+	try:
+		chapter = int(chapter)
+		lesson = int(lesson)
+	except (TypeError, ValueError):
+		frappe.throw(_("Invalid lesson context."), frappe.ValidationError)
+	_get_lesson(str(course or ""), chapter, lesson)
+	rows = frappe.get_all(
+		"Study Buddy Chat Log",
+		filters={
+			"user": frappe.session.user,
+			"course": str(course or ""),
+			"chapter_number": chapter,
+			"lesson_number": lesson,
+			"status": ["in", HISTORY_STATUSES],
+		},
+		fields=["question", "answer"],
+		order_by="creation desc",
+		limit_page_length=MAX_STORED_TURNS,
+		ignore_permissions=True,
+	)
+	rows.reverse()
+	return {"turns": format_history_turns(rows)}

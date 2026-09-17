@@ -26,6 +26,12 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
   enforce authentication server-side, and do not claim screenshots/copying can be stopped.
 - Tag every MCQ and flashcard with chapter, concept, learning objective, difficulty,
   source reference, and revision. Preserve attempts against their question revision.
+- Chapter MCQ and module-assessment lessons use `Course Lesson.quiz_id`. Keep
+  `content = ""` on those lessons: non-empty EditorJS `content` hides the LMS
+  quiz widget. `outline_sync.ensure_quiz_lesson` must not write CodeX blobs
+  there. Scan all `quiz_id` lessons and clear leftovers with
+  `clear_quiz_lesson_editorjs` before publish. Notes lessons may use EditorJS;
+  quiz-wired lessons must not.
 - AI may only draft from approved source material. Require human review before
   publication and do not present generated legal content as authoritative advice.
   Generated flashcards must include an exact quote from the approved chapter notes;
@@ -35,6 +41,12 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
 
 - Record correctness, elapsed time, attempt order, and topic tags. Make mastery
   thresholds and revision recommendations transparent and auditable.
+- Log Study Buddy questions and answers to `Study Buddy Chat Log` (staff
+  analytics). Learners reload their own recent turns for the open lesson
+  through `get_study_buddy_history` (session user only). Do not store lesson
+  body, system prompts, or provider error text.
+  Use paid `deepseek/deepseek-v4-flash` via `openrouter_study_buddy_model`
+  (never the `:free` helper).
 - Keep chapter MCQs, the 150-question module assessment blueprint, and the
   200-card target explicit; never silently duplicate or discard approved questions.
 - Test permissions, lesson visibility, scoring, feedback, question selection,

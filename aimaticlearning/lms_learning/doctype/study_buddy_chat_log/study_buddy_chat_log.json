@@ -1,0 +1,191 @@
+{
+ "actions": [],
+ "allow_import": 0,
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-17 09:40:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "course",
+  "course_chapter",
+  "column_break_lesson",
+  "lesson",
+  "lesson_title",
+  "chapter_number",
+  "lesson_number",
+  "section_break_turn",
+  "preview",
+  "question",
+  "answer",
+  "section_break_meta",
+  "model",
+  "status",
+  "error_code",
+  "grounded",
+  "has_attempt_context"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "course",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Course",
+   "options": "LMS Course",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "course_chapter",
+   "fieldtype": "Link",
+   "label": "Course Chapter",
+   "options": "Course Chapter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_lesson",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "lesson",
+   "fieldtype": "Link",
+   "label": "Lesson",
+   "options": "Course Lesson",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lesson_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Lesson Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "chapter_number",
+   "fieldtype": "Int",
+   "label": "Chapter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "lesson_number",
+   "fieldtype": "Int",
+   "label": "Lesson Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_turn",
+   "fieldtype": "Section Break",
+   "label": "Turn"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Data",
+   "label": "Preview",
+   "read_only": 1
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Long Text",
+   "label": "Question",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Long Text",
+   "label": "Answer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_meta",
+   "fieldtype": "Section Break",
+   "label": "Meta"
+  },
+  {
+   "fieldname": "model",
+   "fieldtype": "Data",
+   "label": "Model",
+   "read_only": 1
+  },
+  {
+   "default": "Answered",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Answered\nNo Source\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_code",
+   "fieldtype": "Select",
+   "label": "Error Code",
+   "options": "\nProvider\nEmpty Answer",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "grounded",
+   "fieldtype": "Check",
+   "label": "Grounded",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "has_attempt_context",
+   "fieldtype": "Check",
+   "label": "Has Attempt Context",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-17 09:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Study Buddy Chat Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "LMS Learner Analytics",
+   "share": 0
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "preview",
+ "track_changes": 0
+}

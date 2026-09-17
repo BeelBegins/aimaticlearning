@@ -87,15 +87,87 @@
 		};
 	}
 
+	function escapeStudyBuddyText(text) {
+		const node = document.createElement("div");
+		node.textContent = text == null ? "" : String(text);
+		return node.innerHTML;
+	}
+
+	function formatStudyBuddyInline(text) {
+		return escapeStudyBuddyText(text)
+			.replace(/`([^`]+)`/g, "<code>$1</code>")
+			.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+	}
+
+	function renderStudyBuddyMarkdown(text) {
+		const root = document.createElement("div");
+		root.className = "aimatic-study-buddy-md";
+		const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+		let list = null;
+		let listType = null;
+
+		function closeList() {
+			if (!list) return;
+			root.append(list);
+			list = null;
+			listType = null;
+		}
+
+		lines.forEach(function (line) {
+			const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
+			const bullet = line.match(/^\s*[-*]\s+(.*)$/);
+			if (numbered) {
+				if (listType !== "ol") {
+					closeList();
+					list = document.createElement("ol");
+					listType = "ol";
+				}
+				const item = document.createElement("li");
+				item.innerHTML = formatStudyBuddyInline(numbered[1]);
+				list.append(item);
+				return;
+			}
+			if (bullet) {
+				if (listType !== "ul") {
+					closeList();
+					list = document.createElement("ul");
+					listType = "ul";
+				}
+				const item = document.createElement("li");
+				item.innerHTML = formatStudyBuddyInline(bullet[1]);
+				list.append(item);
+				return;
+			}
+			closeList();
+			if (!line.trim()) return;
+			const paragraph = document.createElement("p");
+			paragraph.innerHTML = formatStudyBuddyInline(line);
+			root.append(paragraph);
+		});
+		closeList();
+		if (!root.childNodes.length) {
+			const paragraph = document.createElement("p");
+			paragraph.textContent = text || "";
+			root.append(paragraph);
+		}
+		return root;
+	}
+
+	function lessonStudyBuddyKey(context) {
+		return context.course + ":" + context.chapter + ":" + context.lesson;
+	}
+
 	function appendStudyBuddyMessage(host, kind, text, sourceLabel) {
 		host.hidden = false;
 		const message = document.createElement("section");
 		message.className = "aimatic-study-buddy-message aimatic-study-buddy-message-" + kind;
-		const label = document.createElement("strong");
-		label.textContent = kind === "user" ? "You" : "Study Buddy";
-		const body = document.createElement("p");
-		body.textContent = text;
-		message.append(label, body);
+		message.setAttribute("aria-label", kind === "user" ? "You" : "Study Buddy");
+		if (kind === "assistant") message.append(renderStudyBuddyMarkdown(text));
+		else {
+			const body = document.createElement("p");
+			body.textContent = text;
+			message.append(body);
+		}
 		if (sourceLabel) {
 			const source = document.createElement("small");
 			source.textContent = "Source: " + sourceLabel;
@@ -103,6 +175,52 @@
 		}
 		host.append(message);
 		host.scrollTop = host.scrollHeight;
+	}
+
+	function loadStudyBuddyHistory(dock, context) {
+		const card = dock.querySelector("[data-study-buddy]");
+		if (!card || !context) return;
+		const key = lessonStudyBuddyKey(context);
+		if (card.dataset.studyBuddyLesson === key) return;
+		card.dataset.studyBuddyLesson = key;
+		const transcript = card.querySelector("[data-study-buddy-transcript]");
+		const status = card.querySelector("[data-study-buddy-status]");
+		if (transcript) {
+			transcript.innerHTML = "";
+			transcript.hidden = true;
+		}
+		card.classList.remove("is-chatting");
+		card.dataset.studyBuddyHistory = "[]";
+		const params = new URLSearchParams({
+			course: context.course,
+			chapter: String(context.chapter),
+			lesson: String(context.lesson),
+		});
+		fetch("/api/method/aimaticlearning.lms_learning.study_buddy.get_study_buddy_history?" + params.toString(), {
+			credentials: "same-origin",
+		})
+			.then(function (response) {
+				if (!response.ok) return { message: { turns: [] } };
+				return response.json();
+			})
+			.then(function (payload) {
+				if (card.dataset.studyBuddyLesson !== key || !transcript) return;
+				const turns = (payload.message && payload.message.turns) || [];
+				const history = [];
+				turns.forEach(function (turn) {
+					if (turn.question) appendStudyBuddyMessage(transcript, "user", turn.question);
+					if (turn.answer) appendStudyBuddyMessage(transcript, "assistant", turn.answer);
+					if (turn.question && turn.answer) {
+						history.push({ role: "user", content: turn.question }, { role: "assistant", content: turn.answer });
+					}
+				});
+				if (history.length) {
+					card.classList.add("is-chatting");
+					card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-6));
+					if (status) status.textContent = "Recent questions from this lesson. Not legal advice.";
+				}
+			})
+			.catch(function () {});
 	}
 
 	function setStudyBuddyOpen(dock, open) {
@@ -156,8 +274,17 @@
 		card.querySelectorAll("[data-study-buddy-prompt]").forEach(function (button) {
 			button.addEventListener("click", function () {
 				input.value = button.dataset.studyBuddyPrompt;
-				input.focus();
+				if (submit.disabled) return;
+				if (typeof form.requestSubmit === "function") form.requestSubmit();
+				else form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
 			});
+		});
+		input.addEventListener("keydown", function (event) {
+			if (event.key !== "Enter" || event.shiftKey) return;
+			event.preventDefault();
+			if (submit.disabled) return;
+			if (typeof form.requestSubmit === "function") form.requestSubmit();
+			else form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
 		});
 		form.addEventListener("submit", function (event) {
 			event.preventDefault();
@@ -174,9 +301,10 @@
 			let history = [];
 			try { history = JSON.parse(card.dataset.studyBuddyHistory || "[]"); } catch (_) {}
 			appendStudyBuddyMessage(transcript, "user", question);
+			card.classList.add("is-chatting");
 			input.value = "";
 			submit.disabled = true;
-			status.textContent = "Checking the approved material for this lesson…";
+			status.textContent = "Working on your question…";
 			const mcq = liveMcqContext();
 			fetch("/api/method/aimaticlearning.lms_learning.study_buddy.ask_study_buddy", {
 				method: "POST",
@@ -201,7 +329,7 @@
 					appendStudyBuddyMessage(transcript, "assistant", result.answer, result.source && result.source.label);
 					history.push({ role: "user", content: question }, { role: "assistant", content: result.answer });
 					card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-6));
-					status.textContent = result.notice || "Source-grounded response for the selected lesson.";
+					status.textContent = result.notice || "Answered from this lesson. Not legal advice.";
 				})
 				.catch(function (error) {
 					status.textContent = error.message || "Study Buddy is temporarily unavailable. Please try again.";
@@ -211,7 +339,8 @@
 	}
 
 	function addStudyBuddyDock() {
-		if (!currentLessonContext()) {
+		const context = currentLessonContext();
+		if (!context) {
 			const leftover = document.querySelector(".aimatic-study-buddy-dock");
 			if (leftover) leftover.remove();
 			return;
@@ -219,6 +348,7 @@
 		let dock = document.querySelector(".aimatic-study-buddy-dock");
 		if (dock) {
 			refreshStudyBuddyTopic(dock.querySelector("[data-study-buddy]"));
+			loadStudyBuddyHistory(dock, context);
 			return;
 		}
 		dock = document.createElement("div");
@@ -226,23 +356,22 @@
 		dock.innerHTML =
 			'<button type="button" class="aimatic-study-buddy-fab" data-study-buddy-toggle aria-expanded="false" aria-controls="aimatic-study-buddy-panel">Study Buddy</button>' +
 			'<section id="aimatic-study-buddy-panel" class="aimatic-lms-ai-card aimatic-study-buddy" data-study-buddy data-study-buddy-panel hidden>' +
-				'<div class="aimatic-lms-ai-kicker"><span class="aimatic-lms-ai-spark">✦</span> Study Buddy AI <b>Source-grounded beta</b>' +
+				'<div class="aimatic-study-buddy-head">Study Buddy' +
 					'<button type="button" class="aimatic-study-buddy-close" data-study-buddy-close aria-label="Close Study Buddy">×</button></div>' +
-				'<div class="aimatic-lms-ai-context"><span>Grounded in approved material</span><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Lesson context is selected automatically.</small></div>' +
-				'<h2>Ask about this lesson.</h2>' +
-				'<p>Designed to explain, test and focus revision using the selected lesson—not generic prompts or copied text.</p>' +
+				'<div class="aimatic-lms-ai-context"><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Lesson context is selected automatically.</small></div>' +
 				'<div class="aimatic-study-buddy-transcript" data-study-buddy-transcript aria-live="polite" hidden></div>' +
 				'<div class="aimatic-study-buddy-prompts" aria-label="Suggested questions">' +
 					'<button type="button" data-study-buddy-prompt="Explain the key rule in simple terms.">Explain the key rule</button>' +
 					'<button type="button" data-study-buddy-prompt="Test me on the most important points in this lesson.">Test my recall</button>' +
 					'<button type="button" data-study-buddy-prompt="What should I remember for SQE-style questions?">Focus my revision</button>' +
 				'</div>' +
-				'<form class="aimatic-study-buddy-form"><label class="sr-only" for="aimatic-study-buddy-question">Ask Study Buddy</label><textarea id="aimatic-study-buddy-question" rows="3" maxlength="1200" placeholder="Ask a focused question about this lesson"></textarea><button type="submit">Ask Study Buddy <span aria-hidden="true">↗</span></button></form>' +
-				'<p class="aimatic-study-buddy-status" data-study-buddy-status>Your question and this lesson&rsquo;s approved text are sent to Study Buddy for a source-grounded response. Not legal advice.</p>' +
+				'<form class="aimatic-study-buddy-form"><label class="sr-only" for="aimatic-study-buddy-question">Ask Study Buddy</label><textarea id="aimatic-study-buddy-question" rows="2" maxlength="1200" placeholder="Ask this lesson"></textarea><button type="submit">Send</button></form>' +
+				'<p class="aimatic-study-buddy-status" data-study-buddy-status>Not legal advice.</p>' +
 			'</section>';
 		document.body.appendChild(dock);
 		setStudyBuddyOpen(dock, false);
 		wireStudyBuddy(dock);
+		loadStudyBuddyHistory(dock, context);
 	}
 
 	function decorateLessonPage() {

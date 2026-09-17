@@ -46,6 +46,11 @@ MCQ only after answer, explanation, difficulty, concept, chapter, source
 locator and revision are explicit and reviewed. Flashcards need the same tags.
 Mocks only from reviewed items — never pad by duplicating questions.
 
+Quiz/MCQ/assessment lessons: set `quiz_id` and `content = ""`. Non-empty
+EditorJS `content` hides the LMS quiz widget. Before publish, list every
+`Course Lesson` with `quiz_id` and non-empty `content` and clear those blobs.
+Do not write CodeX/EditorJS onto chapter MCQ or module assessment lessons.
+
 Legal Services / Public Law have no question-bank files: coverage-gap report
 plus expert-authored reviewed items. Do not invent scored questions as sourced.
 

@@ -4,7 +4,7 @@ Uses only frappe.conf (site_config / common_site_config). Does not import
 the SZL `aimatic` app or any of its DocTypes.
 
 	bench set-config -g openrouter_api_key "sk-or-..."
-	bench set-config -g openrouter_nemotron_model "nvidia/nemotron-3-super-120b-a12b"
+	bench --site lms.aimatic.tech set-config openrouter_study_buddy_model "deepseek/deepseek-v4-flash"
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import requests
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+STUDY_BUDDY_DEFAULT_MODEL = "deepseek/deepseek-v4-flash"
 DEFAULT_TIMEOUT = 60
 
 
@@ -35,6 +36,21 @@ def _get_api_key() -> str:
 
 def _get_model() -> str:
 	return frappe.conf.get("openrouter_nemotron_model") or DEFAULT_MODEL
+
+
+def paid_model_id(model: str | None) -> str:
+	value = str(model or "").strip()
+	if value.endswith(":free"):
+		value = value[: -len(":free")]
+	return value or STUDY_BUDDY_DEFAULT_MODEL
+
+
+def get_study_buddy_model() -> str:
+	"""Paid OpenRouter model for learner Study Buddy (never the :free helper)."""
+	explicit = frappe.conf.get("openrouter_study_buddy_model")
+	if explicit:
+		return paid_model_id(explicit)
+	return STUDY_BUDDY_DEFAULT_MODEL
 
 
 def get_chat_completion(

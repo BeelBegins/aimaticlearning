@@ -1,4 +1,5 @@
 import inspect
+import json
 import unittest
 from unittest.mock import patch
 
@@ -6,6 +7,8 @@ from aimaticlearning.lms_learning import study_buddy
 from aimaticlearning.lms_learning.nemotron_client import (
 	NemotronError,
 	get_chat_completion,
+	get_study_buddy_model,
+	paid_model_id,
 )
 
 
@@ -34,6 +37,28 @@ class TestNemotronClient(unittest.TestCase):
 		self.assertEqual(message["content"], "from the lesson")
 		headers = post.call_args.kwargs["headers"]
 		self.assertEqual(headers["Authorization"], "Bearer sk-test")
+		payload = json.loads(post.call_args.kwargs["data"])
+		self.assertEqual(payload["model"], "nvidia/test")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_study_buddy_model_uses_explicit_flash_not_shared_free_helper(self, frappe):
+		frappe.conf.get.side_effect = lambda key, default=None: {
+			"openrouter_study_buddy_model": "deepseek/deepseek-v4-flash",
+			"openrouter_nemotron_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+		}.get(key, default)
+		self.assertEqual(get_study_buddy_model(), "deepseek/deepseek-v4-flash")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_study_buddy_model_defaults_to_flash(self, frappe):
+		frappe.conf.get.side_effect = lambda key, default=None: {
+			"openrouter_study_buddy_model": None,
+			"openrouter_nemotron_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+		}.get(key, default)
+		self.assertEqual(get_study_buddy_model(), "deepseek/deepseek-v4-flash")
+
+	def test_paid_model_id_strips_free_suffix(self):
+		self.assertEqual(paid_model_id("nvidia/nemotron-3-ultra-550b-a55b:free"), "nvidia/nemotron-3-ultra-550b-a55b")
+		self.assertEqual(paid_model_id("deepseek/deepseek-v4-flash"), "deepseek/deepseek-v4-flash")
 
 	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
 	def test_missing_key_raises(self, frappe):

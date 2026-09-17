@@ -7,74 +7,158 @@
 {% block page_content %}
 <div class="aimatic-flashcards" id="aimatic-flashcards">
 	<style>
+		body.aimatic-flashcards-page {
+			background: var(--bg-color, #fff);
+			color: var(--text-color, #1f1f1f);
+		}
 		.aimatic-flashcards {
+			--fc-ink: var(--ink-gray-9, var(--text-color, #1f1f1f));
+			--fc-muted: var(--ink-gray-7, var(--text-muted, #5b656e));
+			--fc-accent: var(--ink-gray-8, var(--primary, #171717));
+			--fc-surface: var(--surface-white, var(--bg-color, #fff));
+			--fc-card: var(--surface-white, #fff);
+			--fc-warm: var(--surface-gray-2, var(--control-bg, #f8f8f8));
+			--fc-line: var(--outline-gray-2, var(--border-color, #e2e6eb));
+			box-sizing: border-box;
 			max-width: 720px;
 			margin: 0 auto;
-			padding: 24px 16px 48px;
-			font-family: system-ui, sans-serif;
+			padding: clamp(18px, 4vw, 42px) clamp(14px, 3vw, 28px) 72px;
+			min-height: calc(100vh - 48px);
+			background: var(--fc-surface);
+			color: var(--fc-ink);
+			font-family: inherit;
 		}
+		.aimatic-flashcards *, .aimatic-flashcards *::before, .aimatic-flashcards *::after { box-sizing: border-box; }
 		.aimatic-flashcards .is-hidden { display: none !important; }
-		.fc-header { margin-bottom: 20px; }
-		.fc-header h2 { margin: 0 0 8px; font-size: 1.5rem; }
-		.fc-header p { margin: 0; color: #1a3340; font-size: 0.95rem; }
+		.fc-back-link {
+			display: inline-flex;
+			align-items: center;
+			min-height: 40px;
+			margin-bottom: 8px;
+			color: var(--fc-muted) !important;
+			font-size: 0.82rem;
+			font-weight: 600;
+			text-decoration: none;
+		}
+		.fc-back-link::before { margin-right: 7px; content: "←"; font-size: 1.1rem; }
+		.fc-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin: 0 0 10px;
+			color: var(--fc-muted);
+			font-size: 0.68rem;
+			font-weight: 600;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+		.fc-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--fc-accent); content: ""; }
+		.fc-header { margin-bottom: 22px; }
+		.aimatic-flashcards h1 {
+			margin: 0;
+			color: var(--fc-ink);
+			font-size: clamp(1.7rem, 3.4vw, 2.15rem);
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			line-height: 1.15;
+		}
+		.fc-lead { margin: 11px 0 0; max-width: 40rem; color: var(--fc-muted); font-size: 0.95rem; line-height: 1.55; }
 		.fc-card {
-			background: linear-gradient(145deg, #04161c, #0d3d4a);
-			color: #fff;
-			border-radius: 16px;
-			padding: 28px 24px;
-			min-height: 200px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			text-align: center;
+			min-height: 220px;
+			padding: 28px 24px;
+			border: 1px solid var(--fc-accent);
+			border-radius: 10px;
+			background: var(--fc-accent);
+			color: #fff;
 			font-size: 1.05rem;
 			line-height: 1.55;
+			text-align: center;
 			cursor: pointer;
-			box-shadow: 0 16px 40px rgba(4, 22, 28, 0.2);
 			user-select: none;
 		}
-		.fc-card.is-back { background: linear-gradient(145deg, #0b9a84, #077a69); }
+		.fc-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--fc-accent) 35%, transparent); outline-offset: 3px; }
+		.fc-card.is-back {
+			border-color: var(--fc-line);
+			background: var(--fc-warm);
+			color: var(--fc-ink);
+		}
 		.fc-meta {
 			display: flex;
 			justify-content: space-between;
+			gap: 12px;
 			margin-top: 12px;
-			font-size: 0.85rem;
-			color: #1a3340;
+			color: var(--fc-muted);
+			font-size: 0.76rem;
+			font-weight: 600;
 		}
 		.fc-actions {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 8px;
+			gap: 9px;
 			margin-top: 20px;
 		}
-		.fc-btn {
-			padding: 10px 16px;
-			border-radius: 999px;
-			border: 1px solid rgba(4, 22, 28, 0.15);
-			background: #fff;
+		.fc-btn, .fc-btn-primary {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 36px;
+			padding: 8px 14px;
+			border: 1px solid var(--fc-line);
+			border-radius: 8px;
+			background: var(--fc-card);
+			color: var(--fc-ink);
+			font: inherit;
+			font-size: 0.82rem;
 			font-weight: 600;
-			font-size: 0.85rem;
+			line-height: 1.2;
+			text-align: center;
+			text-decoration: none;
 			cursor: pointer;
 		}
-		.fc-btn-primary { background: #0b9a84; color: #fff; border-color: #0b9a84; }
-		.fc-empty, .fc-loading { padding: 24px; text-align: center; color: #1a3340; }
-		.fc-back-link { display: inline-block; margin-bottom: 16px; color: #8f6517; text-decoration: none; font-weight: 600; }
+		.fc-btn:hover { background: var(--fc-warm); text-decoration: none; }
+		.fc-btn-primary { border-color: var(--fc-accent); background: var(--fc-accent); color: #fff !important; }
+		.fc-btn-primary:hover { background: var(--fc-accent); filter: brightness(1.08); }
+		.fc-btn:disabled { cursor: progress; opacity: 0.68; }
+		.fc-empty, .fc-loading {
+			padding: 55px 16px;
+			border: 1px dashed var(--fc-line);
+			border-radius: 10px;
+			background: var(--fc-card);
+			color: var(--fc-muted);
+			text-align: center;
+		}
+		.fc-loading.fc-error {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: center;
+			gap: 12px;
+			color: var(--ink-red-5, #b52a2a);
+			background: var(--surface-red-2, #fff5f5);
+		}
+		.fc-loading.fc-error p { width: 100%; margin: 0; }
+		@media (prefers-reduced-motion: reduce) {
+			.fc-btn, .fc-btn-primary { transition: none; filter: none; }
+		}
 		@media (max-width: 620px) {
 			.aimatic-flashcards { padding: 18px 16px 36px; }
 			.fc-header { margin-bottom: 16px; }
-			.fc-header h2 { font-size: 1.38rem; }
 			.fc-card { min-height: 250px; padding: 22px 18px; font-size: 1rem; }
-			.fc-meta { align-items: flex-start; flex-direction: column; gap: 5px; }
+			.fc-meta { flex-direction: column; align-items: flex-start; gap: 5px; }
 			.fc-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-			.fc-btn { width: 100%; min-height: 44px; padding: 9px 8px; }
+			.fc-btn, .fc-btn-primary { width: 100%; min-height: 44px; padding: 9px 8px; }
 			#fc-next { grid-column: 1 / -1; }
 		}
 	</style>
 
-	<a class="fc-back-link" href="/learning-revision">← Back to revision</a>
+	<a class="fc-back-link" href="/learning-revision">Back to revision</a>
 	<div class="fc-header">
-		<h2>Flashcards</h2>
-		<p>{{ chapter_title }} — tap card to flip, rate recall, then continue.</p>
+		<p class="fc-kicker">Revision</p>
+		<h1>Flashcards</h1>
+		<p class="fc-lead">{{ chapter_title }} — tap the card to flip, rate your recall, then continue.</p>
 	</div>
 
 	<div id="fc-loading" class="fc-loading">Loading deck…</div>
@@ -138,6 +222,85 @@
 		}
 	}
 
+	function csrfToken() {
+		if (window.frappe && frappe.csrf_token && frappe.csrf_token !== "None") {
+			return frappe.csrf_token;
+		}
+		return window.csrf_token || "";
+	}
+
+	function showError(message, opts) {
+		opts = opts || {};
+		el.loading.classList.remove("is-hidden");
+		el.loading.classList.add("fc-error");
+		el.empty.classList.add("is-hidden");
+		el.deck.classList.add("is-hidden");
+		const copy = document.createElement("p");
+		copy.textContent = message;
+		const retry = document.createElement("button");
+		retry.type = "button";
+		retry.className = "fc-btn";
+		retry.textContent = "Try again";
+		retry.addEventListener("click", loadDeck);
+		el.loading.replaceChildren(copy, retry);
+		if (opts.login) {
+			const login = document.createElement("a");
+			login.className = "fc-btn fc-btn-primary";
+			login.href = "/login?redirect-to=" + encodeURIComponent(window.location.pathname + window.location.search);
+			login.textContent = "Sign in";
+			el.loading.append(login);
+		}
+	}
+
+	function loadDeck() {
+		el.loading.classList.remove("is-hidden", "fc-error");
+		el.loading.textContent = "Loading deck…";
+		el.empty.classList.add("is-hidden");
+		el.deck.classList.add("is-hidden");
+		const params = new URLSearchParams({ limit: "200" });
+		if (module) params.set("learning_module", module);
+		if (courseChapter) params.set("course_chapter", courseChapter);
+		if (ratingFilter) params.set("rating_filter", ratingFilter);
+		const controller = new AbortController();
+		const requestTimeout = window.setTimeout(function () { controller.abort(); }, 14000);
+		fetch("/api/method/aimaticlearning.lms_learning.api.get_flashcard_deck?" + params.toString(), {
+			credentials: "same-origin",
+			headers: { Accept: "application/json" },
+			signal: controller.signal,
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					const error = new Error("Flashcard request returned HTTP " + response.status);
+					error.status = response.status;
+					throw error;
+				}
+				return response.json();
+			})
+			.then(function (payload) {
+				el.loading.classList.add("is-hidden");
+				cards = (payload.message && payload.message.cards) || [];
+				index = 0;
+				if (!cards.length) {
+					el.empty.classList.remove("is-hidden");
+					return;
+				}
+				el.deck.classList.remove("is-hidden");
+				showCard();
+			})
+			.catch(function (error) {
+				let message;
+				if (error.name === "AbortError") {
+					message = "Flashcards are taking too long to respond. Check your connection and try again.";
+				} else if (error.status === 401 || error.status === 403) {
+					message = "Flashcards could not be loaded. Sign in and try again.";
+				} else {
+					message = "Flashcards could not be loaded. Try again.";
+				}
+				showError(message, { login: error.status === 401 || error.status === 403 });
+			})
+			.finally(function () { window.clearTimeout(requestTimeout); });
+	}
+
 	el.card.addEventListener("click", flip);
 	el.next.addEventListener("click", nextCard);
 
@@ -145,33 +308,27 @@
 		btn.addEventListener("click", function () {
 			const card = cards[index];
 			if (!card) return;
-			frappe.call({
-				method: "aimaticlearning.lms_learning.api.review_flashcard",
-				args: { name: card.name, rating: btn.dataset.rating },
-				callback: function () { nextCard(); },
-			});
+			btn.disabled = true;
+			fetch("/api/method/aimaticlearning.lms_learning.api.review_flashcard", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+					"X-Frappe-CSRF-Token": csrfToken(),
+				},
+				body: JSON.stringify({ name: card.name, rating: btn.dataset.rating }),
+			})
+				.then(function (response) {
+					if (!response.ok) throw new Error("Flashcard review could not be saved.");
+					nextCard();
+				})
+				.catch(function () { /* keep the current card so the learner can retry */ })
+				.finally(function () { btn.disabled = false; });
 		});
 	});
 
-	frappe.call({
-		method: "aimaticlearning.lms_learning.api.get_flashcard_deck",
-		args: {
-			learning_module: module,
-			course_chapter: courseChapter || undefined,
-			limit: 200,
-			rating_filter: ratingFilter || undefined,
-		},
-		callback: function (r) {
-			el.loading.classList.add("is-hidden");
-			cards = (r.message && r.message.cards) || [];
-			if (!cards.length) {
-				el.empty.classList.remove("is-hidden");
-				return;
-			}
-			el.deck.classList.remove("is-hidden");
-			showCard();
-		},
-	});
+	loadDeck();
 })();
 </script>
 {% endblock %}

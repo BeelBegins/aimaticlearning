@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>LMS Learning</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}}]",
+ "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>LMS Learning</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}},{\"id\":\"lmod-shortcut-buddy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy Chat Log\",\"col\":4}}]",
  "creation": "2026-08-30 00:00:00.000000",
  "doctype": "Workspace",
  "for_user": "",
@@ -66,6 +66,17 @@
    "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Study Buddy Chat Log",
+   "link_count": 0,
+   "link_to": "Study Buddy Chat Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Learning Map",
    "link_count": 0,
    "link_to": "learning-map",
@@ -74,7 +85,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-08-30 00:00:00.000000",
+ "modified": "2026-09-17 09:40:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "LMS Learning",
@@ -104,6 +115,13 @@
    "doc_view": "List",
    "label": "Learning Flashcard",
    "link_to": "Learning Flashcard",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Study Buddy Chat Log",
+   "link_to": "Study Buddy Chat Log",
    "type": "DocType"
   }
  ],

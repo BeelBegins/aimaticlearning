@@ -25,6 +25,9 @@ Rollback: restore the backup taken in step 1.
 
 - `body` = student HTML from the matched Word chapter (headings, paras, tables).
 - `content` = `""` always. Stale EditorJS in `content` duplicates/raw-dumps.
+- Quiz/MCQ/assessment lessons: `quiz_id` set, `content = ""`. EditorJS in
+  `content` hides the LMS quiz widget. Scan all `quiz_id` lessons before
+  publish; clear leftovers with `clear_quiz_lesson_editorjs`.
 - Do not rename lessons or delete progress.
 - Profile: bump `source_revision`; store `source:<file> hash:<md5> locator:<heading>`
   in `concept_tags`; copy HTML to `notes_html`.

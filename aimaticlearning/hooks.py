@@ -41,11 +41,11 @@ lms_markdown_macro_renderers = {
 }
 
 web_include_css = [
-	"/assets/aimaticlearning/css/lms_learning.css",
+	"/assets/aimaticlearning/css/lms_learning.css?v=20260917-buddy4",
 	"/assets/aimaticlearning/css/lms_soft_themes.css?v=20260902-6",
 ]
 web_include_js = [
-	"/assets/aimaticlearning/js/lms_learning.js?v=20260916-deploy1",
+	"/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4",
 	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20260902-6",
 ]
 

@@ -7,14 +7,14 @@ from aimaticlearning.lms_learning.statistics import can_view_statistics
 
 ASSET_MARKER = "examic-study-learning-assets"
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-buddy4">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260916-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20260902-6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20260907-1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260901-2">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lesson_audio.css?v=20260907-1">
 <script defer src="/assets/aimaticlearning/js/lms_dom_observe.js?v=20260902-1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260916-1"></script>
+<script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4"></script>
 <script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20260902-6"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20260916-1"></script>

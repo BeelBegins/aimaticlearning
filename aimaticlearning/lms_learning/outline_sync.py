@@ -122,6 +122,47 @@ def _notes_preview_paragraphs(paragraphs: list[str], max_paragraphs: int = 2, ma
 	return preview
 
 
+def new_quiz_lesson_values(
+	*,
+	title: str,
+	course: str,
+	chapter: str,
+	quiz_id: str,
+) -> dict:
+	"""Quiz-wired lessons must keep EditorJS `content` empty.
+
+	Frappe LMS Lesson.vue renders the CodeX editor whenever `content` is
+	truthy, and only then falls through to `body` + `quiz_id`. A paragraph
+	blob hides the quiz widget.
+	"""
+	return {
+		"doctype": "Course Lesson",
+		"title": title,
+		"course": course,
+		"chapter": chapter,
+		"quiz_id": quiz_id,
+		"content": "",
+	}
+
+
+def quiz_lessons_with_editorjs(rows: list[dict]) -> list[dict]:
+	blocked = []
+	for row in rows:
+		quiz_id = (row.get("quiz_id") or "").strip()
+		content = (row.get("content") or "").strip()
+		if quiz_id and content:
+			blocked.append(row)
+	return blocked
+
+
+def _empty_quiz_lesson_content(lesson_name: str) -> bool:
+	content = frappe.db.get_value("Course Lesson", lesson_name, "content")
+	if not (content or "").strip():
+		return False
+	frappe.db.set_value("Course Lesson", lesson_name, "content", "")
+	return True
+
+
 def ensure_quiz_lesson(profile_name: str) -> str | None:
 	profile = frappe.get_doc("Learning Chapter Profile", profile_name)
 	if not profile.chapter_quiz or not profile.course_chapter:
@@ -136,22 +177,15 @@ def ensure_quiz_lesson(profile_name: str) -> str | None:
 	)
 	if existing:
 		lesson_name = existing
+		_empty_quiz_lesson_content(lesson_name)
 	else:
 		lesson = frappe.get_doc(
-			{
-				"doctype": "Course Lesson",
-				"title": title,
-				"course": course,
-				"chapter": profile.course_chapter,
-				"quiz_id": profile.chapter_quiz,
-				"content": build_editorjs_content(
-					title,
-					[
-						"Complete this chapter quiz (up to 20 MCQs). "
-						"Review the explanations after each attempt."
-					],
-				),
-			}
+			new_quiz_lesson_values(
+				title=title,
+				course=course,
+				chapter=profile.course_chapter,
+				quiz_id=profile.chapter_quiz,
+			)
 		)
 		lesson.insert(ignore_permissions=True)
 		lesson_name = lesson.name
@@ -234,22 +268,15 @@ def _ensure_module_assessment_lesson(
 	)
 	if existing:
 		lesson_name = existing
+		_empty_quiz_lesson_content(lesson_name)
 	else:
 		lesson = frappe.get_doc(
-			{
-				"doctype": "Course Lesson",
-				"title": title,
-				"course": course_name,
-				"chapter": chapter_name,
-				"quiz_id": quiz_name,
-				"content": build_editorjs_content(
-					title,
-					[
-						"Complete the full module assessment (150 MCQs). "
-						"This draws from chapter topics across the course."
-					],
-				),
-			}
+			new_quiz_lesson_values(
+				title=title,
+				course=course_name,
+				chapter=chapter_name,
+				quiz_id=quiz_name,
+			)
 		)
 		lesson.insert(ignore_permissions=True)
 		lesson_name = lesson.name
@@ -257,6 +284,35 @@ def _ensure_module_assessment_lesson(
 	link_chapter_to_course(course_name, chapter_name)
 	link_lesson_to_chapter(chapter_name, lesson_name)
 	return lesson_name
+
+
+def clear_quiz_lesson_editorjs(course_name: str | None = None, dry_run: bool = True) -> dict:
+	"""Empty EditorJS `content` on quiz-wired lessons so the LMS widget mounts."""
+	sql = """
+		SELECT name, course, title, quiz_id, content
+		FROM `tabCourse Lesson`
+		WHERE quiz_id IS NOT NULL AND quiz_id != ''
+		  AND TRIM(IFNULL(content, '')) != ''
+	"""
+	params: list = []
+	if course_name:
+		sql += " AND course = %s"
+		params.append(course_name)
+	rows = frappe.db.sql(sql, tuple(params), as_dict=True)
+	blocked = quiz_lessons_with_editorjs(rows)
+	if not dry_run:
+		for row in blocked:
+			frappe.db.set_value("Course Lesson", row["name"], "content", "")
+		if blocked:
+			frappe.db.commit()
+	return {
+		"dry_run": dry_run,
+		"count": len(blocked),
+		"cleared": [
+			{"name": row["name"], "course": row["course"], "title": row["title"]}
+			for row in blocked
+		],
+	}
 
 
 @frappe.whitelist(allow_guest=True)
