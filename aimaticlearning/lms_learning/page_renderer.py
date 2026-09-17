@@ -7,7 +7,7 @@ from aimaticlearning.lms_learning.statistics import can_view_statistics
 
 ASSET_MARKER = "examic-study-learning-assets"
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260916-1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260916-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20260902-6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20260907-1">

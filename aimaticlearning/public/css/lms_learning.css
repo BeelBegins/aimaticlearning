@@ -370,9 +370,9 @@ body.aimatic-lms-learner .aimatic-study-buddy-dock,
 	position: fixed;
 	right: 18px;
 	bottom: 18px;
-	z-index: 40;
+	z-index: 30;
 	display: flex;
-	flex-direction: column;
+	flex-direction: column-reverse;
 	align-items: flex-end;
 	gap: 10px;
 	max-width: min(360px, calc(100vw - 24px));
@@ -423,6 +423,30 @@ body.aimatic-lms-learner .aimatic-study-buddy-close {
 
 @media (max-width: 1100px) {
 	body.aimatic-lms-learner .aimatic-lms-ai-rail { display: none !important; }
+}
+
+@media (max-width: 767px) {
+	body.aimatic-lms-learner .aimatic-study-buddy-dock,
+	.aimatic-study-buddy-dock {
+		right: auto;
+		left: 12px;
+		bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+		align-items: flex-start;
+		z-index: 15;
+		max-width: min(calc(100vw - 24px), 22rem);
+	}
+
+	body.aimatic-lms-learner .aimatic-study-buddy-fab,
+	.aimatic-study-buddy-fab {
+		min-height: 40px;
+		padding: 8px 12px;
+		font-size: 0.78rem;
+	}
+
+	body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy {
+		width: min(calc(100vw - 24px), 22rem);
+		max-height: min(58vh, 480px);
+	}
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-card {
