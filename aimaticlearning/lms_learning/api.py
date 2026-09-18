@@ -62,6 +62,26 @@ def get_learning_map(learning_module: str):
 
 
 @frappe.whitelist()
+def get_hard_mock_report():
+	"""Staff coverage report for the January 2027 hard mocks. No question keys."""
+	from aimaticlearning.lms_learning.statistics import can_view_statistics
+
+	if not can_view_statistics():
+		throw_access_denied()
+	from aimaticlearning.lms_learning.sqe1_hard_mocks import load_public_report
+
+	return load_public_report()
+
+
+@frappe.whitelist()
+def get_hard_mock_lobby():
+	"""Enrolled learner lobby for the hard mock sittings. No question keys."""
+	from aimaticlearning.lms_learning.sqe1_hard_mocks import student_lobby
+
+	return student_lobby()
+
+
+@frappe.whitelist()
 def get_revision_board(course: str | None = None, learning_module: str | None = None):
 	user = frappe.session.user
 	if user == "Guest":

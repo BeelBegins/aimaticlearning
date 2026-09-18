@@ -30,6 +30,8 @@ website_route_rules = [
 	{"from_route": "/learning-notes/<chapter_profile>", "to_route": "learning_notes"},
 	{"from_route": "/learning-flashcards", "to_route": "learning_flashcards"},
 	{"from_route": "/learning-revision", "to_route": "learning_revision"},
+	{"from_route": "/learning-mock-report", "to_route": "learning_mock_report"},
+	{"from_route": "/learning-mock-exam", "to_route": "learning_mock_exam"},
 ]
 
 page_renderer = [
@@ -41,12 +43,12 @@ lms_markdown_macro_renderers = {
 }
 
 web_include_css = [
-	"/assets/aimaticlearning/css/lms_learning.css?v=20260917-buddy4",
-	"/assets/aimaticlearning/css/lms_soft_themes.css?v=20260902-6",
+	"/assets/aimaticlearning/css/lms_learning.css?v=20260917-studentmeta2",
+	"/assets/aimaticlearning/css/lms_soft_themes.css?v=20260917-railfix2",
 ]
 web_include_js = [
 	"/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4",
-	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20260902-6",
+	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20260917-frappe8",
 ]
 
 update_website_context = [
@@ -62,4 +64,3 @@ override_whitelisted_methods = {
 	"lms.lms.utils.get_course_completion_data": "aimaticlearning.lms_learning.statistics.get_course_completion_data",
 	"lms.lms.utils.get_course_details": "aimaticlearning.lms_learning.outline_sync.get_course_details",
 }
-

@@ -1,3 +1,23 @@
+body.aimatic-exam-sitting aside,
+body.aimatic-exam-sitting .aimatic-lms-chapter-rail,
+body.aimatic-exam-sitting .aimatic-study-buddy-dock,
+body.aimatic-exam-sitting .aimatic-study-buddy-fab,
+body.aimatic-exam-sitting .aimatic-revision-entry,
+body.aimatic-exam-sitting .aimatic-mock-report-entry,
+body.aimatic-exam-sitting .mt-10.pb-20.pt-5.border-t {
+	display: none !important;
+}
+
+body.aimatic-exam-sitting .aimatic-exam-lobby-link {
+	display: inline-flex;
+	align-items: center;
+	margin: 10px 0 18px;
+	color: inherit;
+	font-size: 0.82rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
 body.aimatic-lms-learner .aimatic-revision-entry {
 	display: block;
 	margin: 8px 12px 10px;

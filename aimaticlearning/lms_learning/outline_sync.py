@@ -128,12 +128,14 @@ def new_quiz_lesson_values(
 	course: str,
 	chapter: str,
 	quiz_id: str,
+	body: str | None = None,
 ) -> dict:
 	"""Quiz-wired lessons must keep EditorJS `content` empty.
 
 	Frappe LMS Lesson.vue renders the CodeX editor whenever `content` is
 	truthy, and only then falls through to `body` + `quiz_id`. A paragraph
-	blob hides the quiz widget.
+	blob hides the quiz widget. `body` still has to be non-empty: the
+	`quiz_id` widget is only mounted inside that body fallback.
 	"""
 	return {
 		"doctype": "Course Lesson",
@@ -142,6 +144,8 @@ def new_quiz_lesson_values(
 		"chapter": chapter,
 		"quiz_id": quiz_id,
 		"content": "",
+		"body": (body or "").strip()
+		or "<p>Complete this quiz, then submit your attempt to review the results.</p>",
 	}
 
 

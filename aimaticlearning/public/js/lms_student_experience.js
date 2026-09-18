@@ -164,12 +164,73 @@
 	function addRevisionEntry() {
 		const course = currentSqeCourse();
 		const rail = lessonAside();
-		if (!course || !rail || rail.querySelector(".aimatic-revision-entry")) return;
+		if (!course || !rail || rail.querySelector(".aimatic-revision-entry:not(.aimatic-mock-report-entry)")) return;
 		rail.classList.add("aimatic-lms-chapter-rail");
 		const link = document.createElement("a");
 		link.className = "aimatic-revision-entry";
 		link.href = "/learning-revision?course=" + encodeURIComponent(course);
 		link.innerHTML = "<small>Your progress</small><strong>Revision · weak areas</strong>";
+		insertRailLink(rail, link);
+	}
+
+	function addMockReportEntry() {
+		return;
+	}
+
+	function isHardMockSitting() {
+		return /^\/lms\/courses\/sqe1-hard-mocks\/learn\//.test(window.location.pathname);
+	}
+
+	function applyExamChrome() {
+		if (!isHardMockSitting()) return;
+		document.body.classList.add("aimatic-exam-sitting");
+		if (!document.body.dataset.aimaticExamZen) {
+			const zen = Array.from(document.querySelectorAll("button")).find(function (button) {
+				return (button.textContent || "").trim() === "Zen Mode";
+			});
+			if (zen) {
+				document.body.dataset.aimaticExamZen = "1";
+				zen.click();
+			}
+		}
+		hideLessonNav();
+		hideDiscussions();
+		addExamLobbyLink();
+	}
+
+	function hideLessonNav() {
+		Array.from(document.querySelectorAll("button")).forEach(function (button) {
+			const label = (button.textContent || "").replace(/\s+/g, " ").trim();
+			if (
+				label === "Previous" ||
+				label === "Next" ||
+				label === "Chapters" ||
+				label === "Toggle discussions" ||
+				label === "Back to Course"
+			) {
+				button.style.setProperty("display", "none", "important");
+			}
+		});
+	}
+
+	function hideDiscussions() {
+		Array.from(document.querySelectorAll(".mt-10.pb-20.pt-5.border-t")).forEach(function (node) {
+			node.style.setProperty("display", "none", "important");
+		});
+	}
+
+	function addExamLobbyLink() {
+		if (document.querySelector(".aimatic-exam-lobby-link")) return;
+		const heading = document.querySelector("h1");
+		if (!heading) return;
+		const link = document.createElement("a");
+		link.className = "aimatic-exam-lobby-link";
+		link.href = "/learning-mock-exam";
+		link.textContent = "Back to mock lobby";
+		heading.insertAdjacentElement("afterend", link);
+	}
+
+	function insertRailLink(rail, link) {
 		const switcher = rail.querySelector(".aimatic-flk1-switcher");
 		if (switcher && switcher.nextSibling) rail.insertBefore(link, switcher.nextSibling);
 		else if (switcher) rail.appendChild(link);
@@ -448,6 +509,8 @@
 	};
 
 	function polish() {
+		applyExamChrome();
+		if (isHardMockSitting()) return;
 		addSqePathwayCatalogue();
 		addSqeSwitcher();
 		addRevisionEntry();

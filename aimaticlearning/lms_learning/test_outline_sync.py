@@ -15,6 +15,7 @@ class TestQuizLessonContent(unittest.TestCase):
 			quiz_id="introduction-chapter-mcq-20",
 		)
 		self.assertEqual(values["content"], "")
+		self.assertTrue((values["body"] or "").strip())
 		self.assertEqual(values["quiz_id"], "introduction-chapter-mcq-20")
 		self.assertNotIn("blocks", values)
 

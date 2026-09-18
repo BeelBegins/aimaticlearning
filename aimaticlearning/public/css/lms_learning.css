@@ -475,7 +475,7 @@ body.aimatic-lms-learner .aimatic-lms-chapter-rail a:hover {
 	color: var(--aimatic-teal-dark) !important;
 }
 
-body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class*="bg-surface-gray-2"] {
+body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class~="bg-surface-gray-2"] {
 	background: var(--aimatic-mint-deep) !important;
 	color: var(--aimatic-teal-dark) !important;
 	font-weight: 600;
@@ -954,5 +954,22 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete span {
 .footer-powered,
 .footer-powered a,
 a[href*="frappeframework.com?source=website_footer"] {
+	display: none !important;
+}
+
+
+/* Keep course audience and instructor identity private from LMS students. */
+body.aimatic-lms-student .detail-tabs div:has(> span[class~="lucide-users-round"]),
+body.aimatic-lms-student .detail-tabs div:has(> .avatar-group),
+body.aimatic-lms-student .detail-tabs aside > div.border-2:has(a[href^="/lms/user/"]) {
+	display: none !important;
+}
+body.aimatic-lms-student .detail-tabs aside div:has(> span[class~="lucide-users"]) {
+	display: none !important;
+}
+
+/* Course cards expose the same count and instructor list on the catalogue. */
+body.aimatic-lms-student a[href^="/lms/courses/"] div:has(> span[class~="lucide-users"]),
+body.aimatic-lms-student a[href^="/lms/courses/"] div:has(> div.avatar-group) {
 	display: none !important;
 }

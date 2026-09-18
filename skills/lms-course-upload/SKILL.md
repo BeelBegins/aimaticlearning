@@ -45,6 +45,9 @@ Never assume the correct option because it is first or labelled A. Publish an
 MCQ only after answer, explanation, difficulty, concept, chapter, source
 locator and revision are explicit and reviewed. Flashcards need the same tags.
 Mocks only from reviewed items — never pad by duplicating questions.
+SQE1 FLK papers follow `docs/sqe1/` (January 2027 format and SRA topic
+checklists). Do not copy Kaplan. A subject module assessment is not an FLK
+paper.
 
 Quiz/MCQ/assessment lessons: set `quiz_id` and `content = ""`. Non-empty
 EditorJS `content` hides the LMS quiz widget. Before publish, list every

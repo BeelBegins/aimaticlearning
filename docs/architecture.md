@@ -12,3 +12,7 @@ Aimatic-owned behaviour is `aimaticlearning/lms_learning/`.
 | Public DNS | examic.study / www.examic.study → Caddy alias |
 
 A shared bench does not make this product related to SZL retail.
+
+SQE1 mock exams: working copy of the SRA specification (from 1 September 2026)
+and the January 2027 paper format lives in [docs/sqe1/](sqe1/README.md).
+Learner lobby: `/learning-mock-exam`. Staff coverage/gaps: `/learning-mock-report`.

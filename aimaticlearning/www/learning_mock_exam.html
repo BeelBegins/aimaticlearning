@@ -1,0 +1,169 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Mock exams{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<div class="aimatic-revision" id="aimatic-mock-exam">
+	<style>
+		.aimatic-revision {
+			--rev-ink: var(--ink-gray-9, var(--text-color, #1f272e));
+			--rev-muted: var(--ink-gray-7, var(--text-muted, #5b656e));
+			--rev-accent: var(--ink-gray-8, var(--primary, #171717));
+			--rev-surface: var(--surface-white, var(--bg-color, #fff));
+			--rev-card: var(--surface-white, #fff);
+			--rev-warm: var(--surface-gray-2, var(--control-bg, #f8f8f8));
+			--rev-line: var(--outline-gray-2, var(--border-color, #e2e6eb));
+			--rev-hard-bg: var(--surface-red-2, #fff5f5);
+			box-sizing: border-box;
+			max-width: 1040px;
+			margin: 0 auto;
+			padding: clamp(18px, 4vw, 42px) clamp(14px, 3vw, 28px) 72px;
+			min-height: calc(100vh - 48px);
+			background: var(--rev-surface);
+			color: var(--rev-ink);
+			font-family: inherit;
+		}
+		.aimatic-revision *, .aimatic-revision *::before, .aimatic-revision *::after { box-sizing: border-box; }
+		.aimatic-revision a { color: var(--rev-accent); }
+		.aimatic-revision .is-hidden { display: none !important; }
+		.rev-kicker { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--rev-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+		.rev-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--rev-accent); content: ""; }
+		.aimatic-revision h1 { margin: 0; color: var(--rev-ink); font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+		.rev-lead { margin: 11px 0 22px; max-width: 42rem; color: var(--rev-muted); font-size: 0.95rem; line-height: 1.55; }
+		.rev-card { min-width: 0; margin-bottom: 14px; padding: 18px; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-card); }
+		.rev-card h2 { margin: 0 0 14px; color: var(--rev-ink); font-size: 1rem; font-weight: 650; }
+		.rev-session { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center; margin: 0 0 12px; padding: 14px; border: 1px solid var(--rev-line); border-radius: 8px; background: var(--rev-warm); }
+		.rev-session:last-child { margin-bottom: 0; }
+		.rev-session strong { display: block; }
+		.rev-session small { display: block; margin-top: 6px; color: var(--rev-muted); line-height: 1.4; }
+		.rev-btn {
+			display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 8px 14px;
+			border-radius: 8px; border: 1px solid var(--rev-line); background: var(--rev-card);
+			color: var(--rev-ink); font-weight: 600; font-size: 0.82rem; text-decoration: none;
+		}
+		.rev-btn-primary { background: var(--rev-accent); border-color: var(--rev-accent); color: #fff !important; }
+		.rev-loading { min-height: 136px; padding: 55px 16px; border: 1px dashed var(--rev-line); border-radius: 10px; background: var(--rev-card); color: var(--rev-muted); text-align: center; }
+		.rev-loading.rev-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: var(--ink-red-5, #b52a2a); background: var(--rev-hard-bg); }
+		.rev-noaccess { padding: 48px 24px; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-card); text-align: center; }
+		.rev-back { display: inline-flex; align-items: center; min-height: 40px; color: var(--rev-muted) !important; font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+		.rev-back::before { margin-right: 7px; content: "←"; font-size: 1.1rem; }
+		@media (max-width: 720px) {
+			.rev-session { grid-template-columns: 1fr; }
+		}
+	</style>
+
+	<p class="rev-kicker">SQE1 · January 2027</p>
+	<h1>Mock exams</h1>
+	<p class="rev-lead" id="exam-lead">Three sittings. Each session is 85 questions in 153 minutes, closed book.</p>
+
+	<div id="exam-loading" class="rev-loading">Loading sittings…</div>
+	<div id="exam-noaccess" class="rev-noaccess is-hidden">
+		<h2>Enrol to sit the papers</h2>
+		<p>You need a place on SQE1 Hard Mocks before you can start a timed session.</p>
+		<a class="rev-btn rev-btn-primary" href="/lms/courses">Browse courses</a>
+	</div>
+	<div id="exam-body" class="is-hidden">
+		<div id="exam-papers"></div>
+		<p><a class="rev-back" href="/lms/courses">Back to courses</a></p>
+	</div>
+</div>
+
+<script>
+(function () {
+	const el = {
+		loading: document.getElementById("exam-loading"),
+		noaccess: document.getElementById("exam-noaccess"),
+		body: document.getElementById("exam-body"),
+		lead: document.getElementById("exam-lead"),
+		papers: document.getElementById("exam-papers"),
+	};
+
+	function text(node, value) {
+		node.textContent = value || "";
+		return node;
+	}
+
+	function showLoadError(message) {
+		el.loading.classList.remove("is-hidden");
+		el.loading.classList.add("rev-error");
+		el.loading.setAttribute("role", "alert");
+		el.loading.replaceChildren();
+		const copy = document.createElement("span");
+		text(copy, message);
+		const retry = document.createElement("button");
+		retry.className = "rev-btn";
+		retry.type = "button";
+		text(retry, "Try again");
+		retry.addEventListener("click", load);
+		el.loading.append(copy, retry);
+	}
+
+	function render(data) {
+		if (data.format) text(el.lead, data.format);
+		el.papers.replaceChildren();
+		(data.mocks || []).forEach(function (mock) {
+			const card = document.createElement("section");
+			card.className = "rev-card";
+			const heading = document.createElement("h2");
+			text(heading, mock.title || "Sitting");
+			card.append(heading);
+			(mock.sessions || []).forEach(function (session) {
+				const row = document.createElement("article");
+				row.className = "rev-session";
+				const copy = document.createElement("div");
+				const title = document.createElement("strong");
+				text(title, session.title || "Session");
+				const meta = document.createElement("small");
+				text(meta, (session.questions || 85) + " questions · " + (session.duration || 153) + " minutes · " + (session.attempts || 0) + " of " + (session.max_attempts || 3) + " attempts used");
+				copy.append(title, meta);
+				const start = document.createElement("a");
+				start.className = "rev-btn rev-btn-primary";
+				start.href = session.start_url || "/learning-mock-exam";
+				text(start, "Start session");
+				row.append(copy, start);
+				card.append(row);
+			});
+			el.papers.append(card);
+		});
+		el.loading.classList.add("is-hidden");
+		el.body.classList.remove("is-hidden");
+	}
+
+	function load() {
+		el.loading.classList.remove("is-hidden", "rev-error");
+		el.loading.removeAttribute("role");
+		el.loading.textContent = "Loading sittings…";
+		el.body.classList.add("is-hidden");
+		el.noaccess.classList.add("is-hidden");
+		fetch("/api/method/aimaticlearning.lms_learning.api.get_hard_mock_lobby", {
+			credentials: "same-origin",
+			headers: { Accept: "application/json" },
+		})
+			.then(function (response) {
+				if (response.status === 401 || response.status === 403) {
+					const error = new Error("noaccess");
+					error.status = response.status;
+					throw error;
+				}
+				if (!response.ok) throw new Error("Lobby request returned HTTP " + response.status);
+				return response.json();
+			})
+			.then(function (payload) {
+				render(payload.message || {});
+			})
+			.catch(function (error) {
+				if (error.status === 401 || error.status === 403 || error.message === "noaccess") {
+					el.loading.classList.add("is-hidden");
+					el.noaccess.classList.remove("is-hidden");
+					return;
+				}
+				showLoadError("Sittings could not be loaded. Try again.");
+			});
+	}
+
+	load();
+})();
+</script>
+{% endblock %}

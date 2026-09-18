@@ -3,7 +3,6 @@
 import frappe
 from frappe import _
 
-
 STATISTICS_ROLES = {"Moderator", "Course Creator", "Batch Evaluator", "System Manager"}
 
 
@@ -66,6 +65,34 @@ def get_sidebar_settings():
 					"route": "learning-revision",
 					"icon": "RefreshCcw",
 					"name": "aimatic-revision",
+				},
+			)
+		if not any(
+			str(page.get("route") or page.get("to") or "").strip("/") == "learning-mock-exam"
+			for page in pages
+		):
+			pages.insert(
+				1,
+				{
+					"label": "Mock exams",
+					"to": "learning-mock-exam",
+					"route": "learning-mock-exam",
+					"icon": "BookOpen",
+					"name": "aimatic-mock-exam",
+				},
+			)
+		if can_view_statistics() and not any(
+			str(page.get("route") or page.get("to") or "").strip("/") == "learning-mock-report"
+			for page in pages
+		):
+			pages.insert(
+				2,
+				{
+					"label": "Mock coverage",
+					"to": "learning-mock-report",
+					"route": "learning-mock-report",
+					"icon": "BookOpen",
+					"name": "aimatic-mock-report",
 				},
 			)
 		settings["web_pages"] = pages
