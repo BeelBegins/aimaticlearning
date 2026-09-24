@@ -63,13 +63,12 @@
 	}
 
 	function dedupeQuizChrome() {
-		document.querySelectorAll(".examic-quiz-toolbar").forEach(function (toolbar) {
-			const host = toolbar.parentElement;
-			if (!host) return;
-			host.querySelectorAll(":scope > .examic-quiz-toolbar").forEach(function (node, nodeIndex) {
-				if (nodeIndex > 0) node.remove();
-			});
-		});
+		// Vue remounts the question wrapper while moving through a quiz. Keep
+		// one active toolbar across those changing parents, not one per wrapper.
+		const toolbars = Array.from(document.querySelectorAll(
+			".examic-quiz-toolbar:not(.examic-quiz-saved-notice)"
+		));
+		toolbars.slice(1).forEach(function (toolbar) { toolbar.remove(); });
 		document.querySelectorAll(".examic-quiz-session-controls").forEach(function (controls) {
 			const card = controls.parentElement;
 			if (!card) return;
@@ -163,7 +162,11 @@
 		if (!host) return;
 
 		// One toolbar for the whole quiz host — never re-insert on each question mutation.
-		if (host.dataset.examicQuizToolbar === "1" || host.querySelector(".examic-quiz-toolbar")) {
+		if (
+			host.dataset.examicQuizToolbar === "1" ||
+			host.querySelector(".examic-quiz-toolbar") ||
+			document.querySelector(".examic-quiz-toolbar:not(.examic-quiz-saved-notice)")
+		) {
 			dedupeQuizChrome();
 			return;
 		}
