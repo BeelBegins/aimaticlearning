@@ -100,6 +100,18 @@ def lesson_title_matches_activity(title: str | None, activity: str) -> bool:
 	return False
 
 
+def include_chapter_on_revision_board(
+	group: str | None,
+	*,
+	hard_cards: int = 0,
+	incorrect_mcqs: int = 0,
+) -> bool:
+	"""Hide strong/mastered chapters with no remaining Hard cards or missed MCQs."""
+	if (group or "") == "strong" and not hard_cards and not incorrect_mcqs:
+		return False
+	return True
+
+
 def rank_revision_recommendations(
 	*,
 	flashcards: dict,
@@ -235,6 +247,7 @@ def build_revision_board(
 				"Ask your instructor to enrol you on a course before revision data can appear."
 			],
 			"chapters": [],
+			"mastered_chapters": 0,
 			"quiz_history": [],
 			"study_urls": {},
 		}
@@ -269,17 +282,26 @@ def build_revision_board(
 			incorrect_by_chapter[chapter] += 1
 
 	chapters = []
+	mastered = 0
 	for stats in learning_map.get("chapter_stats") or []:
 		course_chapter = stats.get("course_chapter")
+		group = _group(stats.get("mastery_pct") or 0, stats.get("attempts") or 0)
+		hard_cards = int(hard_by_chapter.get(course_chapter) or 0)
+		incorrect_mcqs = int(incorrect_by_chapter.get(course_chapter) or 0)
+		# Strong (e.g. 100% mastery) chapters with nothing left to restudy stay off the
+		# revision list — they are clutter once the learner has already mastered them.
+		if not include_chapter_on_revision_board(group, hard_cards=hard_cards, incorrect_mcqs=incorrect_mcqs):
+			mastered += 1
+			continue
 		chapters.append(
 			{
 				"chapter_title": stats.get("chapter_title"),
 				"course_chapter": course_chapter,
 				"mastery_pct": stats.get("mastery_pct") or 0,
 				"attempts": stats.get("attempts") or 0,
-				"group": _group(stats.get("mastery_pct") or 0, stats.get("attempts") or 0),
-				"hard_cards": int(hard_by_chapter.get(course_chapter) or 0),
-				"incorrect_mcqs": int(incorrect_by_chapter.get(course_chapter) or 0),
+				"group": group,
+				"hard_cards": hard_cards,
+				"incorrect_mcqs": incorrect_mcqs,
 				"notes_url": _lesson_url(selected["lms_course"], course_chapter),
 				"flashcard_url": _lesson_url(selected["lms_course"], course_chapter, "flashcard"),
 				"mcq_url": _lesson_url(selected["lms_course"], course_chapter, "mcq"),
@@ -294,6 +316,15 @@ def build_revision_board(
 		mcqs=mcqs,
 		quiz_history=quiz_history,
 	)
+	if mastered and not any(row.get("group") == "needs_work" for row in chapters):
+		recommendations = list(recommendations)
+		if mastered == 1:
+			recommendations.insert(0, "1 chapter is already at strong mastery — focus on the chapters below.")
+		else:
+			recommendations.insert(
+				0, f"{mastered} chapters are already at strong mastery — focus on the chapters below."
+			)
+		recommendations = recommendations[:6]
 
 	base = f"/learning-flashcards?learning_module={selected['name']}"
 	first_mcq = next((row.get("mcq_url") for row in chapters if row.get("mcq_url")), None)
@@ -308,11 +339,12 @@ def build_revision_board(
 		"flashcards": flashcards,
 		"mcqs": mcqs,
 		"has_flashcards": flashcards["published"] > 0,
-		"has_attempts": bool(ratings) or bool(mcq_results) or any((row.get("attempts") or 0) > 0 for row in chapters),
+		"has_attempts": bool(ratings) or bool(mcq_results) or any((row.get("attempts") or 0) > 0 for row in chapters) or mastered > 0,
 		"weaknesses": learning_map.get("weaknesses") or [],
 		"strengths": learning_map.get("strengths") or [],
 		"recommendations": recommendations[:6],
 		"chapters": chapters,
+		"mastered_chapters": mastered,
 		"quiz_history": quiz_history[:8],
 		"study_urls": {
 			"hard": f"{base}&rating=hard",

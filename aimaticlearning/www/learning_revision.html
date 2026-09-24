@@ -76,6 +76,7 @@
 		.rev-noaccess h2 { margin: 0 0 8px; font-size: 1.15rem; }
 		.rev-noaccess p { margin: 0 0 18px; color: var(--rev-muted); }
 		.rev-chapters-card { margin-bottom: 22px; }
+		.rev-chapter-note { margin: -4px 0 12px; color: var(--rev-muted); font-size: 0.82rem; line-height: 1.4; }
 		.rev-chapters { display: grid; gap: 10px; }
 		.rev-chapter {
 			display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center;
@@ -141,7 +142,8 @@
 		</section>
 		</div>
 		<section class="rev-card rev-chapters-card">
-			<h2>Chapters</h2>
+			<h2>Chapters to revise</h2>
+			<p class="rev-chapter-note is-hidden" id="rev-mastered-note"></p>
 			<div class="rev-chapters" id="rev-chapters"></div>
 		</section>
 		<p>
@@ -165,6 +167,7 @@
 		recs: document.getElementById("rev-recs"),
 		weak: document.getElementById("rev-weak"),
 		chapters: document.getElementById("rev-chapters"),
+		masteredNote: document.getElementById("rev-mastered-note"),
 	};
 
 	function text(node, value) {
@@ -342,6 +345,21 @@
 		fillList(el.weak, data.weaknesses, "No weak concepts yet. Hard flashcards and missed MCQs will appear here.");
 
 		el.chapters.replaceChildren();
+		const mastered = Number(data.mastered_chapters || 0);
+		if (el.masteredNote) {
+			if (mastered > 0) {
+				el.masteredNote.classList.remove("is-hidden");
+				text(
+					el.masteredNote,
+					mastered === 1
+						? "1 chapter already at strong mastery is hidden here."
+						: mastered + " chapters already at strong mastery are hidden here."
+				);
+			} else {
+				el.masteredNote.classList.add("is-hidden");
+				text(el.masteredNote, "");
+			}
+		}
 		(data.chapters || []).forEach(function (chapter) {
 			const row = document.createElement("article");
 			row.className = "rev-chapter rev-" + (chapter.group || "not_started");
@@ -385,7 +403,12 @@
 		if (!(data.chapters || []).length) {
 			const empty = document.createElement("p");
 			empty.className = "rev-empty";
-			text(empty, "No chapter data yet for this course.");
+			text(
+				empty,
+				mastered
+					? "Nothing left to revise in this subject — remaining chapters are already at strong mastery."
+					: "No chapter data yet for this course."
+			);
 			el.chapters.append(empty);
 		}
 	}

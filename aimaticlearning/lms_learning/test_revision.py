@@ -41,6 +41,14 @@ class TestRevisionRatings(unittest.TestCase):
 		unreviewed = apply_rating_filter(list(cards), ratings, "unreviewed")
 		self.assertEqual([card["name"] for card in unreviewed], ["FC-3"])
 
+	def test_strong_mastery_chapters_without_work_are_hidden(self):
+		from aimaticlearning.lms_learning.revision import include_chapter_on_revision_board
+
+		self.assertFalse(include_chapter_on_revision_board("strong", hard_cards=0, incorrect_mcqs=0))
+		self.assertTrue(include_chapter_on_revision_board("strong", hard_cards=2, incorrect_mcqs=0))
+		self.assertTrue(include_chapter_on_revision_board("needs_work", hard_cards=0, incorrect_mcqs=0))
+		self.assertTrue(include_chapter_on_revision_board("not_started"))
+
 
 class TestRevisionMcqAttempts(unittest.TestCase):
 	def test_mcq_attempts_are_included_and_flashcards_are_skipped(self):

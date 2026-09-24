@@ -13,6 +13,25 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 		fields=["name", "chapter_title", "course_chapter", "concept_tags"],
 		order_by="creation asc",
 	)
+	chapters = [row for row in chapters if not _is_module_assessment_title(row.chapter_title)]
+	# Prefer learner outline order when the course is wired.
+	course = frappe.db.get_value("Learning Module Config", learning_module, "lms_course")
+	outline_idx = {}
+	if course:
+		for rec in frappe.get_all(
+			"Chapter Reference",
+			filters={"parent": course},
+			fields=["chapter", "idx"],
+			limit_page_length=500,
+		):
+			outline_idx[rec.chapter] = rec.idx
+		chapters.sort(
+			key=lambda row: (
+				0 if outline_idx.get(row.course_chapter) else 1,
+				outline_idx.get(row.course_chapter) or 10_000,
+				row.chapter_title or "",
+			)
+		)
 	attempts = frappe.get_all(
 		"Learning Attempt Detail",
 		filters={"learning_module": learning_module, "user": user},
@@ -35,7 +54,7 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 		""",
 		{
 			"user": user,
-			"course": frappe.db.get_value("Learning Module Config", learning_module, "lms_course"),
+			"course": course,
 		},
 		as_dict=True,
 	)
@@ -59,23 +78,16 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 
 	for row in attempts:
 		key = row.course_chapter or "general"
-		if key not in chapter_stats:
-			chapter_stats[key] = {
-				"chapter_profile": None,
-				"chapter_title": key,
-				"course_chapter": row.course_chapter,
-				"attempts": 0,
-				"correct": 0,
-				"avg_time": 0.0,
-				"mastery_pct": 0.0,
-				"concept_tags": row.concept_tags or "",
-			}
-		chapter_stats[key]["attempts"] += 1
-		if row.correct:
-			chapter_stats[key]["correct"] += 1
-		if row.time_seconds:
-			time_totals[key] += float(row.time_seconds)
-			time_counts[key] += 1
+		# Only attribute attempts to chapters that still exist on this module.
+		# Stale tax-era chapter names (e.g. "0026 Chapter 5: Gift Aid…") must not
+		# appear on the revision board after the outline was rewritten.
+		if key in chapter_stats:
+			chapter_stats[key]["attempts"] += 1
+			if row.correct:
+				chapter_stats[key]["correct"] += 1
+			if row.time_seconds:
+				time_totals[key] += float(row.time_seconds)
+				time_counts[key] += 1
 		for concept in _split_tags(row.concept_tags):
 			concept_stats[concept]["attempts"] += 1
 			if row.correct:
@@ -140,6 +152,10 @@ def _split_tags(raw: str | None) -> list[str]:
 		for part in raw.split(",")
 		if part.strip() and not part.strip().lower().startswith("recall:")
 	]
+
+
+def _is_module_assessment_title(title: str | None) -> bool:
+	return "module assessment" in (title or "").lower()
 
 
 def _mastery_group(mastery_pct: float, attempts: int) -> str:
