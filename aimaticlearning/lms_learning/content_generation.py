@@ -322,6 +322,7 @@ def _flashcard_prompt() -> str:
 	return (
 		"Draft concise flashcards from the supplied chapter notes only. Do not use model memory, "
 		"web knowledge, or another jurisdiction. If the notes do not support a card, omit it. "
+		"When a scenario needs names, use neutral English names rather than culturally specific names. "
 		"source_quote must be copied verbatim from the notes_html and source_reference must identify "
 		"its chapter/locator. Return JSON array with front, back, concept, difficulty, "
 		"source_reference, source_quote."
