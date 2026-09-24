@@ -1,0 +1,302 @@
+.aimatic-content-studio {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 8px 12px 24px;
+	min-height: calc(100vh - 140px);
+}
+
+.aimatic-content-studio .studio-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.aimatic-content-studio .studio-toolbar .module-select {
+	max-width: 420px;
+}
+
+.aimatic-content-studio .studio-status.is-dirty {
+	color: var(--yellow-600, #f9a825);
+	font-weight: 600;
+}
+
+.aimatic-content-studio .shortcut-hint {
+	font-size: 12px;
+	color: var(--text-muted);
+}
+
+.aimatic-content-studio .studio-shell {
+	display: grid;
+	grid-template-columns: 280px minmax(0, 1fr);
+	gap: 12px;
+	align-items: start;
+	min-height: 640px;
+}
+
+.aimatic-content-studio .studio-chapters,
+.aimatic-content-studio .studio-main {
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	min-height: 640px;
+}
+
+.aimatic-content-studio .studio-chapters {
+	padding: 10px;
+	overflow: auto;
+	max-height: calc(100vh - 180px);
+}
+
+.aimatic-content-studio .chapter-filter,
+.aimatic-content-studio .item-filter {
+	margin-bottom: 8px;
+}
+
+.aimatic-content-studio .chapter-coverage {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 0 0 8px;
+}
+
+.aimatic-content-studio .chapter-coverage .btn {
+	font-size: 12px;
+	padding: 2px 8px;
+}
+
+.aimatic-content-studio .chapter-row {
+	display: flex;
+	gap: 4px;
+	align-items: stretch;
+	margin-bottom: 6px;
+}
+
+.aimatic-content-studio .chapter-row .chapter-btn {
+	flex: 1;
+	margin-bottom: 0;
+}
+
+.aimatic-content-studio .chapter-pos {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.aimatic-content-studio .chapter-btn {
+	display: block;
+	width: 100%;
+	text-align: left;
+	border: 1px solid transparent;
+	background: transparent;
+	border-radius: 8px;
+	padding: 8px 10px;
+	margin-bottom: 6px;
+}
+
+.aimatic-content-studio .chapter-btn.active {
+	border-color: var(--primary);
+	background: var(--bg-color);
+}
+
+.aimatic-content-studio .chapter-btn.is-empty {
+	border-color: var(--red-200, #ffcdd2);
+}
+
+.aimatic-content-studio .chapter-btn.is-short .chapter-meta,
+.aimatic-content-studio .chapter-btn.is-short .chapter-chips {
+	color: var(--orange-600, #ef6c00);
+}
+
+.aimatic-content-studio .chapter-btn.is-stale {
+	border-color: var(--orange-300, #ffb74d);
+}
+
+.aimatic-content-studio .chapter-btn .chapter-title {
+	font-weight: 600;
+	display: block;
+}
+
+.aimatic-content-studio .chapter-btn .chapter-meta,
+.aimatic-content-studio .chapter-btn .chapter-chips {
+	font-size: 12px;
+	color: var(--text-muted);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-top: 4px;
+}
+
+.aimatic-content-studio .studio-chip {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 999px;
+	border: 1px solid var(--border-color, #d1d8dd);
+	background: var(--bg-color, #fff);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.aimatic-content-studio .notes-chip.notes-in_sync {
+	border-color: var(--green-400, #81c784);
+	color: var(--green-700, #2e7d32);
+}
+
+.aimatic-content-studio .notes-chip.notes-out_of_sync {
+	border-color: var(--orange-400, #ffb74d);
+	color: var(--orange-800, #e65100);
+}
+
+.aimatic-content-studio .notes-chip.notes-empty,
+.aimatic-content-studio .notes-chip.notes-missing_lesson {
+	border-color: var(--red-300, #ef9a9a);
+	color: var(--red-700, #c62828);
+}
+
+.aimatic-content-studio .notes-sync-banner {
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1px solid var(--border-color, #d1d8dd);
+	margin-bottom: 4px;
+	font-size: 13px;
+}
+
+.aimatic-content-studio .notes-sync-banner.is-drift {
+	border-color: var(--orange-300, #ffb74d);
+	background: var(--orange-50, #fff8e1);
+}
+
+.aimatic-content-studio .notes-sync-banner.is-sync {
+	border-color: var(--green-200, #c8e6c9);
+	background: var(--green-50, #f1f8e9);
+}
+
+.aimatic-content-studio .notes-sync-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.aimatic-content-studio .notes-editor-label {
+	font-weight: 600;
+	font-size: 13px;
+	margin: 8px 0 4px;
+}
+
+.aimatic-content-studio .studio-main {
+	padding: 12px 16px 20px;
+}
+
+.aimatic-content-studio .studio-empty {
+	color: var(--text-muted);
+	padding: 48px 16px;
+	text-align: center;
+}
+
+.aimatic-content-studio .studio-header {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.aimatic-content-studio .chapter-heading-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.aimatic-content-studio .chapter-heading-row .chapter-heading {
+	font-size: 1.15rem;
+	font-weight: 600;
+}
+
+.aimatic-content-studio .studio-tabs {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.aimatic-content-studio .notes-editor-host .ql-editor,
+.aimatic-content-studio .notes-editor-host .ace_editor {
+	min-height: 420px;
+}
+
+.aimatic-content-studio .mcq-card {
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 10px 12px;
+	margin-bottom: 10px;
+}
+
+.aimatic-content-studio .mcq-card.dirty {
+	border-color: var(--yellow-500, #f9a825);
+}
+
+.aimatic-content-studio .mcq-card.is-collapsed {
+	padding: 0;
+}
+
+.aimatic-content-studio .mcq-card.is-collapsed .item-body {
+	display: none;
+}
+
+.aimatic-content-studio .item-summary {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	width: 100%;
+	text-align: left;
+	border: 0;
+	background: transparent;
+	padding: 10px 12px;
+	border-radius: 8px;
+}
+
+.aimatic-content-studio .item-summary span {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.aimatic-content-studio .item-summary small {
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+.aimatic-content-studio .option-row {
+	display: grid;
+	grid-template-columns: 28px 28px minmax(0, 1fr);
+	gap: 8px;
+	margin-bottom: 8px;
+	align-items: start;
+}
+
+.aimatic-content-studio .option-letter {
+	font-weight: 700;
+	padding-top: 8px;
+	color: var(--text-muted);
+}
+
+.aimatic-content-studio .option-row textarea {
+	min-height: 42px;
+}
+
+.aimatic-content-studio .mcq-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+	align-items: center;
+}
+
+@media (max-width: 900px) {
+	.aimatic-content-studio .studio-shell {
+		grid-template-columns: 1fr;
+	}
+}

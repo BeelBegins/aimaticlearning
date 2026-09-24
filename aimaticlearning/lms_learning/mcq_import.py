@@ -58,7 +58,8 @@ FLK2_MCQ_SPECS = {
 	},
 	"Property Practice Essentials for SQE1.docx": {
 		"subject": "Property Practice",
-		"question_counts": (20, 20, 10, 20, 20, 20, 10, 20),
+		# Latest red-key Word bank has 20 MCQs in every chapter (incl. Ch3 Planning, Ch7 Remedies).
+		"question_counts": (20,) * 8,
 	},
 	"Solicitor ACC.docx": {
 		"subject": "Solicitors' Accounts",
