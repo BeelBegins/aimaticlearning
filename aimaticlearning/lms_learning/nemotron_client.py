@@ -4,7 +4,8 @@ Uses only frappe.conf (site_config / common_site_config). Does not import
 the SZL `aimatic` app or any of its DocTypes.
 
 	bench set-config -g openrouter_api_key "sk-or-..."
-	bench --site lms.aimatic.tech set-config openrouter_study_buddy_model "deepseek/deepseek-v4-flash"
+	bench --site lms.aimatic.tech set-config openrouter_study_buddy_model \
+		"nvidia/nemotron-3.5-lightning"
 """
 
 from __future__ import annotations
@@ -16,20 +17,32 @@ import requests
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
-STUDY_BUDDY_DEFAULT_MODEL = "deepseek/deepseek-v4-flash"
+STUDY_BUDDY_MODEL = "nvidia/nemotron-3.5-lightning"
+STUDY_BUDDY_LEGACY_MODEL = "deepseek/deepseek-v4-flash"
 DEFAULT_TIMEOUT = 60
 
 
 class NemotronError(Exception):
-	pass
+	def __init__(
+		self,
+		message: str,
+		*,
+		code: str = "provider",
+		retryable: bool = False,
+		http_status: int | None = None,
+	):
+		super().__init__(message)
+		self.code = code
+		self.retryable = retryable
+		self.http_status = http_status
 
 
 def _get_api_key() -> str:
 	api_key = frappe.conf.get("openrouter_api_key")
 	if not api_key:
 		raise NemotronError(
-			"openrouter_api_key is not configured. Set it with: "
-			"bench set-config -g openrouter_api_key <your-key>"
+			"OpenRouter is not configured.",
+			code="configuration",
 		)
 	return api_key
 
@@ -38,19 +51,19 @@ def _get_model() -> str:
 	return frappe.conf.get("openrouter_nemotron_model") or DEFAULT_MODEL
 
 
-def paid_model_id(model: str | None) -> str:
-	value = str(model or "").strip()
-	if value.endswith(":free"):
-		value = value[: -len(":free")]
-	return value or STUDY_BUDDY_DEFAULT_MODEL
-
-
 def get_study_buddy_model() -> str:
-	"""Paid OpenRouter model for learner Study Buddy (never the :free helper)."""
-	explicit = frappe.conf.get("openrouter_study_buddy_model")
-	if explicit:
-		return paid_model_id(explicit)
-	return STUDY_BUDDY_DEFAULT_MODEL
+	"""Return one paid model, allowing only the current model during rollout."""
+	configured = str(frappe.conf.get("openrouter_study_buddy_model") or "").strip()
+	if not configured:
+		return STUDY_BUDDY_MODEL
+	if configured.endswith(":free") or configured not in {
+		STUDY_BUDDY_MODEL,
+		STUDY_BUDDY_LEGACY_MODEL,
+	}:
+		raise NemotronError(
+			"Study Buddy has an unsupported model configuration.", code="configuration"
+		)
+	return configured
 
 
 def get_chat_completion(
@@ -59,8 +72,9 @@ def get_chat_completion(
 	max_tokens: int = 1024,
 	model: str | None = None,
 	timeout: int = DEFAULT_TIMEOUT,
+	return_metadata: bool = False,
 ) -> dict:
-	"""Return the assistant message dict. Raises NemotronError on failure."""
+	"""Return the assistant message, optionally with sanitized response metadata."""
 	payload = {
 		"model": model or _get_model(),
 		"messages": messages,
@@ -78,14 +92,50 @@ def get_chat_completion(
 			data=json.dumps(payload),
 			timeout=timeout,
 		)
+	except requests.Timeout as exc:
+		raise NemotronError(
+			"OpenRouter timed out.", code="timeout", retryable=True
+		) from exc
 	except requests.RequestException as exc:
-		raise NemotronError(f"OpenRouter request failed: {exc}") from exc
+		raise NemotronError(
+			"OpenRouter could not be reached.", code="network", retryable=True
+		) from exc
 
 	if response.status_code != 200:
-		raise NemotronError(f"OpenRouter returned {response.status_code}: {response.text}")
+		status = int(response.status_code)
+		if status == 429:
+			code = "rate_limited"
+		elif status >= 500:
+			code = "provider_unavailable"
+		else:
+			code = "provider_rejected"
+		raise NemotronError(
+			f"OpenRouter request failed with HTTP {status}.",
+			code=code,
+			retryable=status == 429 or status >= 500,
+			http_status=status,
+		)
 
-	data = response.json()
 	try:
-		return data["choices"][0]["message"]
+		data = response.json()
+	except ValueError as exc:
+		raise NemotronError(
+			"OpenRouter returned invalid JSON.", code="invalid_response", retryable=True
+		) from exc
+	try:
+		choice = data["choices"][0]
+		message = choice["message"]
 	except (KeyError, IndexError, TypeError) as exc:
-		raise NemotronError(f"Unexpected OpenRouter response shape: {data}") from exc
+		raise NemotronError(
+			"OpenRouter returned an unexpected response.",
+			code="invalid_response",
+			retryable=True,
+		) from exc
+	if not return_metadata:
+		return message
+	return {
+		"message": message,
+		"finish_reason": str(choice.get("finish_reason") or "")[:80],
+		"usage": data.get("usage") if isinstance(data.get("usage"), dict) else {},
+		"provider": str(data.get("provider") or "")[:140],
+	}

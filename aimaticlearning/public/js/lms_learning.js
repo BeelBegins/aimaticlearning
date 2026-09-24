@@ -154,7 +154,38 @@
 	}
 
 	function lessonStudyBuddyKey(context) {
-		return context.course + ":" + context.chapter + ":" + context.lesson;
+		return context.course + ":" + context.chapter;
+	}
+
+	function studyBuddyStorageKey(context) {
+		return "aimatic-study-buddy:" + lessonStudyBuddyKey(context);
+	}
+
+	function createStudyBuddyConversationId() {
+		if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+		const bytes = new Uint8Array(16);
+		window.crypto.getRandomValues(bytes);
+		bytes[6] = (bytes[6] & 15) | 64;
+		bytes[8] = (bytes[8] & 63) | 128;
+		const hex = Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
+		return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+	}
+
+	function studyBuddyConversationId(context, reset) {
+		const key = studyBuddyStorageKey(context);
+		let value = reset ? "" : window.localStorage.getItem(key);
+		if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || "")) {
+			value = createStudyBuddyConversationId();
+			window.localStorage.setItem(key, value);
+		}
+		return value;
+	}
+
+	function studyBuddySourceLabel(result) {
+		const sources = Array.isArray(result.sources) ? result.sources : [];
+		const labels = sources.map(function (source) { return source.label; }).filter(Boolean);
+		if (labels.length) return labels.join(" · ");
+		return result.source && result.source.label;
 	}
 
 	function appendStudyBuddyMessage(host, kind, text, sourceLabel) {
@@ -175,14 +206,59 @@
 		}
 		host.append(message);
 		host.scrollTop = host.scrollHeight;
+		return message;
+	}
+
+	function appendStudyBuddyFailure(host, text, retry) {
+		host.hidden = false;
+		const message = document.createElement("section");
+		message.className = "aimatic-study-buddy-message aimatic-study-buddy-message-error";
+		message.setAttribute("role", "alert");
+		const body = document.createElement("p");
+		body.textContent = text;
+		const button = document.createElement("button");
+		button.type = "button";
+		button.className = "aimatic-study-buddy-retry";
+		button.textContent = "Retry";
+		button.addEventListener("click", function () {
+			message.remove();
+			retry();
+		});
+		message.append(body, button);
+		host.append(message);
+		host.scrollTop = host.scrollHeight;
+	}
+
+	function studyBuddyServerMessage(payload, response) {
+		if (response.status === 429) return "You have reached the 40-question hourly limit. Please try again after it resets.";
+		if (payload && typeof payload.message === "string") return payload.message;
+		if (payload && payload._server_messages) {
+			try {
+				const messages = JSON.parse(payload._server_messages);
+				for (const raw of messages) {
+					const parsed = JSON.parse(raw);
+					if (parsed && parsed.message) return parsed.message;
+				}
+			} catch (_) {}
+		}
+		return "Study Buddy is temporarily unavailable. Please retry this question.";
+	}
+
+	async function studyBuddyJson(response) {
+		let payload = {};
+		try { payload = await response.json(); } catch (_) {}
+		if (!response.ok) throw new Error(studyBuddyServerMessage(payload, response));
+		return payload;
 	}
 
 	function loadStudyBuddyHistory(dock, context) {
 		const card = dock.querySelector("[data-study-buddy]");
 		if (!card || !context) return;
 		const key = lessonStudyBuddyKey(context);
-		if (card.dataset.studyBuddyLesson === key) return;
-		card.dataset.studyBuddyLesson = key;
+		if (card.dataset.studyBuddyChapter === key) return;
+		card.dataset.studyBuddyChapter = key;
+		const conversationId = studyBuddyConversationId(context, false);
+		card.dataset.studyBuddyConversation = conversationId;
 		const transcript = card.querySelector("[data-study-buddy-transcript]");
 		const status = card.querySelector("[data-study-buddy-status]");
 		if (transcript) {
@@ -195,16 +271,18 @@
 			course: context.course,
 			chapter: String(context.chapter),
 			lesson: String(context.lesson),
+			conversation_id: conversationId,
 		});
 		fetch("/api/method/aimaticlearning.lms_learning.study_buddy.get_study_buddy_history?" + params.toString(), {
 			credentials: "same-origin",
 		})
-			.then(function (response) {
-				if (!response.ok) return { message: { turns: [] } };
-				return response.json();
-			})
+			.then(studyBuddyJson)
 			.then(function (payload) {
-				if (card.dataset.studyBuddyLesson !== key || !transcript) return;
+				if (card.dataset.studyBuddyChapter !== key || !transcript) return;
+				if (payload.message && payload.message.conversation_id) {
+					card.dataset.studyBuddyConversation = payload.message.conversation_id;
+					window.localStorage.setItem(studyBuddyStorageKey(context), payload.message.conversation_id);
+				}
 				const turns = (payload.message && payload.message.turns) || [];
 				const history = [];
 				turns.forEach(function (turn) {
@@ -216,11 +294,13 @@
 				});
 				if (history.length) {
 					card.classList.add("is-chatting");
-					card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-6));
-					if (status) status.textContent = "Recent questions from this lesson. Not legal advice.";
+					card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-12));
+					if (status) status.textContent = "Recent questions from this chapter. Not legal advice.";
 				}
 			})
-			.catch(function () {});
+			.catch(function () {
+				if (status) status.textContent = "Could not load recent questions. You can still start a new chat.";
+			});
 	}
 
 	function setStudyBuddyOpen(dock, open) {
@@ -247,7 +327,7 @@
 			return;
 		}
 		topic.textContent = lessonHeadingText() || "This lesson";
-		if (hint) hint.textContent = "Lesson context is selected automatically.";
+		if (hint) hint.textContent = "Approved chapter context is selected automatically.";
 	}
 
 	function wireStudyBuddy(dock) {
@@ -264,10 +344,24 @@
 		const transcript = card.querySelector("[data-study-buddy-transcript]");
 		const toggle = dock.querySelector("[data-study-buddy-toggle]");
 		const closer = dock.querySelector("[data-study-buddy-close]");
+		const newChat = dock.querySelector("[data-study-buddy-new]");
 		toggle.addEventListener("click", function () {
 			setStudyBuddyOpen(dock, dock.querySelector("[data-study-buddy-panel]").hidden);
 		});
 		if (closer) closer.addEventListener("click", function () { setStudyBuddyOpen(dock, false); });
+		if (newChat) newChat.addEventListener("click", function () {
+			const context = currentLessonContext();
+			if (!context || submit.disabled) return;
+			const conversationId = studyBuddyConversationId(context, true);
+			card.dataset.studyBuddyConversation = conversationId;
+			card.dataset.studyBuddyHistory = "[]";
+			transcript.innerHTML = "";
+			transcript.hidden = true;
+			card.classList.remove("is-chatting");
+			input.value = "";
+			status.textContent = "New chapter chat started. Not legal advice.";
+			input.focus();
+		});
 		document.addEventListener("keydown", function (event) {
 			if (event.key === "Escape") setStudyBuddyOpen(dock, false);
 		});
@@ -286,55 +380,72 @@
 			if (typeof form.requestSubmit === "function") form.requestSubmit();
 			else form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
 		});
-		form.addEventListener("submit", function (event) {
-			event.preventDefault();
-			const question = input.value.trim();
+		async function sendQuestion(question, addUserMessage) {
 			const context = currentLessonContext();
-			if (!question) {
-				input.focus();
-				return;
-			}
 			if (!context) {
 				status.textContent = "Open a lesson before asking Study Buddy.";
 				return;
 			}
 			let history = [];
 			try { history = JSON.parse(card.dataset.studyBuddyHistory || "[]"); } catch (_) {}
-			appendStudyBuddyMessage(transcript, "user", question);
+			if (addUserMessage) appendStudyBuddyMessage(transcript, "user", question);
 			card.classList.add("is-chatting");
-			input.value = "";
+			if (input.value.trim() === question) input.value = "";
 			submit.disabled = true;
 			status.textContent = "Working on your question…";
 			const mcq = liveMcqContext();
-			fetch("/api/method/aimaticlearning.lms_learning.study_buddy.ask_study_buddy", {
-				method: "POST",
-				credentials: "same-origin",
-				headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token || "" },
-				body: JSON.stringify({
-					course: context.course,
-					chapter: context.chapter,
-					lesson: context.lesson,
-					question: question,
-					history: JSON.stringify(history),
-					attempt_context: mcq ? JSON.stringify(mcq) : "",
-				}),
-			})
-				.then(function (response) {
-					if (!response.ok) throw new Error("Study Buddy is temporarily unavailable.");
-					return response.json();
-				})
-				.then(function (payload) {
-					const result = payload.message || {};
-					if (!result.answer) throw new Error("Study Buddy could not complete that answer.");
-					appendStudyBuddyMessage(transcript, "assistant", result.answer, result.source && result.source.label);
-					history.push({ role: "user", content: question }, { role: "assistant", content: result.answer });
-					card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-6));
-					status.textContent = result.notice || "Answered from this lesson. Not legal advice.";
-				})
-				.catch(function (error) {
-					status.textContent = error.message || "Study Buddy is temporarily unavailable. Please try again.";
-				})
-				.finally(function () { submit.disabled = false; });
+			const conversationId = card.dataset.studyBuddyConversation || studyBuddyConversationId(context, false);
+			card.dataset.studyBuddyConversation = conversationId;
+			const controller = new AbortController();
+			const timer = window.setTimeout(function () { controller.abort(); }, 55000);
+			try {
+				const response = await fetch("/api/method/aimaticlearning.lms_learning.study_buddy.ask_study_buddy", {
+					method: "POST",
+					credentials: "same-origin",
+					signal: controller.signal,
+					headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token || "" },
+					body: JSON.stringify({
+						course: context.course,
+						chapter: context.chapter,
+						lesson: context.lesson,
+						question: question,
+						history: JSON.stringify(history),
+						attempt_context: mcq ? JSON.stringify(mcq) : "",
+						conversation_id: conversationId,
+					}),
+				});
+				const payload = await studyBuddyJson(response);
+				const result = payload.message || {};
+				if (!result.answer) throw new Error("Study Buddy could not complete that answer. Please retry.");
+				if (result.conversation_id) {
+					card.dataset.studyBuddyConversation = result.conversation_id;
+					window.localStorage.setItem(studyBuddyStorageKey(context), result.conversation_id);
+				}
+				appendStudyBuddyMessage(transcript, "assistant", result.answer, studyBuddySourceLabel(result));
+				history.push({ role: "user", content: question }, { role: "assistant", content: result.answer });
+				card.dataset.studyBuddyHistory = JSON.stringify(history.slice(-12));
+				status.textContent = result.notice || "Answered from approved material in this chapter. Not legal advice.";
+			} catch (error) {
+				const message = error.name === "AbortError"
+					? "Study Buddy took too long to answer. Please retry this question."
+					: (error.message || "Study Buddy is temporarily unavailable. Please retry this question.");
+				status.textContent = message;
+				if (!input.value.trim()) input.value = question;
+				appendStudyBuddyFailure(transcript, message, function () { sendQuestion(question, false); });
+			} finally {
+				window.clearTimeout(timer);
+				submit.disabled = false;
+			}
+		}
+
+		form.addEventListener("submit", function (event) {
+			event.preventDefault();
+			const question = input.value.trim();
+			if (!question) {
+				input.focus();
+				return;
+			}
+			sendQuestion(question, true);
 		});
 	}
 
@@ -357,8 +468,9 @@
 			'<button type="button" class="aimatic-study-buddy-fab" data-study-buddy-toggle aria-expanded="false" aria-controls="aimatic-study-buddy-panel">Study Buddy</button>' +
 			'<section id="aimatic-study-buddy-panel" class="aimatic-lms-ai-card aimatic-study-buddy" data-study-buddy data-study-buddy-panel hidden>' +
 				'<div class="aimatic-study-buddy-head">Study Buddy' +
+					'<button type="button" class="aimatic-study-buddy-new" data-study-buddy-new>New chat</button>' +
 					'<button type="button" class="aimatic-study-buddy-close" data-study-buddy-close aria-label="Close Study Buddy">×</button></div>' +
-				'<div class="aimatic-lms-ai-context"><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Lesson context is selected automatically.</small></div>' +
+				'<div class="aimatic-lms-ai-context"><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Approved chapter context is selected automatically.</small></div>' +
 				'<div class="aimatic-study-buddy-transcript" data-study-buddy-transcript aria-live="polite" hidden></div>' +
 				'<div class="aimatic-study-buddy-prompts" aria-label="Suggested questions">' +
 					'<button type="button" data-study-buddy-prompt="Explain the key rule in simple terms.">Explain the key rule</button>' +

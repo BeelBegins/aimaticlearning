@@ -41,10 +41,12 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
 
 - Record correctness, elapsed time, attempt order, and topic tags. Make mastery
   thresholds and revision recommendations transparent and auditable.
-- Log Study Buddy Q&A to `Study Buddy Chat Log`. Learners reload their own
-  recent turns via `get_study_buddy_history` (session user only). Do not store
-  lesson body, system prompts, or provider errors. Use paid
-  `deepseek/deepseek-v4-flash` via `openrouter_study_buddy_model` (never `:free`).
+- Log Study Buddy Q&A to `Study Buddy Chat Log`. Learners reload only their own
+  chapter-scoped conversation via `get_study_buddy_history` (session user only).
+  Ground answers in the open lesson plus its approved `Learning Chapter Profile`
+  notes; never include answer keys or instructor-only content. Do not store lesson
+  bodies, system prompts, or raw provider errors. Use only paid
+  `nvidia/nemotron-3.5-lightning` for learner turns (never `:free` or a fallback model).
 - Keep chapter MCQs, the 150-question module assessment, and the 200-card
   target explicit; never silently duplicate or discard approved questions.
   SQE1 FLK mocks use `docs/sqe1/`; no Kaplan; no invented keys.

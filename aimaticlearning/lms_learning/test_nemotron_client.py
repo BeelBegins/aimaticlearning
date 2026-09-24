@@ -3,12 +3,14 @@ import json
 import unittest
 from unittest.mock import patch
 
+import requests
+
 from aimaticlearning.lms_learning import study_buddy
 from aimaticlearning.lms_learning.nemotron_client import (
+	STUDY_BUDDY_MODEL,
 	NemotronError,
 	get_chat_completion,
 	get_study_buddy_model,
-	paid_model_id,
 )
 
 
@@ -41,24 +43,99 @@ class TestNemotronClient(unittest.TestCase):
 		self.assertEqual(payload["model"], "nvidia/test")
 
 	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
-	def test_study_buddy_model_uses_explicit_flash_not_shared_free_helper(self, frappe):
-		frappe.conf.get.side_effect = lambda key, default=None: {
-			"openrouter_study_buddy_model": "deepseek/deepseek-v4-flash",
-			"openrouter_nemotron_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-		}.get(key, default)
+	def test_study_buddy_defaults_to_paid_lightning(self, frappe):
+		frappe.conf.get.return_value = None
+		self.assertEqual(STUDY_BUDDY_MODEL, "nvidia/nemotron-3.5-lightning")
+		self.assertEqual(get_study_buddy_model(), STUDY_BUDDY_MODEL)
+		self.assertNotIn(":free", get_study_buddy_model())
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_current_paid_model_is_allowed_only_during_rollout(self, frappe):
+		frappe.conf.get.return_value = "deepseek/deepseek-v4-flash"
 		self.assertEqual(get_study_buddy_model(), "deepseek/deepseek-v4-flash")
 
 	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
-	def test_study_buddy_model_defaults_to_flash(self, frappe):
-		frappe.conf.get.side_effect = lambda key, default=None: {
-			"openrouter_study_buddy_model": None,
-			"openrouter_nemotron_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-		}.get(key, default)
-		self.assertEqual(get_study_buddy_model(), "deepseek/deepseek-v4-flash")
+	def test_free_or_unknown_model_configuration_is_rejected(self, frappe):
+		for configured in (
+			"nvidia/nemotron-3.5-lightning:free",
+			"nvidia/nemotron-3-ultra-550b-a55b",
+		):
+			with self.subTest(configured=configured):
+				frappe.conf.get.return_value = configured
+				with self.assertRaises(NemotronError) as raised:
+					get_study_buddy_model()
+				self.assertEqual(raised.exception.code, "configuration")
 
-	def test_paid_model_id_strips_free_suffix(self):
-		self.assertEqual(paid_model_id("nvidia/nemotron-3-ultra-550b-a55b:free"), "nvidia/nemotron-3-ultra-550b-a55b")
-		self.assertEqual(paid_model_id("deepseek/deepseek-v4-flash"), "deepseek/deepseek-v4-flash")
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_completion_metadata_is_sanitized_and_available(self, frappe, post):
+		frappe.conf.get.return_value = "sk-test"
+		post.return_value.status_code = 200
+		post.return_value.json.return_value = {
+			"id": "request-1",
+			"provider": "NVIDIA",
+			"choices": [{"finish_reason": "stop", "message": {"role": "assistant", "content": "Answer"}}],
+			"usage": {"prompt_tokens": 100, "completion_tokens": 20},
+		}
+		result = get_chat_completion(
+			[{"role": "user", "content": "hi"}],
+			model=STUDY_BUDDY_MODEL,
+			return_metadata=True,
+		)
+		self.assertEqual(result["message"]["content"], "Answer")
+		self.assertEqual(result["finish_reason"], "stop")
+		self.assertEqual(result["usage"]["completion_tokens"], 20)
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_provider_error_does_not_leak_response_body(self, frappe, post):
+		frappe.conf.get.return_value = "sk-test"
+		post.return_value.status_code = 502
+		post.return_value.text = "private upstream details"
+		with self.assertRaises(NemotronError) as raised:
+			get_chat_completion([{"role": "user", "content": "hi"}])
+		self.assertTrue(raised.exception.retryable)
+		self.assertEqual(raised.exception.code, "provider_unavailable")
+		self.assertNotIn("private upstream details", str(raised.exception))
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_timeout_is_retryable_and_sanitized(self, frappe, post):
+		frappe.conf.get.return_value = "sk-test"
+		post.side_effect = requests.Timeout("private network details")
+		with self.assertRaises(NemotronError) as raised:
+			get_chat_completion([{"role": "user", "content": "hi"}])
+		self.assertEqual(raised.exception.code, "timeout")
+		self.assertTrue(raised.exception.retryable)
+		self.assertNotIn("private network details", str(raised.exception))
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_rate_limit_is_retryable_but_client_error_is_not(self, frappe, post):
+		frappe.conf.get.return_value = "sk-test"
+		post.return_value.status_code = 429
+		with self.assertRaises(NemotronError) as limited:
+			get_chat_completion([{"role": "user", "content": "hi"}])
+		self.assertEqual(limited.exception.code, "rate_limited")
+		self.assertTrue(limited.exception.retryable)
+
+		post.return_value.status_code = 400
+		with self.assertRaises(NemotronError) as rejected:
+			get_chat_completion([{"role": "user", "content": "hi"}])
+		self.assertEqual(rejected.exception.code, "provider_rejected")
+		self.assertFalse(rejected.exception.retryable)
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_malformed_success_response_is_retryable(self, frappe, post):
+		frappe.conf.get.return_value = "sk-test"
+		post.return_value.status_code = 200
+		post.return_value.json.side_effect = ValueError("private invalid body")
+		with self.assertRaises(NemotronError) as raised:
+			get_chat_completion([{"role": "user", "content": "hi"}])
+		self.assertEqual(raised.exception.code, "invalid_response")
+		self.assertTrue(raised.exception.retryable)
+		self.assertNotIn("private invalid body", str(raised.exception))
 
 	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
 	def test_missing_key_raises(self, frappe):

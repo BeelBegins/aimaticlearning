@@ -21,10 +21,19 @@
   "answer",
   "section_break_meta",
   "model",
+  "conversation_id",
+  "source_scope",
   "status",
   "error_code",
   "grounded",
-  "has_attempt_context"
+  "has_attempt_context",
+  "section_break_diagnostics",
+  "latency_ms",
+  "finish_reason",
+  "retry_count",
+  "column_break_usage",
+  "prompt_tokens",
+  "completion_tokens"
  ],
  "fields": [
   {
@@ -123,6 +132,19 @@
    "read_only": 1
   },
   {
+   "fieldname": "conversation_id",
+   "fieldtype": "Data",
+   "label": "Conversation ID",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "source_scope",
+   "fieldtype": "Data",
+   "label": "Source Scope",
+   "read_only": 1
+  },
+  {
    "default": "Answered",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -136,7 +158,7 @@
    "fieldname": "error_code",
    "fieldtype": "Select",
    "label": "Error Code",
-   "options": "\nProvider\nEmpty Answer",
+   "options": "\nProvider\nTimeout\nRate Limited\nEmpty Answer\nInvalid Response\nConfiguration",
    "read_only": 1
   },
   {
@@ -152,10 +174,57 @@
    "fieldtype": "Check",
    "label": "Has Attempt Context",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_diagnostics",
+   "fieldtype": "Section Break",
+   "label": "Diagnostics"
+  },
+  {
+   "default": "0",
+   "fieldname": "latency_ms",
+   "fieldtype": "Int",
+   "label": "Latency (ms)",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "finish_reason",
+   "fieldtype": "Data",
+   "label": "Finish Reason",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "retry_count",
+   "fieldtype": "Int",
+   "label": "Retry Count",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_usage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "prompt_tokens",
+   "fieldtype": "Int",
+   "label": "Prompt Tokens",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "completion_tokens",
+   "fieldtype": "Int",
+   "label": "Completion Tokens",
+   "non_negative": 1,
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-09-17 09:40:00.000000",
+ "modified": "2026-09-25 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "Study Buddy Chat Log",
