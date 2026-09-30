@@ -41,8 +41,8 @@ GitHub: `BeelBegins/aimaticlearning`, branch `main`. The Frappe app name stays
 
 Until this site leaves the shared bench, web/queue restarts can still hit live
 `szl`. Read-only diagnosis is allowed. Any live mutation, import, migrate,
-deploy, or impactful restart needs explicit approval, a current verified LMS
-backup, checks, and a rollback path.
+deploy, or impactful restart needs explicit approval, checks, and a rollback
+path. Do not take an LMS backup unless asked.
 
 Keep Word sources private. Do not auto-enrol students. Do not put credentials
 in code, guidance, or prompts.

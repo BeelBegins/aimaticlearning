@@ -41,6 +41,7 @@ second copy for one client.
 | Architecture | `docs/architecture.md` |
 | SQE1 mock requirements and source register | `docs/sqe1/` |
 | Verified findings and corrections | `docs/lms-findings-and-fixes.md` |
+| Dated deploy/incident/content-publish diary (historical evidence) | `docs/lms-operational-log.md` |
 | Dated import, coverage, and handoff evidence | `aimaticlearning/lms_learning/*REPORT.md`, `*HANDOFF.md`, `IMPLEMENTATION.md` |
 
 When a live change is verified, add a concise evidence record and update any

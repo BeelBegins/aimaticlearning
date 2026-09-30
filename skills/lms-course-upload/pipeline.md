@@ -7,19 +7,16 @@ Preferred model: Claude Opus thinking (high).
 
 ```bash
 cd /home/nabeel/frappe-bench
-# 1. Backup (required before import/publish)
-bench --site lms.aimatic.tech backup --with-files
-ls -lt sites/lms.aimatic.tech/private/backups | head
-gzip -t sites/lms.aimatic.tech/private/backups/<latest>.sql.gz
+# Do not take an LMS backup unless asked.
 
-# 2. Dry-run coverage (no write)
+# 1. Dry-run coverage (no write)
 bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.course_upload.coverage_report --kwargs '{"course":"contract-law","source_file":"ca1d016ce3"}'
 
-# 4. Attach lessons to the LMS chapter rail (required for /learn/N-1)
+# 2. Attach lessons to the LMS chapter rail (required for /learn/N-1)
 bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.course_upload.relink_notes_lessons
 ```
 
-Rollback: restore the backup taken in step 1.
+Rollback: revert the content change. Backup LMS only if asked.
 
 ## Lesson write rules
 

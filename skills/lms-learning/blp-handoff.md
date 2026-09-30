@@ -136,8 +136,8 @@ Desk API: `aimaticlearning.lms_learning.api.repair_blp_presentation` (System Man
 ## Safety
 
 - `lms.aimatic.tech` is a separate learning product — do not load SZL skills.
-- Live gate for site mutations: backup, approval, rollback. This bench shares
-  workers with live `szl`.
+- Live gate for site mutations: approval and rollback. No LMS backup unless
+  asked. This bench shares workers with live `szl`.
 - Do not commit secrets. SZL also has Zoho configured — same hello@ account;
   do not mix site operations.
 

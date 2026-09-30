@@ -21,13 +21,12 @@ Read [pipeline.md](pipeline.md) before mutating. Implementation:
 
 ## Every upload
 
-1. Verify site role is `lms.aimatic.tech`.
-2. `bench --site lms.aimatic.tech backup --with-files`, gzip -t, record rollback.
-3. Keep Word sources private. Never attach them as learner downloads.
-4. Render student HTML into `Course Lesson.body`. Always set `content = ""`.
-5. Record source File name, content hash, and section locator on the Learning
+1. Verify site role is `lms.aimatic.tech`. Do not take an LMS backup unless asked.
+2. Keep Word sources private. Never attach them as learner downloads.
+3. Render student HTML into `Course Lesson.body`. Always set `content = ""`.
+4. Record source File name, content hash, and section locator on the Learning
    Chapter Profile. Preserve lesson names and progress.
-6. Do not auto-enrol. Do not merge subjects into BLP. No broad BLP re-import
+5. Do not auto-enrol. Do not merge subjects into BLP. No broad BLP re-import
    without a dry run.
 
 ## Notes

@@ -40,15 +40,17 @@ Do not auto-enrol students on signup.
 pending academic review (`LMS Course.published = 0`). Re-publish only after
 that review.
 
-Operational diary for this shared bench (incidents, backups, content publishes)
-stays in the bench file `docs/reference/current-state.md` LMS section until the
-site moves.
+Operational diary (incidents, backups, content publishes) is
+`docs/lms-operational-log.md` in this repo — migrated 2026-09-30 from the
+shared bench file, which now only carries a routing pointer to this repo.
 
-**SQE1 hard mocks (2026-09-17):** Published course `sqe1-hard-mocks` holds three
-January 2027 sittings (12 timed 85-question sessions, 1020 unique reviewed
-5-option items). Not listed on `/sqe`. Learners use `/learning-mock-exam`;
-course overview redirects there. `/learn/1-1` is Mock 1 Session 1. Coverage
-is staff-only on `/learning-mock-report`. Criminal Liability is a Criminal
-Litigation proxy. Backup `20260918_062050-lms_aimatic_tech-*`. Rollback:
-restore that backup. Expires when: the course is unpublished, rebuilt, or
-removed.
+**SQE1 hard mocks (2026-09-22):** Exam product `Learning Mock Exam` `sqe1-hard-mocks`
+holds three January 2027 sittings (12 timed 85-question sessions, 1020 unique
+reviewed 5-option items). Learners use `/learning-mock-exam`; Start enrols on
+the exam and opens `/lms/quiz/<quiz>?fromLesson=1`. LMS Course `sqe1-hard-mocks`
+is unpublished (`published = 0`, `disable_self_learning = 1`) and is only the
+ACL parent for `can_access_quiz`. Hidden from student catalogues via
+`exam_surface`. Coverage is staff-only on `/learning-mock-report`. Criminal
+Liability is a Criminal Litigation proxy. Backup
+`20260922_134154-lms_aimatic_tech-*`. Rollback: restore that backup and revert
+`aimaticlearning`. Expires when: the exam product or papers are rebuilt.
