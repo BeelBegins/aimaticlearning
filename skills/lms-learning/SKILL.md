@@ -1,6 +1,6 @@
 ---
 name: lms-learning
-description: Build and operate Aimatic's Frappe Learning product at lms.aimatic.tech. Use for LMS course/chapter/lesson structure, protected study notes, chapter MCQs and feedback, flashcards, module assessments, learner analytics, AI-assisted content drafting, instructor tools, and LMS-specific site changes.
+description: Build and operate Examic Study's Frappe LMS product at lms.aimatic.tech. Use for LMS course/chapter/lesson structure, protected study notes, chapter MCQs and feedback, flashcards, module assessments, learner analytics, AI-assisted content drafting, instructor tools, and LMS-specific site changes.
 ---
 
 # Examic Study
@@ -18,7 +18,7 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
 - Use `bench-ops` for site, proxy, worker, certificate, backup, or migration.
   This bench shares workers with live `szl`.
 - Use Frappe LMS for course, chapter, lesson, enrolment, and baseline quiz
-  behaviour. Keep Aimatic additions namespaced to avoid collisions.
+  behaviour. Keep `aimaticlearning` additions namespaced to avoid collisions.
 
 ## Content and privacy
 

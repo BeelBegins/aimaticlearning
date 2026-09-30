@@ -1,0 +1,4 @@
+interface:
+  display_name: "Examic MCQ Quality"
+  short_description: "Audit Examic MCQ data, mapping, and feedback"
+  default_prompt: "Use $examic-lms-mcq-quality to audit the affected Examic chapter and mock MCQs before publication."

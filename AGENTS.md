@@ -7,6 +7,21 @@ FBR, purchase, Foodpanda, or other SZL skills.
 Identify this product, then load only `lms-learning` (and `lms-course-upload`
 for Word import). Read `docs/current-state.md` for this site only.
 
+## Canonical LMS agent guidance
+
+All reusable LMS instructions, quality standards, findings, and operating
+records belong in this repository. Do not treat a personal agent memory,
+global skill folder, or another Aimatic/SZL checkout as the source of truth.
+
+- `AGENTS.md` is the shared routing and safety baseline.
+- `skills/` contains reusable LMS workflows for every supported agent.
+- `docs/lms-agent-guidance.md` maps the active guidance and client adapters.
+- `docs/lms-findings-and-fixes.md` records verified findings and completed
+  fixes. Update it, and refresh affected facts in `docs/current-state.md`,
+  after verified LMS work.
+- Dated handoffs and reports are historical evidence, not current facts,
+  unless re-verified against code and the LMS site.
+
 ## Authority
 
 1. current local code and uncommitted diff;
@@ -45,6 +60,7 @@ code dependency.
 |---|---|
 | Courses, notes, MCQs, flashcards, revision, learner UX | `lms-learning` |
 | Word import / empty-lesson fill | `lms-course-upload` |
+| MCQ or mock quality, feedback, mapping, and learner display | `examic-lms-mcq-quality` |
 | Site, backup, Caddy, workers, restore | shared bench `bench-ops` |
 
 Prefer this folder as the Cursor workspace for LMS work.
