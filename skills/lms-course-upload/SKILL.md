@@ -28,6 +28,43 @@ Read [pipeline.md](pipeline.md) before mutating. Implementation:
    Chapter Profile. Preserve lesson names and progress.
 5. Do not auto-enrol. Do not merge subjects into BLP. No broad BLP re-import
    without a dry run.
+6. After import, run the checks in "Post-import verification" below before
+   calling a subject done. A rendered lesson with a non-empty body is not
+   proof the import is complete or correct.
+
+## Word source retirement
+
+The Word file is the source of truth **only up to first verified publish** of
+a chapter. Once a human has edited that chapter's notes or MCQs directly in
+Content Studio, the Word file is historical import evidence only — never
+re-render or re-import over Studio-edited content, even to "fix" it against
+the source. A Studio edit is the newer fact; blind re-import from Word
+silently destroys it. If a chapter genuinely needs re-importing from Word
+after Studio edits exist, that is a deliberate, user-approved decision: list
+what the Studio edit changed, get explicit sign-off that it's fine to lose,
+and say so in the commit/finding record. Studio has no field marking "edited
+since import" today — when unsure whether a chapter was hand-edited, ask
+before touching it, don't assume the Word file still wins.
+
+## Post-import verification
+
+Before a subject is called imported/published, check all of these — each has
+recurred as a real, separately-fixed defect:
+
+- **Missing MCQ explanation.** Every published MCQ has a non-empty
+  explanation, not just a stored correct option. A parsed question with no
+  explanation is a parser gap, not an acceptable gap — fix the importer, do
+  not publish it bare and move on.
+- **Missing MCQs per lesson.** Compare each chapter/module's actual published
+  quiz question count against its target spec (e.g. `FLK2_MCQ_SPECS` or the
+  equivalent for the subject). A short count is a gap to report and fix, not
+  something to publish silently short.
+- **Glossary/key-concepts leaking into notes.** Chapter study notes must not
+  contain an embedded end-of-chapter summary/glossary bank (literal banners
+  like `CHAPTER N SUMMARY` or `Key Glossary Terms`). That content belongs in
+  the subject's Module Assessment "Quick Revision Notes — Key Concepts &
+  Glossary" lesson, before the assessment — not inside the notes body. Scan
+  every imported chapter's notes for these banners before publish.
 
 ## Notes
 

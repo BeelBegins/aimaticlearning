@@ -36,6 +36,13 @@ For each affected chapter MCQ or mock item, verify:
    uppercase A-E in a letter circle, the selected answer row highlighted, and
    the native radio/checkbox visual hidden. Check keyboard focus and a narrow
    mobile layout.
+5. **Completeness, not just integrity of what exists:** every question has a
+   non-empty explanation — an MCQ with a correct option but no explanation is
+   a defect, not an acceptable minimum. Separately, count published questions
+   per chapter/lesson against that subject's target spec; a short count is a
+   coverage gap to report and fix, never something to leave silently short.
+   Both of these have recurred as real defects — check for them explicitly,
+   don't assume the importer caught them.
 
 ## Workflow
 

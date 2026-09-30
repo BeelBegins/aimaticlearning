@@ -25,8 +25,19 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
 
 - Store Word sources and original assets privately. Publish rendered lesson content,
   enforce authentication server-side, and do not claim screenshots/copying can be stopped.
+- The Word source is authoritative only up to a chapter's first verified
+  publish. Once Content Studio has edited a chapter's notes or MCQs, Studio
+  is the live source for that chapter — never re-render or re-import from
+  Word over a Studio edit; see `lms-course-upload`'s "Word source retirement."
+- Chapter study notes must not contain an embedded end-of-chapter
+  summary/glossary bank (`CHAPTER N SUMMARY`, `Key Glossary Terms`, or
+  similar). That content belongs in the subject's Module Assessment "Quick
+  Revision Notes — Key Concepts & Glossary" lesson, not inside the notes body.
 - Tag every MCQ and flashcard with chapter, concept, learning objective, difficulty,
   source reference, and revision. Preserve attempts against their question revision.
+  Every MCQ needs a non-empty explanation and the chapter's full target count
+  before it counts as done — a stored correct answer with no explanation, or
+  a chapter short of its question target, is a defect to fix, not publish.
 - Chapter MCQ and module-assessment lessons use `Course Lesson.quiz_id`. Keep
   `content = ""` on those lessons: non-empty EditorJS `content` hides the LMS
   quiz widget. `outline_sync.ensure_quiz_lesson` must not write CodeX blobs
