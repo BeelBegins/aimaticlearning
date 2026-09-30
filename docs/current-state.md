@@ -106,6 +106,38 @@ DR/Legal Services/Legal System, previously reported "tight" for even 3
 sittings (75/80/80 eligible), have grown substantially since 09-17 (362/160/220
 eligible) and are no longer a blocker at 4 or 5 sittings.
 
+**AI-drafted MCQs live in published courses (found and partly fixed
+2026-09-30):** Auditing the Criminal Law AI-content gap above surfaced a wider
+issue: `public-law`, `legal-services`, and `business-law-practice-blp` also
+had `ai_generated=1` chapter-quiz MCQs from an earlier (2026-09-07) batch.
+`public-law` and `criminal-law` were live in **published** courses — 241
+never-reviewed AI items reachable by real students, mixed in with reviewed
+content with no visible distinction. Root cause of the exposure: all 5 FLK1/
+FLK2 subject courses (including the 3 explicitly gated `published=0` after the
+2026-09-10 incident, see below) got set back to `published=1` in a single bulk
+write at 2026-09-30 13:00:25 — no git commit, no Version record, timing
+strongly tied to an unlogged `bench execute` fix for a real learner's course
+access right before it. **Public Law resolved**: found a genuine, complete
+source file, `PL MCQs.docx` (private files, uploaded 2026-09-24) — 140
+scenario-based questions across 7 chapters with real answers/explanations,
+already fully imported and correctly flagged `ai_generated=0`. The 144 AI
+items were separate, generated 17 days before that source existed, added
+nothing once it did, and lived in 19 quizzes disconnected from the live course
+outline (no `Course Chapter`/`Course Lesson` linkage, zero submissions).
+Deleted entirely — the 144 `LMS Question`/`Learning Question Meta` rows and
+the 19 orphaned quizzes. Backup:
+`private/files/lms_learning_exports/public-law-ai-content-removed-20260930.json`
+(full doc dumps, not just names). Verified after: `public-law` bank is
+220/220 non-AI; its 7 chapter quizzes (20/20 each) and module assessment
+(140/140) untouched. **Not yet checked**: whether Legal Services and BLP have
+similar real source files that would let their orphaned 65/40 AI items
+(currently unlinked to any quiz, so not live-exposed) be deleted the same way.
+No decision yet on re-gating `dispute-resolution`/`legal-services`/
+`criminal-law` back to `published=0` pending review — doing so may re-break
+whatever learner access problem the 13:00:25 write was fixing; left published
+per explicit instruction. Expires when: Legal Services/BLP are checked, or the
+publish/review-gate question is resolved.
+
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").
 Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4
