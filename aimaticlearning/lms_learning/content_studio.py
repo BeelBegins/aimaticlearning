@@ -69,6 +69,27 @@ class ContentStudioError(Exception):
 	pass
 
 
+def _log_manual_version(doctype: str, docname: str, changed: dict) -> None:
+	"""Record a Version entry for a raw write that bypasses Document.save().
+
+	`changed` maps fieldname -> (old_value, new_value); no-op diffs are
+	skipped. Mirrors the diff shape Frappe's own save() produces, so it shows
+	up in the standard "View Version" history for the document alongside
+	normal save()/insert() activity.
+	"""
+	diff = [[field, old, new] for field, (old, new) in changed.items() if old != new]
+	if not diff:
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Version",
+			"ref_doctype": doctype,
+			"docname": docname,
+			"data": frappe.as_json({"changed": diff}),
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
+
+
 def require_content_role() -> None:
 	frappe.only_for(CONTENT_ROLES)
 
@@ -192,6 +213,7 @@ def _write_profile_notes_html(profile, html: str, *, bump_revision: bool = True)
 		{"notes_html": html, "source_revision": revision},
 		update_modified=True,
 	)
+	_log_manual_version("Learning Chapter Profile", profile.name, {"notes_html": (current, html)})
 	profile.notes_html = html
 	profile.source_revision = revision
 	return revision
@@ -577,10 +599,14 @@ def save_chapter_notes(chapter_profile: str, notes_html: str | None = None):
 			skipped_quiz_lesson = True
 		else:
 			values = notes_write_values(html)
+			old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
 			frappe.db.set_value(
 				"Course Lesson",
 				profile.notes_lesson,
 				{"body": values["body"], "content": values["content"]},
+			)
+			_log_manual_version(
+				"Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])}
 			)
 			lesson_written = True
 
@@ -610,10 +636,14 @@ def sync_notes_to_learner(chapter_profile: str):
 			raise ContentStudioError("Cannot publish notes onto a quiz-wired lesson.")
 		html = sanitize_studio_notes_html(profile.notes_html)
 		values = notes_write_values(html)
+		old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
 		frappe.db.set_value(
 			"Course Lesson",
 			profile.notes_lesson,
 			{"body": values["body"], "content": values["content"]},
+		)
+		_log_manual_version(
+			"Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])}
 		)
 		notes_state = notes_publish_state(html, values["body"], notes_lesson=profile.notes_lesson)
 		return {
@@ -697,17 +727,25 @@ def save_chapter_heading(chapter_profile: str, chapter_title: str):
 			quiz_id = frappe.db.get_value("Course Lesson", profile.notes_lesson, "quiz_id") or ""
 			if not (quiz_id or "").strip():
 				values = notes_write_values(html)
+				old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
 				frappe.db.set_value(
 					"Course Lesson",
 					profile.notes_lesson,
 					{"body": values["body"], "content": values["content"]},
+				)
+				_log_manual_version(
+					"Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])}
 				)
 
 	profile.chapter_title = new_title
 	profile.save(ignore_permissions=True)
 
 	if profile.course_chapter:
+		old_chapter_title = frappe.db.get_value("Course Chapter", profile.course_chapter, "title")
 		frappe.db.set_value("Course Chapter", profile.course_chapter, "title", new_title)
+		_log_manual_version(
+			"Course Chapter", profile.course_chapter, {"title": (old_chapter_title, new_title)}
+		)
 
 	retitled = _retitle_chapter_surfaces(profile, old_titles, new_title)
 	return {
@@ -1317,12 +1355,14 @@ def _retitle_chapter_surfaces(profile, old_titles: list[str], new_title: str) ->
 			updated = retitle_display(lesson.title, old_titles, new_title)
 			if updated:
 				frappe.db.set_value("Course Lesson", lesson.name, "title", updated)
+				_log_manual_version("Course Lesson", lesson.name, {"title": (lesson.title, updated)})
 				changed.append({"doctype": "Course Lesson", "name": lesson.name, "title": updated})
 	if profile.chapter_quiz:
 		quiz_title = frappe.db.get_value("LMS Quiz", profile.chapter_quiz, "title")
 		updated = retitle_display(quiz_title, old_titles, new_title)
 		if updated:
 			frappe.db.set_value("LMS Quiz", profile.chapter_quiz, "title", updated)
+			_log_manual_version("LMS Quiz", profile.chapter_quiz, {"title": (quiz_title, updated)})
 			changed.append({"doctype": "LMS Quiz", "name": profile.chapter_quiz, "title": updated})
 	return changed
 
@@ -1382,21 +1422,28 @@ def _rehome_module_assessment(profile, module) -> str | None:
 	for name in kept:
 		chapter.append("lessons", {"lesson": name})
 	chapter.save(ignore_permissions=True)
+	old_chapter = frappe.db.get_value("Course Lesson", lesson, "chapter")
 	frappe.db.set_value("Course Lesson", lesson, "chapter", dest)
+	_log_manual_version("Course Lesson", lesson, {"chapter": (old_chapter, dest)})
 	link_lesson_to_chapter(dest, lesson)
 	return lesson
 
 
 def _retire_chapter_flashcards(learning_module: str, course_chapter: str) -> int:
-	names = frappe.get_all(
+	rows = frappe.get_all(
 		"Learning Flashcard",
 		filters={"learning_module": learning_module, "course_chapter": course_chapter},
-		pluck="name",
+		fields=["name", "status"],
 		limit_page_length=500,
 	)
-	for name in names:
-		frappe.db.set_value("Learning Flashcard", name, {"status": "Retired", "course_chapter": None})
-	return len(names)
+	for row in rows:
+		frappe.db.set_value("Learning Flashcard", row.name, {"status": "Retired", "course_chapter": None})
+		_log_manual_version(
+			"Learning Flashcard",
+			row.name,
+			{"status": (row.status, "Retired"), "course_chapter": (course_chapter, None)},
+		)
+	return len(rows)
 
 
 def _clear_question_meta_chapter(learning_module: str, course_chapter: str) -> None:
@@ -1407,6 +1454,7 @@ def _clear_question_meta_chapter(learning_module: str, course_chapter: str) -> N
 		limit_page_length=500,
 	):
 		frappe.db.set_value("Learning Question Meta", name, "course_chapter", None)
+		_log_manual_version("Learning Question Meta", name, {"course_chapter": (course_chapter, None)})
 
 
 def _empty_chapter_quiz(quiz_name: str) -> None:

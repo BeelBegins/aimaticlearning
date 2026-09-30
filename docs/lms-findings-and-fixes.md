@@ -102,3 +102,44 @@ sometimes omits the placeholder body — this was root-caused and fixed by
 deletion, not by finding or fixing the code defect that created the broken
 lesson in the first place. A recurrence elsewhere is possible until that
 importer-side gap is found.
+
+## 2026-09-30 — Content Studio edits bypassed the Version audit trail
+
+**Scope:** `aimaticlearning/lms_learning/content_studio.py`, the staff-facing
+editor for notes, chapter MCQs, flashcards, and chapter structure.
+
+**Finding:** Surfaced while investigating this session's earlier unlogged
+bulk-publish incident (all FLK1/FLK2 subject courses set back to
+`published=1` in one write with no git commit and no `Version` record).
+Auditing `content_studio.py` for the same class of gap found several raw
+`frappe.db.set_value()` writes that bypass Frappe's automatic
+`Document.save()` versioning, so they leave no timestamped diff: chapter
+notes (`Learning Chapter Profile.notes_html`, deliberately raw because the
+field is `read_only=1` and `.save()` skips it), the mirrored learner-facing
+`Course Lesson.body`/`content`, `Course Chapter`/`Course Lesson`/`LMS Quiz`
+title renames on chapter rename, and the chapter-removal housekeeping that
+retires flashcards, clears `Learning Question Meta.course_chapter`, and
+rehomes a lesson's `chapter` link. MCQ and flashcard edits were already safe
+— `save_chapter_mcq`/`save_flashcard` use `.save()`/`.insert()`, which Frappe
+versions automatically (confirmed today: 87 `LMS Question` + 7 `Learning
+Question Meta` Version rows from real Studio edits this morning).
+
+**Fix:** Added `_log_manual_version(doctype, docname, changed)` — inserts a
+`Version` doc with the same diff shape Frappe's own save() produces, so
+manual writes show up in the standard "View Version" history alongside
+normal saves. Called it at every raw-write site above (captures the old
+value via `get_value` immediately before the write). Left
+`_refresh_profile_mcq_count`'s raw write unlogged on purpose — it's a derived
+cache of `LMS Quiz Question` count, not independent content; logging every
+refresh would be noise, not signal.
+
+**Verification:** `python3 -m py_compile` clean; full
+`test_content_studio.py` suite (24 tests) passes unchanged. Those tests only
+cover pure helper functions (0.002s run time, no DB writes), so they don't
+exercise the new Version-insert calls directly — not yet confirmed against a
+live Studio edit end-to-end.
+
+**Remaining risk:** Not yet verified live (e.g. editing chapter notes in
+Studio and confirming a `Version` row appears with the correct before/after
+diff). Should be spot-checked next time notes or a chapter title are edited
+through Studio.
