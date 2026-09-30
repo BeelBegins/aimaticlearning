@@ -187,18 +187,28 @@ this was preventive, not a live cleanup. See
 `docs/lms-findings-and-fixes.md` for the full Version-history evidence
 trail.
 
-**BLP Ch.3 Q16/Q17 wrong answer key, fixed (2026-09-30); source-file
-regression not yet swept elsewhere:** Both questions' live answer keys
-contradicted the chapter's own notes and were traced to a 2026-09-24
-re-upload (`BLP notes75b9d6.docx`) that regressed at least these two answers
-from a previously-correct state in the still-present 2026-09-02 file (`BLP
-notes and Questions .docx`). Fixed both (Q16 B→C, Q17 C→D) using the
-correct source's reasoning; backup and full detail in
-`docs/lms-findings-and-fixes.md`. **Not done:** a question-by-question diff
-of the 09-02 vs 09-24 BLP files across all 8 chapters to check for other
-regressed answers, and a check of whether any other subject's source file
-was similarly re-uploaded with regressions. Expires when: that diff is run,
-or the 09-24 files are established as reliable after review.
+**BLP Ch.3 Q16/Q17: 2026-09-30 fix was wrong, reverted 2026-10-01.** The
+2026-09-30 entry below (now struck through in spirit, kept for history) fixed
+these two questions from the 2026-09-24 file's answer (Q16=B, Q17=C) to the
+2026-09-02 file's answer (Q16=C, Q17=D), reasoning that the 09-24 file was a
+regression. **User confirmed 2026-10-01 this was backwards**: the solicitor
+deliberately revised these (and other) answers and sent the 09-24 file with
+the changed answers highlighted in red — 09-24 is the authoritative, corrected
+version, not a regression. Reverted both questions back to the 09-24/solicitor
+answer (Q16=B, Q17=C) with the matching explanation; `source_reference`
+updated to `BLP notes75b9d6.docx Ch3 Q16/Q17 (solicitor-revised answer)`.
+Backup of the incorrect intermediate state:
+`private/files/lms_learning_exports/blp-ch3-q16-q17-incorrect-fix-state-20261001.json`.
+See `docs/lms-findings-and-fixes.md` for full detail, including why the
+09-02-vs-09-24 diff done on 2026-10-01 across all 8 BLP chapters turned out to
+be the wrong test: the file-embedded "self-check" answer tables (identical in
+both files) are stale leftovers from before the solicitor's revision, not an
+authority — the per-question detailed reasoning paragraph is what the
+solicitor actually edits and highlights, and 09-24's version of it should be
+trusted over 09-02's wherever they differ. **No further BLP answer-key
+changes needed** — the 6 other flagged mismatches (Ch3 Q11, Ch4 Q13, Ch4 Q15,
+Ch5 Q14, Ch6 Q20, Ch7 Q5, Ch8 Q23) already carry the correct 09-24/solicitor
+answer live and were correctly left untouched.
 
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").

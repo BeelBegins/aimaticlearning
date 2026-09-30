@@ -335,3 +335,73 @@ at least 2 answers regressed) question-by-question across all 8 BLP
 chapters before trusting the rest of the bank, and to check whether any
 other subject's "answer key" source file was similarly re-uploaded with
 regressions. Not done in this session — flagging for a dedicated pass.
+
+**Correction (2026-10-01): the above fix was backwards — reverted.**
+See the next entry below.
+
+## 2026-10-01 — BLP Ch.3 Q16/Q17 fix above was wrong direction; reverted, and the flagged wider sweep found no real defects
+
+**Scope:** Same two questions as above (`QTS-2026-00140`/Q16,
+`QTS-2026-00141`/Q17), plus the "dedicated pass" the prior entry flagged: a
+full 09-02-vs-09-24 answer-key diff across all 8 BLP chapters.
+
+**Finding:** Ran the flagged diff. Comparing each chapter's embedded
+self-check "Questions: N,M | Answers: X,Y" table between the 09-02 and 09-24
+files showed **zero differences** — that table is byte-identical in both
+files. Comparing each question's full detailed-reasoning paragraph (the
+"Question N: Answer X ... Reason: ..." text) found **11 mismatches** across 7
+chapters (the 2 already "fixed," plus 9 more: Ch1 Q14, Ch3 Q11, Ch4 Q13, Ch4
+Q15, Ch5 Q14, Ch6 Q17 [chapter not even imported into the live course — no
+live impact], Ch7 Q20, Ch8 Q5, Ch9 Q23). The self-check table agreed with the
+09-02 reasoning and disagreed with the 09-24 reasoning in every live-relevant
+case, which read at first like proof 09-24 had regressed. **User corrected
+this 2026-10-01**: the solicitor deliberately revised a set of answers and
+sent the 09-24 file with the changed answers highlighted in red — 09-24's
+detailed-reasoning paragraphs are the authoritative, intentionally-corrected
+version. The self-check table is a stale leftover that was never updated
+during the solicitor's revision, so its agreement with 09-02 is not evidence
+of correctness — it's evidence of being unmaintained. Re-reading the full
+reasoning paragraphs (not just the answer letters) on close inspection
+supports this: several 09-02 reasoning blocks are internally confused or
+self-contradicting (e.g. Ch4 Q13's own text says "the better interpretation…
+appears to exceed… making it unlawful. However, Answer A is marked correct,
+suggesting…"; Ch5 Q14's own text says "This makes option D potentially
+correct" while marking A correct), while the matching 09-24 replacement text
+is clean and cites specific authority (e.g. Companies Act 2006 s.307(4) for
+short-notice meetings, *Garner v Murray* (1903) for partnership-deficiency
+apportionment, *Hosking v Marathon Asset Management LLP* [2016] for LLP
+member-admission default rules, PA 1890 s.9 for joint partner liability).
+
+**Correction:** Reverted `QTS-2026-00140` (Q16) and `QTS-2026-00141` (Q17)
+back to the 09-24/solicitor answers (B and C respectively) with the matching
+explanation text, restoring the exact state the 2026-09-30 fix had
+overwritten (confirmed via that fix's own pre-edit backup). Updated
+`source_reference` on both to `BLP notes75b9d6.docx Ch3 Q16/Q17
+(solicitor-revised answer)`. Backed up the incorrect intermediate (09-30 fix)
+state before reverting:
+`private/files/lms_learning_exports/blp-ch3-q16-q17-incorrect-fix-state-20261001.json`.
+The other 9 flagged mismatches were **not** touched — live DB already carries
+the correct 09-24/solicitor answer for all of them (verified directly against
+each `LMS Question`'s stored `is_correct_*`), so no further action was
+needed; Ch6 Q17 has no live record at all since that docx chapter was never
+imported.
+
+**Verification:** Re-read both reverted questions — Q16 correct option is
+`option_2` (B) with explanation present, Q17 correct option is `option_3`
+(C) with explanation present, matching the pre-09-30-fix backup exactly.
+Cross-checked all 9 other flagged questions' live `is_correct_*` flags
+against the 09-24 detailed-reasoning answer — all 9 already match.
+
+**Remaining risk:** The self-check "Questions: N | Answers: X" tables
+embedded in BLP chapter notes are confirmed stale relative to the solicitor's
+answer revisions and should not be used as an answer-key source for any
+future BLP work — the per-question detailed-reasoning paragraph is the only
+reliable in-document source, and even that should be treated as provisional
+unless it carries the solicitor's red-highlight marking. This session did not
+check whether any *other* subject's source file has the same
+revised-reasoning-vs-stale-table split; if a similar defect is suspected
+elsewhere, diff detailed-reasoning paragraphs specifically, not summary
+tables. Lesson learned: a document-internal-consistency argument (two
+sections of the same file agreeing) is not a substitute for asking whose
+revision is authoritative — should have asked before applying the 09-30 fix
+instead of inferring it from file structure alone.
