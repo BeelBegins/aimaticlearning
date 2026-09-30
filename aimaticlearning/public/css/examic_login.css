@@ -130,6 +130,18 @@ body[data-path="login"] .form-signin .form-control {
 	margin-bottom: 0 !important;
 }
 
+/* Frappe positions the email and password icons inside these wrappers.  The
+ * general input rule above replaces Frappe's default padding, so reserve that
+ * space explicitly rather than allowing text to sit beneath the icon. */
+body[data-path="login"] .form-signin .email-field .form-control {
+	padding-left: 40px !important;
+}
+
+body[data-path="login"] .form-signin .password-field .form-control {
+	padding-left: 40px !important;
+	padding-right: 60px !important;
+}
+
 body[data-path="login"] .signup-form select.form-control {
 	height: 46px !important;
 	min-height: 46px !important;

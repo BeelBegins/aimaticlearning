@@ -12,6 +12,7 @@
   "column_break_meta",
   "difficulty",
   "source_reference",
+  "source_quote",
   "revision",
   "ai_generated",
   "section_break_card",
@@ -56,6 +57,11 @@
    "fieldname": "source_reference",
    "fieldtype": "Data",
    "label": "Source Reference"
+  },
+  {
+   "fieldname": "source_quote",
+   "fieldtype": "Small Text",
+   "label": "Source Quote"
   },
   {
    "default": "1",

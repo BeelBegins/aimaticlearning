@@ -118,19 +118,30 @@ questions silently.
   `/learning-mock-report`. Learners use `/learning-mock-exam`. No question IDs
   or keys on either page.
 
-## Known bank gaps (2026-09-17, do not ignore)
+## Known bank gaps (updated 2026-09-30, supersedes 2026-09-17 notes)
 
-- Criminal Law: items exist but are **not** 5-option scored. FLK2 Session 2
-  cannot yet be a proper Criminal Liability paper.
+- Criminal Law: a genuine `criminal-law` course exists (117 structurally
+  5-option items, added 2026-09-24/25), but only 20 are human-reviewed
+  (`ai_generated=0`); 97 came from the LLM generation pipeline and stay
+  ineligible pending academic review. `sqe1_hard_mocks.py` sources Criminal
+  Liability from `criminal-law` first, then tops up from Criminal Litigation
+  as a proxy. Combined reviewed criminal supply (240) covers 4 sittings'
+  combined Criminal Liability + Criminal Law and Practice demand (224) but
+  not a 5th (280) — short by ~40 items.
 - Hard tags are scarce (~73 site-wide). “Kaplan hard” is selection and
   application style, not a Hard-only paper.
-- Dispute Resolution, Legal Services, and Public Law 5-option pools are
-  tight for three unique 170-question FLK1 papers at SRA weights.
+- Dispute Resolution (362), Legal Services (160), and Public Law (220)
+  eligible pools have grown well past the old "tight for three papers"
+  figures (75/80/80 on 2026-09-17) and are not a blocker through at least 5
+  sittings. BLP, Wills, Trusts, and Land are comfortable at 4 sittings but
+  worth re-checking before a 5th.
 - 4-option questions are ineligible.
 - `ai_generated = 1` items are ineligible.
 
-Until those gaps close, the honest product is fewer unique sittings, or a
-Mock 3 with documented overlap — never a fake full cover.
+Current build: 4 unique sittings (Mocks 1–4), built 2026-09-30. A 5th sitting
+is blocked only by the criminal-item shortfall above — closing it needs more
+reviewed Criminal Law content, not a script change. Until it closes, the
+honest product stays at 4 sittings — never a fake full cover.
 
 ## Kaplan
 

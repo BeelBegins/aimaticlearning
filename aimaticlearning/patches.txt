@@ -4,4 +4,5 @@ aimaticlearning.patches.expand_course_lesson_content_field
 
 [post_model_sync]
 aimaticlearning.patches.configure_lms_student_access
+aimaticlearning.patches.sync_learning_mock_exam
 

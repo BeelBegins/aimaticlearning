@@ -15,4 +15,7 @@ A shared bench does not make this product related to SZL retail.
 
 SQE1 mock exams: working copy of the SRA specification (from 1 September 2026)
 and the January 2027 paper format lives in [docs/sqe1/](sqe1/README.md).
-Learner lobby: `/learning-mock-exam`. Staff coverage/gaps: `/learning-mock-report`.
+Learner lobby: `/learning-mock-exam`. Start URLs are `/lms/quiz/<quiz>?fromLesson=1`.
+Staff coverage/gaps: `/learning-mock-report`.
+`Learning Mock Exam` owns sittings; `sqe1-hard-mocks` is an unpublished ACL parent.
+`exam_surface` still hides that course from the student catalogue.

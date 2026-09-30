@@ -44,13 +44,71 @@ Operational diary (incidents, backups, content publishes) is
 `docs/lms-operational-log.md` in this repo — migrated 2026-09-30 from the
 shared bench file, which now only carries a routing pointer to this repo.
 
-**SQE1 hard mocks (2026-09-22):** Exam product `Learning Mock Exam` `sqe1-hard-mocks`
-holds three January 2027 sittings (12 timed 85-question sessions, 1020 unique
-reviewed 5-option items). Learners use `/learning-mock-exam`; Start enrols on
-the exam and opens `/lms/quiz/<quiz>?fromLesson=1`. LMS Course `sqe1-hard-mocks`
-is unpublished (`published = 0`, `disable_self_learning = 1`) and is only the
-ACL parent for `can_access_quiz`. Hidden from student catalogues via
-`exam_surface`. Coverage is staff-only on `/learning-mock-report`. Criminal
-Liability is a Criminal Litigation proxy. Backup
-`20260922_134154-lms_aimatic_tech-*`. Rollback: restore that backup and revert
-`aimaticlearning`. Expires when: the exam product or papers are rebuilt.
+**SQE1 hard mocks (2026-09-30):** Exam product `Learning Mock Exam` `sqe1-hard-mocks`
+holds four January 2027 sittings (16 timed 85-question sessions, 1360 unique
+reviewed 5-option items; Mock 4 added 2026-09-30 without touching Mocks 1–3).
+Learners use `/learning-mock-exam`; Start enrols on the exam and opens
+`/lms/quiz/<quiz>?fromLesson=1`. LMS Course `sqe1-hard-mocks` is unpublished
+(`published = 0`, `disable_self_learning = 1`) and is only the ACL parent for
+`can_access_quiz`. Hidden from student catalogues via `exam_surface`. Coverage
+is staff-only on `/learning-mock-report`, regenerated 2026-09-30 to include
+Mock 4 (`docs/sqe1/HARD-MOCKS-REPORT.md`, the public JSON, and the in-course
+notes lesson all cover Mocks 1–4 now, 1360 unique questions, no duplicates).
+
+**Post-submission feedback PDF (added 2026-09-30):** New module
+`aimaticlearning/lms_learning/mock_feedback.py` + whitelisted endpoints
+`api.get_mock_feedback`/`api.download_mock_feedback_pdf`. Released immediately
+per student after their own submission (their explicit choice over gating by
+cohort/retirement). Covers score/percentage/pass-fail, per-subject-area
+breakdown, strengths/weaknesses by `concept` tag, and the full answer key with
+explanations/source references — deliberately excludes timing/pace (no
+start/answer timestamp field exists anywhere in `LMS Quiz Submission`/`LMS
+Quiz Result`; would have to be invented). `LMS Quiz.show_answers` stays `0`
+(exam itself stays closed-book); this is a separate download action. Wired
+into `/learning-mock-exam` (`www/learning_mock_exam.html`) as a "Download
+feedback (PDF)" link per session once the learner has an attempt, sourced from
+`exam_product.student_lobby()`'s per-quiz latest-submission lookup. Permission-
+tested live (owner allowed, other learner denied, staff allowed) and PDF
+render verified against a real (partial) submission.
+
+**Lobby/exam-record drift (found and fixed 2026-09-30):** `/learning-mock-exam`
+reads `Learning Mock Exam.sessions`, a separate synced copy of the course
+outline — not live `Course Chapter` data. It was stale before this session's
+work: missing Mock 1's FLK1 sessions entirely (pre-existing, unrelated to the
+Mock 4 add) and, until `sync_from_hard_mock_course()` was re-run, missing Mock
+4 too. That function is idempotent and safe to re-run after any future
+sitting-count change — it does not auto-enrol anyone not already enrolled in
+the underlying course.
+
+**Known state despite "unpublished/staff-only" (verified 2026-09-30):** 6 real
+`LMS Quiz Submission` rows exist against Mocks 1–3, including two non-staff
+learner accounts, not just admin QA — the catalogue-hiding via `exam_surface`
+did not fully block access. Any future rebuild of this course must exclude
+already-live question names (see `apply_mock()`) rather than recomputing all
+sittings from scratch, or it will silently desync already-graded submissions
+from the questions they were scored against.
+
+**Criminal Law bank (verified 2026-09-30, supersedes the 2026-09-17/22 notes
+below):** A genuine `criminal-law` course now exists with 117 structurally
+valid (5-option, single-key) questions, added 2026-09-24/25 — the old "Criminal
+Law has no 5-option reviewed items" claim is stale. Of those, only 20 are
+human-reviewed (`ai_generated=0`); the other 97 went through the LLM
+`content_generation.py` pipeline and are correctly excluded per the
+ai_generated=1 eligibility rule pending academic review. `sqe1_hard_mocks.py`
+now sources Criminal Liability from the genuine `criminal-law` pool first,
+falling back to `criminal-litigation` as a proxy only where the reviewed bank
+runs short (still the case: combined reviewed criminal supply is 240 items,
+enough for 4 sittings' combined Criminal Liability + Criminal Law and Practice
+demand of 224, not a 5th sitting's 280). A 5th sitting needs roughly 40 more
+reviewed Criminal Law items — either fresh authoring or academic review
+promoting some of the 97 AI-drafted items — not a script change. Also note:
+DR/Legal Services/Legal System, previously reported "tight" for even 3
+sittings (75/80/80 eligible), have grown substantially since 09-17 (362/160/220
+eligible) and are no longer a blocker at 4 or 5 sittings.
+
+Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
+backup was taken for the Mock 4 build per "don't back up LMS unless asked").
+Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4
+linked `LMS Quiz`/`Course Lesson` records; Mocks 1–3 and their submissions are
+untouched by that rollback. Expires when: a 5th sitting is added, the criminal
+bank changes materially, or the staff coverage report is regenerated.

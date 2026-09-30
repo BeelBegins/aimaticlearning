@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:exam_key",
+ "creation": "2026-09-22 00:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "exam_key",
+  "acl_course",
+  "column_break_rules",
+  "duration_minutes",
+  "max_attempts",
+  "section_break_format",
+  "format_note",
+  "section_break_sessions",
+  "sessions"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "exam_key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Exam Key",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "acl_course",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "ACL Course",
+   "options": "LMS Course",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_rules",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "153",
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (minutes)",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "fieldname": "max_attempts",
+   "fieldtype": "Int",
+   "label": "Max Attempts",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_break_format",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "format_note",
+   "fieldtype": "Small Text",
+   "label": "Format"
+  },
+  {
+   "fieldname": "section_break_sessions",
+   "fieldtype": "Section Break",
+   "label": "Sittings"
+  },
+  {
+   "fieldname": "sessions",
+   "fieldtype": "Table",
+   "label": "Sessions",
+   "options": "Learning Mock Session"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-22 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Learning Mock Exam",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "LMS Content Reviewer",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Course Creator",
+   "share": 0
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Moderator",
+   "share": 0
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

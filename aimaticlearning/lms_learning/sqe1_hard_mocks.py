@@ -46,6 +46,7 @@ AREA_COURSES = {
 	"property": ("property-practice",),
 	"accounts": ("solicitors-accounts",),
 	"criminal_litigation": ("criminal-litigation",),
+	"criminal_law": ("criminal-law",),
 }
 
 # Per-mock counts. Session 1 and 2 each sum to 85. All values sit in Annex 4.
@@ -53,8 +54,19 @@ FLK1_COUNTS = (
 	{"blp": 33, "dr": 25, "legal_services": 27, "tort": 30, "contract": 28, "legal_system": 27},
 	{"blp": 33, "dr": 25, "legal_services": 27, "tort": 30, "contract": 28, "legal_system": 27},
 	{"blp": 34, "dr": 25, "legal_services": 26, "tort": 30, "contract": 29, "legal_system": 26},
+	{"blp": 32, "dr": 27, "legal_services": 26, "tort": 31, "contract": 27, "legal_system": 27},
 )
 FLK2_COUNTS = (
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
 	{
 		"wills": 21,
 		"accounts_wills": 8,
@@ -202,8 +214,20 @@ def _swap_in_flag(bucket: list[dict], unused: list[dict], used: set[str], key: s
 	used.add(candidate["name"])
 
 
-def allocate(pools: dict[str, list[dict]]) -> dict:
-	used: set[str] = set()
+def allocate(
+	pools: dict[str, list[dict]],
+	flk1_counts=None,
+	flk2_counts=None,
+	seed_used: set[str] | None = None,
+	mock_offset: int = 0,
+) -> dict:
+	"""Allocate paper(s). Pass flk1_counts/flk2_counts (subsets of the module
+	tuples) and seed_used (question names already live in other, untouched
+	mocks) to build only new sittings without touching already-built ones.
+	"""
+	flk1_counts = FLK1_COUNTS if flk1_counts is None else flk1_counts
+	flk2_counts = FLK2_COUNTS if flk2_counts is None else flk2_counts
+	used: set[str] = set(seed_used or ())
 
 	def take(src: str, counts: list[int]) -> list[list[dict]]:
 		available = [row for row in pools.get(src, []) if row["name"] not in used]
@@ -215,20 +239,20 @@ def allocate(pools: dict[str, list[dict]]) -> dict:
 				used.add(row["name"])
 		return buckets
 
-	blp = take("blp", [c["blp"] for c in FLK1_COUNTS])
-	dr = take("dr", [c["dr"] for c in FLK1_COUNTS])
-	ls = take("legal_services", [c["legal_services"] for c in FLK1_COUNTS])
-	tort = take("tort", [c["tort"] for c in FLK1_COUNTS])
-	contract = take("contract", [c["contract"] for c in FLK1_COUNTS])
-	legal_system = take("legal_system", [c["legal_system"] for c in FLK1_COUNTS])
-	for idx in range(3):
+	blp = take("blp", [c["blp"] for c in flk1_counts])
+	dr = take("dr", [c["dr"] for c in flk1_counts])
+	ls = take("legal_services", [c["legal_services"] for c in flk1_counts])
+	tort = take("tort", [c["tort"] for c in flk1_counts])
+	contract = take("contract", [c["contract"] for c in flk1_counts])
+	legal_system = take("legal_system", [c["legal_system"] for c in flk1_counts])
+	for idx in range(len(flk1_counts)):
 		_swap_in_flag(blp[idx], [r for r in pools["blp"] if r["name"] not in used], used, "tax")
 
-	wills = take("wills", [c["wills"] for c in FLK2_COUNTS])
-	trusts = take("trusts", [c["trusts"] for c in FLK2_COUNTS])
-	land = take("land", [c["land"] for c in FLK2_COUNTS])
-	property_ = take("property", [c["property"] for c in FLK2_COUNTS])
-	for idx in range(3):
+	wills = take("wills", [c["wills"] for c in flk2_counts])
+	trusts = take("trusts", [c["trusts"] for c in flk2_counts])
+	land = take("land", [c["land"] for c in flk2_counts])
+	property_ = take("property", [c["property"] for c in flk2_counts])
+	for idx in range(len(flk2_counts)):
 		_swap_in_flag(wills[idx], [r for r in pools["wills"] if r["name"] not in used], used, "tax")
 		_swap_in_flag(property_[idx], [r for r in pools["property"] if r["name"] not in used], used, "tax")
 
@@ -237,34 +261,35 @@ def allocate(pools: dict[str, list[dict]]) -> dict:
 	wills_acc = [row for row in accounts if classify_accounts(row) == "accounts_wills"]
 	generic_acc = [row for row in accounts if classify_accounts(row) == "accounts_generic"]
 	acc_property_pool = property_acc + generic_acc
-	taken_prop = take_striped(acc_property_pool, [c["accounts_property"] for c in FLK2_COUNTS])
+	taken_prop = take_striped(acc_property_pool, [c["accounts_property"] for c in flk2_counts])
 	prop_ids = {row["name"] for bucket in taken_prop for row in bucket}
 	for row_id in prop_ids:
 		used.add(row_id)
 	acc_wills_pool = [row for row in (wills_acc + generic_acc) if row["name"] not in used]
-	taken_wills_acc = take_striped(acc_wills_pool, [c["accounts_wills"] for c in FLK2_COUNTS])
+	taken_wills_acc = take_striped(acc_wills_pool, [c["accounts_wills"] for c in flk2_counts])
 	for bucket in taken_wills_acc:
 		for row in bucket:
 			used.add(row["name"])
 
-	crim = [row for row in pools.get("criminal_litigation", []) if row["name"] not in used]
-	# No 5-option Criminal Law bank. Split hardest Criminal Litigation across
-	# both criminal blueprint areas and flag the liability side as proxy.
-	crim_sorted = sorted(crim, key=hardness_key)
-	liability_pool = crim_sorted[0::2]
-	practice_pool = crim_sorted[1::2]
-	taken_cl = take_striped(liability_pool, [c["criminal_liability"] for c in FLK2_COUNTS])
+	crim_law = [row for row in pools.get("criminal_law", []) if row["name"] not in used]
+	crim_lit = [row for row in pools.get("criminal_litigation", []) if row["name"] not in used]
+	# Criminal Law now has a small reviewed bank (added 2026-09-24/25); it is
+	# substantively about liability, so it fills Criminal Liability first.
+	# Criminal Litigation remains the primary Criminal Law and Practice source
+	# and tops up Criminal Liability when the genuine bank runs short (proxy).
+	liability_pool = sorted(crim_law, key=hardness_key) + sorted(crim_lit, key=hardness_key)
+	taken_cl = take_striped(liability_pool, [c["criminal_liability"] for c in flk2_counts])
 	for bucket in taken_cl:
 		for row in bucket:
 			used.add(row["name"])
-	practice_pool = [row for row in practice_pool + liability_pool if row["name"] not in used]
-	taken_cp = take_striped(practice_pool, [c["criminal_practice"] for c in FLK2_COUNTS])
+	practice_pool = [row for row in crim_lit if row["name"] not in used]
+	taken_cp = take_striped(practice_pool, [c["criminal_practice"] for c in flk2_counts])
 
 	papers = []
-	for idx in range(3):
+	for idx in range(len(flk1_counts)):
 		papers.append(
 			{
-				"mock": idx + 1,
+				"mock": mock_offset + idx + 1,
 				"flk1": {
 					"blp": blp[idx],
 					"dr": dr[idx],
@@ -290,13 +315,36 @@ def allocate(pools: dict[str, list[dict]]) -> dict:
 
 def _gaps(pools: dict, papers: list) -> list[str]:
 	gaps = [
-		"Criminal Law has no 5-option reviewed items; FLK2 Criminal Liability is filled from Criminal Litigation as a proxy.",
 		"Eligible Hard tags are all 4-option or AI-generated; hardness is Hard-then-Medium plus longer application stems.",
 	]
+	crim_law_count = len(pools.get("criminal_law", []))
+	crim_lit_count = len(pools.get("criminal_litigation", []))
+	crim_need = sum(c["criminal_liability"] + c["criminal_practice"] for c in FLK2_COUNTS)
+	crim_have = crim_law_count + crim_lit_count
+	if crim_law_count:
+		gaps.append(
+			f"Criminal Law reviewed bank is small ({crim_law_count} eligible); Criminal Liability "
+			"is topped up from Criminal Litigation as a proxy where the genuine bank runs short."
+		)
+	else:
+		gaps.append(
+			"Criminal Law has no 5-option reviewed items; FLK2 Criminal Liability is filled from "
+			"Criminal Litigation as a proxy."
+		)
+	if crim_have < crim_need:
+		gaps.append(
+			f"Criminal pool short: {crim_have} eligible (Criminal Law {crim_law_count} + Criminal "
+			f"Litigation {crim_lit_count}) for {crim_need} needed across Criminal Liability and "
+			"Criminal Law and Practice combined."
+		)
 	for area, need in (
+		("blp", sum(c["blp"] for c in FLK1_COUNTS)),
 		("dr", sum(c["dr"] for c in FLK1_COUNTS)),
 		("legal_services", sum(c["legal_services"] for c in FLK1_COUNTS)),
 		("legal_system", sum(c["legal_system"] for c in FLK1_COUNTS)),
+		("wills", sum(c["wills"] for c in FLK2_COUNTS)),
+		("trusts", sum(c["trusts"] for c in FLK2_COUNTS)),
+		("land", sum(c["land"] for c in FLK2_COUNTS)),
 	):
 		have = len(pools.get(area, []))
 		if have < need + 10:
@@ -313,7 +361,7 @@ def session_rows(paper: dict, session: str) -> list[dict]:
 			item["session"] = session
 			item["mock"] = paper["mock"]
 			item.update(flag_text(row))
-			if area == "criminal_liability":
+			if area == "criminal_liability" and row.get("lms_course") != "criminal-law":
 				item["liability_proxy"] = True
 			out.append(item)
 	return out
@@ -569,53 +617,10 @@ def apply_student_exam_view() -> dict:
 
 
 def student_lobby(user: str | None = None) -> dict:
-	"""Enrolled-safe lobby: sittings and start URLs. No question IDs or keys."""
-	from aimaticlearning.lms_learning.utils import throw_access_denied, user_can_access_course
+	"""Exam lobby: sittings and quiz start URLs. No question IDs or keys."""
+	from aimaticlearning.lms_learning.exam_product import student_lobby as exam_lobby
 
-	user = user or frappe.session.user
-	if user == "Guest" or not user_can_access_course(COURSE_NAME, user):
-		throw_access_denied()
-	if not frappe.db.exists("LMS Course", COURSE_NAME):
-		frappe.throw("Hard mock course is not installed.")
-	course = frappe.get_doc("LMS Course", COURSE_NAME)
-	mocks = []
-	for chapter_idx, crow in enumerate(course.get("chapters") or [], start=1):
-		chapter = frappe.get_doc("Course Chapter", crow.chapter)
-		title = chapter.title or ""
-		if title == REPORT_CHAPTER_TITLE:
-			continue
-		sessions = []
-		for lesson_idx, lrow in enumerate(chapter.get("lessons") or [], start=1):
-			lesson = frappe.get_doc("Course Lesson", lrow.lesson)
-			if not (lesson.quiz_id or "").strip():
-				continue
-			attempts = frappe.db.count(
-				"LMS Quiz Submission",
-				{"quiz": lesson.quiz_id, "member": user},
-			)
-			sessions.append(
-				{
-					"title": lesson.title,
-					"duration": DURATION_MINUTES,
-					"questions": 85,
-					"attempts": int(attempts or 0),
-					"max_attempts": MAX_ATTEMPTS,
-					"start_url": sitting_url(chapter_idx, lesson_idx),
-				}
-			)
-		if sessions:
-			mocks.append({"title": title, "sessions": sessions})
-	return {
-		"title": COURSE_TITLE,
-		"format": (
-			"January 2027 sitting: 85 questions, 153 minutes, closed book, "
-			f"{MAX_ATTEMPTS} attempts per session."
-		),
-		"course": COURSE_NAME,
-		"lobby_url": LOBBY_URL,
-		"published": int(course.published or 0),
-		"mocks": mocks,
-	}
+	return exam_lobby(user)
 
 
 SESSION_TITLES = {
@@ -928,6 +933,69 @@ def apply() -> dict:
 	report["coverage_lesson"] = ensure_report_lesson()
 	frappe.db.commit()
 	return report
+
+
+def _live_used_question_names() -> set[str]:
+	rows = frappe.db.sql(
+		"""
+		SELECT qq.question
+		FROM `tabLMS Quiz Question` qq
+		INNER JOIN `tabLMS Quiz` q ON q.name = qq.parent
+		WHERE q.course = %s
+		""",
+		(COURSE_NAME,),
+		as_dict=True,
+	)
+	return {row.question for row in rows}
+
+
+def apply_mock(mock_number: int) -> dict:
+	"""Build exactly one new sitting without touching any mock already live in
+	the course (their quizzes keep whatever questions real submissions were
+	scored against). Refuses if that mock's chapter already exists.
+	"""
+	chapter_title = f"Mock {mock_number}"
+	if frappe.db.exists("Course Chapter", {"course": COURSE_NAME, "title": chapter_title}):
+		frappe.throw(f"{chapter_title} already exists in {COURSE_NAME}; refusing to overwrite it.")
+	if mock_number < 1 or mock_number > len(FLK1_COUNTS) or mock_number > len(FLK2_COUNTS):
+		frappe.throw(f"Mock {mock_number} has no configured counts in FLK1_COUNTS/FLK2_COUNTS.")
+
+	seed_used = _live_used_question_names()
+	allocation = allocate(
+		load_pools(),
+		flk1_counts=[FLK1_COUNTS[mock_number - 1]],
+		flk2_counts=[FLK2_COUNTS[mock_number - 1]],
+		seed_used=seed_used,
+		mock_offset=mock_number - 1,
+	)
+	paper = allocation["papers"][0]
+	course = _ensure_course()
+	chapter = _ensure_chapter(paper["mock"], chapter_title)
+	link_chapter_to_course(course, chapter)
+	created = []
+	for session, title in SESSION_TITLES.items():
+		quiz_title = f"Mock {paper['mock']} {title}"
+		names = [row["name"] for row in session_rows(paper, session)]
+		quiz_name = _ensure_quiz(quiz_title, names)
+		lesson = _ensure_quiz_lesson(chapter, quiz_title, quiz_name)
+		_ensure_quiz(quiz_title, names, lesson_name=lesson)
+		created.append(
+			{
+				"mock": paper["mock"],
+				"session": session,
+				"quiz": quiz_name,
+				"lesson": lesson,
+				"count": len(names),
+			}
+		)
+	overlap = {row["name"] for s in SESSION_TITLES for row in session_rows(paper, s)} & seed_used
+	frappe.db.commit()
+	return {
+		"mock": paper["mock"],
+		"created": created,
+		"gaps": allocation["gaps"],
+		"overlap_with_existing": sorted(overlap),
+	}
 
 
 def _write_report(report: dict, allocation: dict) -> None:

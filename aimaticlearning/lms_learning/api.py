@@ -75,10 +75,53 @@ def get_hard_mock_report():
 
 @frappe.whitelist()
 def get_hard_mock_lobby():
-	"""Enrolled learner lobby for the hard mock sittings. No question keys."""
-	from aimaticlearning.lms_learning.sqe1_hard_mocks import student_lobby
+	"""Learner lobby for hard mock sittings. No question keys."""
+	from aimaticlearning.lms_learning.exam_product import student_lobby
 
 	return student_lobby()
+
+
+@frappe.whitelist()
+def enrol_on_mock_exam(exam: str | None = None):
+	"""Enrol the session user on the mock exam and the hidden ACL course."""
+	from aimaticlearning.lms_learning.exam_product import enrol_member_on_exam
+
+	user = frappe.session.user
+	if user == "Guest":
+		throw_access_denied()
+	return enrol_member_on_exam(user, exam)
+
+
+@frappe.whitelist()
+def get_mock_feedback(submission: str):
+	"""Score, per-area breakdown, and answer key for one quiz submission.
+	Permission-checked inside: the submission's own member, or staff."""
+	from aimaticlearning.lms_learning.mock_feedback import build_submission_report
+
+	if frappe.session.user == "Guest":
+		throw_access_denied()
+	return build_submission_report(submission)
+
+
+@frappe.whitelist()
+def download_mock_feedback_pdf(submission: str):
+	"""Downloadable answer-key/feedback PDF for one quiz submission.
+	Permission-checked inside: the submission's own member, or staff."""
+	from aimaticlearning.lms_learning.mock_feedback import download_mock_feedback_pdf as _download
+
+	if frappe.session.user == "Guest":
+		throw_access_denied()
+	_download(submission)
+
+
+@frappe.whitelist()
+def get_student_dashboard():
+	user = frappe.session.user
+	if user == "Guest":
+		throw_access_denied()
+	from aimaticlearning.lms_learning.student_dashboard import build_student_dashboard
+
+	return build_student_dashboard(user)
 
 
 @frappe.whitelist()
@@ -131,11 +174,30 @@ def record_attempt_detail(
 
 @frappe.whitelist()
 def get_flashcard_deck(
-	learning_module: str,
+	learning_module: str | None = None,
 	course_chapter: str | None = None,
 	limit: int = 25,
 	rating_filter: str | None = None,
+	chapter_profile: str | None = None,
 ):
+	if chapter_profile:
+		profile = frappe.db.get_value(
+			"Learning Chapter Profile",
+			chapter_profile,
+			["learning_module", "course_chapter"],
+			as_dict=True,
+		)
+		if not profile:
+			frappe.throw("Flashcard chapter profile was not found.")
+		if learning_module and learning_module != profile.learning_module:
+			frappe.throw("Flashcard chapter does not match the requested module.")
+		if course_chapter and course_chapter != profile.course_chapter:
+			frappe.throw("Flashcard chapter does not match the requested course chapter.")
+		learning_module = profile.learning_module
+		course_chapter = profile.course_chapter
+	if not learning_module:
+		frappe.throw("A learning module or chapter profile is required.")
+
 	user = frappe.session.user
 	course = frappe.db.get_value("Learning Module Config", learning_module, "lms_course")
 	if not course or not user_can_access_course(course, user):

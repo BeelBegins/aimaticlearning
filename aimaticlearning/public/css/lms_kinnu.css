@@ -69,7 +69,7 @@ body.aimatic-lms-learner .aimatic-lms-chapter-rail a:hover {
 	color: var(--aimatic-ink) !important;
 }
 
-body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class*="bg-surface-gray-2"] {
+body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class~="bg-surface-gray-2"] {
 	background: #efe7dc !important;
 	color: var(--aimatic-ink) !important;
 	box-shadow: inset 3px 0 0 var(--aimatic-salmon) !important;

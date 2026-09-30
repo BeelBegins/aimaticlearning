@@ -38,6 +38,11 @@ body.aimatic-lms-learner .examic-flash-intro,
 	box-shadow: none;
 }
 
+body.aimatic-lms-learner .examic-flash-intro[hidden],
+.examic-flash-intro[hidden] {
+	display: none;
+}
+
 body.aimatic-lms-learner .aimatic-lms-lesson-main .examic-flash-intro h3,
 body.aimatic-lms-learner .examic-flash-intro h3,
 .examic-flash-intro h3 {

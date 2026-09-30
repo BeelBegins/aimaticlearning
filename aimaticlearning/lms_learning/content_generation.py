@@ -121,6 +121,7 @@ def import_flashcard_drafts(learning_module: str, payload: dict | list) -> dict:
 				"back": back,
 				"difficulty": item.get("difficulty") or "Medium",
 				"source_reference": source_reference,
+				"source_quote": source_quote,
 				"revision": item.get("revision") or 1,
 				"ai_generated": 1 if item.get("ai_generated") else 0,
 				"status": item.get("status") or "Under Review",
@@ -273,6 +274,17 @@ def _upsert_lms_question(item: dict) -> str:
 			fields[f"is_correct_{idx}"] = 1 if item["options"][idx - 1].get("is_correct") else 0
 			if item["options"][idx - 1].get("explanation"):
 				fields[f"explanation_{idx}"] = item["options"][idx - 1]["explanation"]
+
+	_explanation_values = [
+		(fields.get(f"explanation_{idx}") or "").strip()
+		for idx in range(1, 5)
+		if (fields.get(f"option_{idx}") or "").strip()
+		and (fields.get(f"explanation_{idx}") or "").strip()
+	]
+	if len(_explanation_values) > 1 and len(set(_explanation_values)) == 1:
+		for idx in range(1, 5):
+			if not fields.get(f"is_correct_{idx}"):
+				fields[f"explanation_{idx}"] = ""
 
 	if existing:
 		doc = frappe.get_doc("LMS Question", existing)

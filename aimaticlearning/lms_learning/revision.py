@@ -4,7 +4,7 @@ from collections import Counter
 
 import frappe
 
-from aimaticlearning.lms_learning.analytics import build_learning_map
+from aimaticlearning.lms_learning.analytics import _mastery_group, build_learning_map
 from aimaticlearning.lms_learning.utils import user_can_access_course
 
 VALID_RATINGS = ("hard", "good", "easy")
@@ -285,11 +285,15 @@ def build_revision_board(
 	mastered = 0
 	for stats in learning_map.get("chapter_stats") or []:
 		course_chapter = stats.get("course_chapter")
-		group = _group(stats.get("mastery_pct") or 0, stats.get("attempts") or 0)
+		# Prefer analytics group (MCQ coverage + marks); fall back for older maps.
+		group = stats.get("group") or _mastery_group(
+			stats.get("mastery_pct") or 0,
+			stats.get("attempts") or 0,
+			covered=bool(stats.get("mcq_covered")),
+		)
 		hard_cards = int(hard_by_chapter.get(course_chapter) or 0)
 		incorrect_mcqs = int(incorrect_by_chapter.get(course_chapter) or 0)
-		# Strong (e.g. 100% mastery) chapters with nothing left to restudy stay off the
-		# revision list — they are clutter once the learner has already mastered them.
+		# Strong chapters with nothing left to restudy stay off the revision list.
 		if not include_chapter_on_revision_board(group, hard_cards=hard_cards, incorrect_mcqs=incorrect_mcqs):
 			mastered += 1
 			continue
@@ -300,6 +304,7 @@ def build_revision_board(
 				"mastery_pct": stats.get("mastery_pct") or 0,
 				"attempts": stats.get("attempts") or 0,
 				"group": group,
+				"mcq_covered": bool(stats.get("mcq_covered")),
 				"hard_cards": hard_cards,
 				"incorrect_mcqs": incorrect_mcqs,
 				"notes_url": _lesson_url(selected["lms_course"], course_chapter),
@@ -376,12 +381,26 @@ def accessible_modules(user: str) -> list[dict]:
 		modules.append(
 			{
 				"name": row.name,
-				"title": row.title,
+				"title": _learner_module_title(row.title, row.lms_course),
 				"lms_course": row.lms_course,
 				"published_flashcards": published,
 			}
 		)
 	return modules
+
+
+def _learner_module_title(module_title: str | None, lms_course: str | None) -> str:
+	"""Learner-facing label: prefer published course title; drop leftover draft suffixes."""
+	course_title = ""
+	if lms_course:
+		course_title = (frappe.db.get_value("LMS Course", lms_course, "title") or "").strip()
+	if course_title:
+		return course_title
+	title = (module_title or "").strip() or "Course"
+	for suffix in (" review draft", " Review Draft", " (review draft)"):
+		if title.endswith(suffix):
+			return title[: -len(suffix)].strip() or title
+	return title
 
 
 def _select_module(modules: list[dict], course: str | None, learning_module: str | None) -> dict | None:
@@ -460,16 +479,6 @@ def _empty_flashcard_counts() -> dict:
 
 def _empty_mcq_counts() -> dict:
 	return {"attempted": 0, "correct": 0, "incorrect": 0, "quizzes": 0}
-
-
-def _group(mastery_pct: float, attempts: int) -> str:
-	if not attempts:
-		return "not_started"
-	if mastery_pct >= 75:
-		return "strong"
-	if mastery_pct >= 50:
-		return "developing"
-	return "needs_work"
 
 
 def _normalise_rating(rating: str | None) -> str | None:

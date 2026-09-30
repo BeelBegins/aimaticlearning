@@ -223,6 +223,10 @@ def send_course_enrollment_email(doc: frappe.Document, method: str | None = None
 
 	member = doc.member
 	course = doc.course
+	from aimaticlearning.lms_learning.exam_surface import is_exam_course
+
+	if is_exam_course(course):
+		return
 	user = frappe.db.get_value("User", member, ["full_name", "email"], as_dict=True)
 	course_title = frappe.db.get_value("LMS Course", course, "title") or course
 	if not user or not user.email:
@@ -287,7 +291,20 @@ def ensure_lms_student_user(
 	return user
 
 
-def enroll_member_in_course(member: str, course: str, skip_email: bool = False) -> str:
+def enroll_member_in_course(
+	member: str,
+	course: str,
+	skip_email: bool = False,
+	*,
+	bypass_self_learning_gate: bool = False,
+) -> str:
+	"""Create LMS Enrollment for member.
+
+	bypass_self_learning_gate: for product-gated enrolment (mock exams) onto an ACL
+	course that stays catalogue-hidden with disable_self_learning=1. LMS core blocks
+	non-admin self-enrol when that flag is set; we insert under Administrator for
+	that insert only, then restore the session user. Do not use for normal courses.
+	"""
 	if frappe.db.exists("LMS Enrollment", {"member": member, "course": course}):
 		return frappe.db.get_value("LMS Enrollment", {"member": member, "course": course}, "name")
 
@@ -300,7 +317,20 @@ def enroll_member_in_course(member: str, course: str, skip_email: bool = False) 
 	)
 	if skip_email:
 		doc.flags.skip_lms_enrollment_email = True
-	doc.insert(ignore_permissions=True)
+
+	previous_user = frappe.session.user
+	escalate = False
+	if bypass_self_learning_gate:
+		escalate = bool(
+			frappe.db.get_value("LMS Course", course, "disable_self_learning")
+		) and previous_user not in (None, "Guest", "Administrator")
+	try:
+		if escalate:
+			frappe.set_user("Administrator")
+		doc.insert(ignore_permissions=True)
+	finally:
+		if escalate and frappe.session.user != previous_user:
+			frappe.set_user(previous_user)
 	return doc.name
 
 

@@ -1,0 +1,13 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block page_content %}
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20260925-dash4">
+<div id="aimatic-student-dashboard" class="aimatic-student-dash">
+	<div class="dash-loading">Loading your dashboard…</div>
+</div>
+<script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20260925-dash4"></script>
+{% endblock %}

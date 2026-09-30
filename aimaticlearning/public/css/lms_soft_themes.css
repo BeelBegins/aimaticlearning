@@ -1,95 +1,354 @@
-/* Soft, light-only learner palettes. Native Frappe dark mode is not mixed with lesson paper. */
-html[data-examic-soft-theme] { color-scheme: light; }
-
-html[data-examic-soft-theme] body[data-path="login"] {
-	background: #f6f7f8;
-	color: #26313d;
+/* Examic Study theme layer. Keep the learner portal on Frappe's semantic
+ * palette instead of maintaining separate sage/sky/lilac colour systems. */
+html[data-examic-theme] {
+	color-scheme: light;
+	--examic-theme-ink: var(--ink-gray-9, #171717);
+	--examic-theme-muted: var(--ink-gray-7, #5b656e);
+	--examic-theme-surface: var(--surface-white, #fff);
+	--examic-theme-subtle: var(--surface-gray-2, #f4f5f6);
+	--examic-theme-subtle-strong: var(--surface-gray-3, #e9ebed);
+	--examic-theme-line: var(--outline-gray-2, #e2e6eb);
+	--examic-theme-primary: var(--ink-gray-9, #171717);
+	--examic-theme-primary-hover: var(--ink-gray-8, #2c3338);
+	--examic-theme-card-end: var(--ink-gray-8, #2c3338);
+	--examic-theme-secondary: var(--ink-gray-7, #5b656e);
+	--examic-theme-danger: var(--red-500, #e24c4b);
+	--examic-theme-danger-soft: var(--surface-red-2, #fff5f5);
+	--examic-theme-shadow: 0 14px 40px var(--black-overlay-100, rgba(0, 0, 0, 0.08));
+	/* Keep Frappe's numbered utility colours inside this theme contract. */
+	--ink-amber-5: var(--examic-theme-primary);
+	--ink-amber-6: var(--examic-theme-primary);
+	--ink-green-1: var(--examic-theme-primary);
+	--ink-green-2: var(--examic-theme-primary);
+	--ink-green-3: var(--examic-theme-primary);
 }
 
-html[data-examic-soft-theme] body[data-path="login"] .page-card {
-	border: 1px solid #dfe4e8;
-	border-radius: 16px;
-	background: #fff;
-	box-shadow: 0 12px 30px rgba(38, 49, 61, 0.08);
+/* The Blue palette is injected from the theme registry in lms_soft_themes.js.
+ * The declarations above remain the safe no-JavaScript fallback. */
+
+/* The public SQE page shares the same saved choice as the learner portal. */
+html[data-examic-theme] .sqe-site {
+	--ex-navy: var(--examic-theme-primary);
+	--ex-navy-2: var(--examic-theme-primary-hover);
+	--ex-gold: var(--examic-theme-secondary);
+	--ex-gold-dark: var(--examic-theme-secondary);
+	--ex-cream: var(--examic-theme-surface);
+	--ex-mist: var(--examic-theme-subtle);
+	--ex-ink: var(--examic-theme-ink);
+	--ex-muted: var(--examic-theme-muted);
+	--ex-line: var(--examic-theme-line);
+	background: var(--examic-theme-surface) !important;
+	color: var(--examic-theme-ink) !important;
 }
 
-html[data-examic-soft-theme] body[data-path="login"] .page-card-head,
-html[data-examic-soft-theme] body[data-path="login"] .page-card-body,
-html[data-examic-soft-theme] body[data-path="login"] .sign-up-message {
-	color: #26313d;
+html[data-examic-theme] .sqe-site .sqe-btn-primary,
+html[data-examic-theme] .sqe-site .sqe-cta-panel {
+	background: var(--examic-theme-primary) !important;
+	border-color: var(--examic-theme-primary) !important;
+	color: #fff !important;
 }
 
-html[data-examic-soft-theme] body[data-path="login"] .form-control {
-	min-height: 44px;
-	border-color: #d4dce1;
-	border-radius: 8px;
-	background: #fff;
-	color: #26313d;
+html[data-examic-theme] .sqe-site .sqe-btn-primary:hover {
+	background: var(--examic-theme-primary-hover) !important;
+	border-color: var(--examic-theme-primary-hover) !important;
 }
 
-html[data-examic-soft-theme] body[data-path="login"] .btn-login,
-html[data-examic-soft-theme] body[data-path="login"] .btn-signup {
-	min-height: 48px;
-	border-radius: 10px;
+html[data-examic-theme="blue"] .sqe-site .sqe-hero h1 em,
+html[data-examic-theme="blue"] .sqe-site .sqe-eyebrow-light {
+	color: var(--examic-theme-danger) !important;
 }
 
-/* Default: Soft Sage. */
-html[data-examic-soft-theme="sage"] body.aimatic-lms-learner {
-	--aimatic-ink: #26342f;
-	--aimatic-ink-soft: #68766f;
-	--aimatic-teal: #5f9585;
-	--aimatic-teal-dark: #416d60;
-	--aimatic-mint: #eaf3ed;
-	--aimatic-mint-deep: #d6e8dc;
-	--aimatic-cream: #f8fbf8;
-	--aimatic-surface: #f4f8f5;
-	--aimatic-line: rgba(38, 52, 47, 0.12);
-	--aimatic-salmon: #c8908b;
-	--aimatic-green: #8bb38e;
+/* Apply one token contract to every learner page, including pages whose
+ * component CSS was authored before the theme picker existed. */
+html[data-examic-theme] body.aimatic-lms-learner,
+html[data-examic-theme] body.aimatic-flashcards-page {
+	--aimatic-ink: var(--examic-theme-ink);
+	--aimatic-ink-soft: var(--examic-theme-muted);
+	--aimatic-teal: var(--examic-theme-primary);
+	--aimatic-teal-dark: var(--examic-theme-primary-hover);
+	--aimatic-mint: var(--examic-theme-subtle);
+	--aimatic-mint-deep: var(--examic-theme-subtle-strong);
+	--aimatic-cream: var(--examic-theme-surface);
+	--aimatic-surface: var(--examic-theme-subtle);
+	--aimatic-line: var(--examic-theme-line);
+	--aimatic-shadow: var(--examic-theme-shadow);
+	--aimatic-salmon: var(--examic-theme-danger);
+	--aimatic-green: var(--examic-theme-secondary);
+	--primary: var(--examic-theme-primary);
+	--text-color: var(--examic-theme-ink);
+	--text-muted: var(--examic-theme-muted);
+	--bg-color: var(--examic-theme-surface);
+	--fg-color: var(--examic-theme-surface);
+	--border-color: var(--examic-theme-line);
+	background: var(--examic-theme-subtle) !important;
+	background-image: none !important;
+	color: var(--examic-theme-ink);
 }
 
-/* Option 2: Soft Sky. */
-html[data-examic-soft-theme="sky"] body.aimatic-lms-learner {
-	--aimatic-ink: #263847;
-	--aimatic-ink-soft: #687985;
-	--aimatic-teal: #6f9caf;
-	--aimatic-teal-dark: #4e7385;
-	--aimatic-mint: #e8f3f7;
-	--aimatic-mint-deep: #d3e7ee;
-	--aimatic-cream: #f8fbfc;
-	--aimatic-surface: #f4f8fa;
-	--aimatic-line: rgba(38, 56, 71, 0.12);
-	--aimatic-salmon: #c99b92;
-	--aimatic-green: #87ad9d;
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main > div,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main > div > div:first-child,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-prompts button,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-form textarea {
+	background: var(--examic-theme-surface) !important;
+	color: var(--examic-theme-ink) !important;
 }
 
-/* Option 3: Soft Lilac. */
-html[data-examic-soft-theme="lilac"] body.aimatic-lms-learner {
-	--aimatic-ink: #3d3650;
-	--aimatic-ink-soft: #746d83;
-	--aimatic-teal: #8a7bae;
-	--aimatic-teal-dark: #665886;
-	--aimatic-mint: #f0edf8;
-	--aimatic-mint-deep: #dfd8ef;
-	--aimatic-cream: #fbfaff;
-	--aimatic-surface: #f7f5fb;
-	--aimatic-line: rgba(61, 54, 80, 0.12);
-	--aimatic-salmon: #c89ba6;
-	--aimatic-green: #9ba88d;
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail [class~="bg-surface-gray-1"],
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-ai-context,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-message-assistant,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-flk1-switcher,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-revision-entry {
+	background: var(--examic-theme-subtle) !important;
+	border-color: var(--examic-theme-line) !important;
 }
 
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main > div,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main > div > div:first-child {
-	color: var(--aimatic-ink) !important;
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class~="bg-surface-gray-2"],
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-flk1-switcher a[aria-current="page"] {
+	background: var(--examic-theme-subtle-strong) !important;
+	color: var(--examic-theme-ink) !important;
 }
 
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror p,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror li,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror div,
-html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main [class*="text-ink-gray-"] {
-	color: var(--aimatic-ink) !important;
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail a[class~="bg-surface-gray-2"] {
+	box-shadow: inset 3px 0 0 var(--examic-theme-primary) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail button:hover,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail a:hover,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-prompts button:hover,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-prompts button:focus-visible {
+	background: var(--examic-theme-subtle-strong) !important;
+	color: var(--examic-theme-ink) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-study-buddy-message-user,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-topic-action,
+html[data-examic-theme] body.aimatic-lms-learner .ach-btn-primary,
+html[data-examic-theme] body.aimatic-lms-learner .examic-session-primary {
+	background: var(--examic-theme-primary) !important;
+	border-color: var(--examic-theme-primary) !important;
+	color: #fff !important;
+}
+
+/* Keep the learning-path header and its outline on the same card grid as the
+ * course link above; the old full-width header made the rail look square and
+ * visually disconnected. */
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail > div > [class~="bg-surface-gray-1"] {
+	margin: 0 12px 8px !important;
+	border: 1px solid var(--examic-theme-line) !important;
+	border-radius: 12px !important;
+	background: var(--examic-theme-subtle) !important;
+	background-image: none !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-lms-chapter-rail > div > ul {
+	padding-right: 12px !important;
+	padding-left: 12px !important;
+}
+
+/* The pathway shell is authored in the student-experience stylesheet; reset
+ * its old ivory/green treatment to the active Frappe palette. */
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-sqe-pathway {
+	background: var(--examic-theme-surface) !important;
+	border-color: var(--examic-theme-line) !important;
+	color: var(--examic-theme-ink) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-sqe-pathway-tab {
+	background: var(--examic-theme-surface) !important;
+	border-color: var(--examic-theme-line) !important;
+	color: var(--examic-theme-primary) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-sqe-pathway-tab[aria-selected="true"] {
+	background: var(--examic-theme-primary) !important;
+	border-color: var(--examic-theme-primary) !important;
+	color: #fff !important;
+}
+
+/* Frappe LMS course cards generate a gradient from each course's
+ * card_gradient value. Replace that per-course colour with the selected site
+ * palette so the course grid cannot reintroduce a third visual system. */
+html[data-examic-theme] [style*="linear-gradient(to top right"] {
+	background-image: linear-gradient(to top right, var(--examic-theme-primary), var(--examic-theme-card-end)) !important;
+}
+
+html[data-examic-theme] .bg-surface-green-1,
+html[data-examic-theme] .bg-surface-green-2,
+html[data-examic-theme] .bg-surface-green-3,
+html[data-examic-theme] .bg-surface-amber-1,
+html[data-examic-theme] .bg-surface-amber-2 {
+	background-color: var(--examic-theme-subtle) !important;
+}
+
+html[data-examic-theme] .text-ink-green-1,
+html[data-examic-theme] .text-ink-green-2,
+html[data-examic-theme] .text-ink-green-3,
+html[data-examic-theme] .text-ink-amber-5,
+html[data-examic-theme] .text-ink-amber-6 {
+	color: var(--examic-theme-primary) !important;
+}
+
+/* Frappe UI uses numbered utility classes; cover every numbered status shade
+ * so an app badge cannot reintroduce green/amber as a third site theme. */
+html[data-examic-theme] [class*="bg-surface-green-"],
+html[data-examic-theme] [class*="bg-surface-amber-"] {
+	background-color: var(--examic-theme-subtle) !important;
+}
+
+html[data-examic-theme] [class*="text-ink-green-"],
+html[data-examic-theme] [class*="text-ink-amber-"] {
+	color: var(--examic-theme-primary) !important;
+}
+
+html[data-examic-theme] [class*="text-ink-amber-"] svg,
+html[data-examic-theme] svg[class*="text-ink-amber-"] {
+	color: var(--examic-theme-primary) !important;
+	stroke: currentColor !important;
+}
+
+html[data-examic-theme] [class*="fill-yellow-"] {
+	fill: var(--examic-theme-primary) !important;
+}
+
+html[data-examic-theme] body #app button > svg[viewBox="0 0 80 79"] path:first-child {
+	fill: var(--examic-theme-primary) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-topic-action-mcq,
+html[data-examic-theme] body.aimatic-lms-learner .ach-rate-hard {
+	background: var(--examic-theme-danger) !important;
+	border-color: var(--examic-theme-danger) !important;
+	color: #fff !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-topic-action-flash,
+html[data-examic-theme] body.aimatic-lms-learner .ach-rate-easy,
+html[data-examic-theme] body.aimatic-lms-learner .ach-rate-good {
+	background: var(--examic-theme-primary) !important;
+	border-color: var(--examic-theme-primary) !important;
+	color: #fff !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub {
+	color: var(--examic-theme-ink);
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-tab,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-btn-ghost,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-notes-banner {
+	border-color: var(--examic-theme-line) !important;
+	background: var(--examic-theme-subtle) !important;
+	color: var(--examic-theme-ink) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-tab.is-active,
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-btn-primary {
+	border-color: var(--examic-theme-primary) !important;
+	background: var(--examic-theme-primary) !important;
+	color: #fff !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-card {
+	background: linear-gradient(145deg, var(--examic-theme-primary-hover), var(--examic-theme-ink)) !important;
+	color: #fff !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-card.is-back {
+	background: linear-gradient(145deg, var(--examic-theme-primary), var(--examic-theme-primary-hover)) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .examic-quiz-start,
+html[data-examic-theme] body.aimatic-lms-learner .examic-flash-intro {
+	border-color: var(--examic-theme-line) !important;
+	background: var(--examic-theme-surface) !important;
+	box-shadow: var(--examic-theme-shadow) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .examic-quiz-toolbar,
+html[data-examic-theme] body.aimatic-lms-learner .examic-flash-toolbar,
+html[data-examic-theme] body.aimatic-lms-learner .examic-flash-results span {
+	border-color: var(--examic-theme-line) !important;
+	background: var(--examic-theme-subtle) !important;
+	color: var(--examic-theme-muted) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .examic-flash-intro h3,
+html[data-examic-theme] body.aimatic-lms-learner .examic-flash-results strong {
+	color: var(--examic-theme-ink) !important;
+}
+
+html[data-examic-theme] body.aimatic-lms-learner .examic-session-link,
+html[data-examic-theme] body.aimatic-lms-learner .examic-result-guidance,
+html[data-examic-theme] body.aimatic-lms-learner .examic-quiz-session-controls p {
+	color: var(--examic-theme-muted) !important;
+}
+
+/* Inline page templates use their own semantic aliases; point those aliases
+ * back at the same Frappe tokens so flashcards, revision and notes cannot
+ * drift into separate palettes. */
+html[data-examic-theme] .aimatic-flashcards,
+html[data-examic-theme] .aimatic-revision,
+html[data-examic-theme] .aimatic-student-dash,
+html[data-examic-theme] .aimatic-learning-notes,
+html[data-examic-theme] .aimatic-chapter-hub {
+	--fc-ink: var(--examic-theme-ink);
+	--fc-muted: var(--examic-theme-muted);
+	--fc-accent: var(--examic-theme-primary);
+	--fc-surface: var(--examic-theme-surface);
+	--fc-card: var(--examic-theme-surface);
+	--fc-warm: var(--examic-theme-subtle);
+	--fc-line: var(--examic-theme-line);
+	--rev-ink: var(--examic-theme-ink);
+	--rev-muted: var(--examic-theme-muted);
+	--rev-accent: var(--examic-theme-primary);
+	--rev-surface: var(--examic-theme-surface);
+	--rev-card: var(--examic-theme-surface);
+	--rev-warm: var(--examic-theme-subtle);
+	--rev-line: var(--examic-theme-line);
+	--rev-hard-bg: var(--examic-theme-danger-soft);
+	--rev-good-bg: var(--examic-theme-subtle);
+	--rev-easy-bg: var(--examic-theme-subtle-strong);
+	--rev-unrated-bg: var(--examic-theme-subtle);
+	--dash-ink: var(--examic-theme-ink);
+	--dash-muted: var(--examic-theme-muted);
+	--dash-accent: var(--examic-theme-primary);
+	--dash-accent-2: var(--examic-theme-primary-hover);
+	--dash-surface: var(--examic-theme-surface);
+	--dash-subtle: var(--examic-theme-subtle);
+	--dash-line: var(--examic-theme-line);
+	--dash-shadow: var(--examic-theme-shadow);
+	--dash-danger: var(--examic-theme-danger);
+	--dash-danger-soft: var(--examic-theme-danger-soft);
+	--ach-ink: var(--examic-theme-ink);
+	--ach-ink-soft: var(--examic-theme-muted);
+	--ach-teal: var(--examic-theme-primary);
+	--ach-teal-soft: var(--examic-theme-secondary);
+	--ach-mint: var(--examic-theme-subtle);
+	--ach-mint-deep: var(--examic-theme-subtle-strong);
+	--ach-surface: var(--examic-theme-subtle);
+	--ach-card: var(--examic-theme-surface);
+	--ach-warm: var(--examic-theme-subtle);
+	--ach-border: var(--examic-theme-line);
+	--ach-shadow: var(--examic-theme-shadow);
+}
+
+html[data-examic-theme] body[data-path="login"] {
+	background: var(--examic-theme-subtle);
+	color: var(--examic-theme-ink);
+}
+
+html[data-examic-theme] body[data-path="login"] .page-card,
+html[data-examic-theme] body[data-path="login"] .examic-auth-card {
+	border-color: var(--examic-theme-line);
+	background: var(--examic-theme-surface);
+	box-shadow: var(--examic-theme-shadow);
+}
+
+html[data-examic-theme] body[data-path="login"] .form-control {
+	border-color: var(--examic-theme-line) !important;
+	background: var(--examic-theme-surface) !important;
+	color: var(--examic-theme-ink);
 }
 
 .aimatic-theme-picker {
@@ -97,7 +356,7 @@ html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main [
 	align-items: center;
 	gap: 7px;
 	margin: 10px 12px 0;
-	color: var(--aimatic-ink-soft);
+	color: var(--examic-theme-muted);
 	font-size: 0.7rem;
 }
 
@@ -105,10 +364,10 @@ html[data-examic-soft-theme] body.aimatic-lms-learner .aimatic-lms-lesson-main [
 	min-height: 32px;
 	min-width: 0;
 	flex: 1;
-	border: 1px solid var(--aimatic-line);
+	border: 1px solid var(--examic-theme-line);
 	border-radius: 7px;
-	background: rgba(255, 255, 255, 0.72);
-	color: var(--aimatic-ink);
+	background: var(--examic-theme-surface);
+	color: var(--examic-theme-ink);
 	font: inherit;
 }
 

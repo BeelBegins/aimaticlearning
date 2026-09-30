@@ -1,14 +1,11 @@
 # SQE1 hard mocks — selection report
 
-Generated 2026-09-17 09:02:17.525519. Course `sqe1-hard-mocks` unpublished.
+Generated 2026-09-30 12:14:39.635596. Course `sqe1-hard-mocks` unpublished.
 
 ## Gaps
 
-- Criminal Law has no 5-option reviewed items; FLK2 Criminal Liability is filled from Criminal Litigation as a proxy.
 - Eligible Hard tags are all 4-option or AI-generated; hardness is Hard-then-Medium plus longer application stems.
-- dr pool is tight: 75 eligible for 75 selected.
-- legal_services pool is tight: 80 eligible for 80 selected.
-- legal_system pool is tight: 80 eligible for 80 selected.
+- Criminal Law reviewed bank is small (20 eligible); Criminal Liability is topped up from Criminal Litigation as a proxy where the genuine bank runs short.
 
 ## Papers
 
@@ -30,4 +27,10 @@ Generated 2026-09-17 09:02:17.525519. Course `sqe1-hard-mocks` unpublished.
 - `flk2_s1`: 85 items; areas {'wills': 21, 'accounts_wills': 8, 'trusts': 28, 'land': 28}; difficulty {'Medium': 85}; ethics/AML 0; tax 12; Wales 0
 - `flk2_s2`: 85 items; areas {'property': 21, 'accounts_property': 8, 'criminal_liability': 28, 'criminal_practice': 28}; difficulty {'Medium': 85}; ethics/AML 5; tax 5; Wales 0
 
-Unique questions: 1020. Duplicate: False.
+### Mock 4
+- `flk1_s1`: 85 items; areas {'blp': 32, 'dr': 27, 'legal_services': 26}; difficulty {'Medium': 85}; ethics/AML 12; tax 3; Wales 3
+- `flk1_s2`: 85 items; areas {'tort': 31, 'contract': 27, 'legal_system': 27}; difficulty {'Medium': 85}; ethics/AML 0; tax 0; Wales 7
+- `flk2_s1`: 85 items; areas {'wills': 21, 'accounts_wills': 8, 'trusts': 28, 'land': 28}; difficulty {'Medium': 85}; ethics/AML 0; tax 6; Wales 0
+- `flk2_s2`: 85 items; areas {'property': 21, 'accounts_property': 8, 'criminal_liability': 28, 'criminal_practice': 28}; difficulty {'Medium': 84, 'Hard': 1}; ethics/AML 3; tax 7; Wales 1
+
+Unique questions: 1360. Duplicate: False.

@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "creation": "2026-09-22 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sitting_index",
+  "sitting_title",
+  "session_index",
+  "session_title",
+  "lms_quiz",
+  "duration_minutes",
+  "question_count"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "sitting_index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sitting",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "sitting_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sitting Title",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "session_index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Session",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "session_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Session Title",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "lms_quiz",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "LMS Quiz",
+   "options": "LMS Quiz",
+   "reqd": 1
+  },
+  {
+   "default": "153",
+   "fieldname": "duration_minutes",
+   "fieldtype": "Int",
+   "label": "Duration (minutes)",
+   "non_negative": 1
+  },
+  {
+   "default": "85",
+   "fieldname": "question_count",
+   "fieldtype": "Int",
+   "label": "Questions",
+   "non_negative": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-22 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Learning Mock Session",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "sitting_index",
+ "sort_order": "ASC",
+ "states": []
+}

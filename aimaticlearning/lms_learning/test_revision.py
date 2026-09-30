@@ -49,6 +49,16 @@ class TestRevisionRatings(unittest.TestCase):
 		self.assertTrue(include_chapter_on_revision_board("needs_work", hard_cards=0, incorrect_mcqs=0))
 		self.assertTrue(include_chapter_on_revision_board("not_started"))
 
+	def test_learner_module_title_strips_review_draft_suffix(self):
+		from aimaticlearning.lms_learning.revision import _learner_module_title
+
+		self.assertEqual(
+			_learner_module_title("Dispute Resolution review draft", None),
+			"Dispute Resolution",
+		)
+		self.assertEqual(_learner_module_title("Tort Law Review Draft", None), "Tort Law")
+		self.assertEqual(_learner_module_title("Contract Law", None), "Contract Law")
+
 
 class TestRevisionMcqAttempts(unittest.TestCase):
 	def test_mcq_attempts_are_included_and_flashcards_are_skipped(self):

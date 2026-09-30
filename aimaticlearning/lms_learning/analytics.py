@@ -3,14 +3,19 @@ from __future__ import annotations
 from collections import defaultdict
 
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import cint, flt, now_datetime
+
+# Chapter "strong" needs both good marks and full chapter-MCQ coverage.
+# Flashcard Easy ratings never count toward chapter mastery.
+STRONG_MASTERY_PCT = 75.0
+DEVELOPING_MASTERY_PCT = 50.0
 
 
 def build_learning_map(learning_module: str, user: str) -> dict:
 	chapters = frappe.get_all(
 		"Learning Chapter Profile",
 		filters={"learning_module": learning_module},
-		fields=["name", "chapter_title", "course_chapter", "concept_tags"],
+		fields=["name", "chapter_title", "course_chapter", "concept_tags", "chapter_quiz"],
 		order_by="creation asc",
 	)
 	chapters = [row for row in chapters if not _is_module_assessment_title(row.chapter_title)]
@@ -32,62 +37,99 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 				row.chapter_title or "",
 			)
 		)
+
+	quiz_sizes = _quiz_question_counts(
+		[row.chapter_quiz for row in chapters if row.chapter_quiz]
+	)
+	quiz_to_chapter = {
+		row.chapter_quiz: (row.course_chapter or row.name)
+		for row in chapters
+		if row.chapter_quiz
+	}
+
 	attempts = frappe.get_all(
 		"Learning Attempt Detail",
 		filters={"learning_module": learning_module, "user": user},
 		fields=[
 			"course_chapter",
 			"lms_question",
+			"learning_flashcard",
 			"correct",
 			"time_seconds",
 			"concept_tags",
 			"question_revision",
+			"modified",
 		],
+		order_by="modified desc",
+		limit_page_length=5000,
 	)
-	quiz_rows = frappe.db.sql(
-		"""
-		select s.name, s.quiz, s.percentage, s.course, q.title as quiz_title
-		from `tabLMS Quiz Submission` s
-		inner join `tabLMS Quiz` q on q.name = s.quiz
-		where s.member = %(user)s and s.course = %(course)s
-		order by s.modified desc
-		""",
-		{
-			"user": user,
-			"course": course,
-		},
-		as_dict=True,
-	)
+	quiz_rows = []
+	if course:
+		quiz_rows = frappe.db.sql(
+			"""
+			select s.name, s.quiz, s.percentage, s.course, q.title as quiz_title
+			from `tabLMS Quiz Submission` s
+			inner join `tabLMS Quiz` q on q.name = s.quiz
+			where s.member = %(user)s and s.course = %(course)s
+			order by s.modified desc
+			""",
+			{"user": user, "course": course},
+			as_dict=True,
+		)
+
+	latest_quiz_pct: dict[str, float] = {}
+	for row in quiz_rows:
+		chapter_key = quiz_to_chapter.get(row.quiz)
+		if not chapter_key or chapter_key in latest_quiz_pct:
+			continue
+		latest_quiz_pct[chapter_key] = flt(row.percentage)
 
 	chapter_stats: dict[str, dict] = {}
 	for chapter in chapters:
-		chapter_stats[chapter.course_chapter or chapter.name] = {
+		key = chapter.course_chapter or chapter.name
+		quiz_size = cint(quiz_sizes.get(chapter.chapter_quiz) or 0)
+		chapter_stats[key] = {
 			"chapter_profile": chapter.name,
 			"chapter_title": chapter.chapter_title,
 			"course_chapter": chapter.course_chapter,
+			"chapter_quiz": chapter.chapter_quiz,
+			"quiz_size": quiz_size,
 			"attempts": 0,
 			"correct": 0,
 			"avg_time": 0.0,
 			"mastery_pct": 0.0,
+			"quiz_pct": None,
+			"mcq_covered": False,
 			"concept_tags": chapter.concept_tags or "",
+			"group": "not_started",
 		}
+
+	# Latest MCQ result per question (flashcard reviews excluded).
+	latest_mcq: dict[str, dict] = {}
+	for row in attempts:
+		if row.get("learning_flashcard") or not row.get("lms_question"):
+			continue
+		qid = row.lms_question
+		if qid in latest_mcq:
+			continue
+		latest_mcq[qid] = row
 
 	concept_stats: dict[str, dict] = defaultdict(lambda: {"attempts": 0, "correct": 0})
 	time_totals: dict[str, float] = defaultdict(float)
 	time_counts: dict[str, int] = defaultdict(int)
+	correct_by_chapter: dict[str, int] = defaultdict(int)
+	attempted_by_chapter: dict[str, int] = defaultdict(int)
 
-	for row in attempts:
+	for qid, row in latest_mcq.items():
 		key = row.course_chapter or "general"
-		# Only attribute attempts to chapters that still exist on this module.
-		# Stale tax-era chapter names (e.g. "0026 Chapter 5: Gift Aid…") must not
-		# appear on the revision board after the outline was rewritten.
-		if key in chapter_stats:
-			chapter_stats[key]["attempts"] += 1
-			if row.correct:
-				chapter_stats[key]["correct"] += 1
-			if row.time_seconds:
-				time_totals[key] += float(row.time_seconds)
-				time_counts[key] += 1
+		if key not in chapter_stats:
+			continue
+		attempted_by_chapter[key] += 1
+		if row.correct:
+			correct_by_chapter[key] += 1
+		if row.time_seconds:
+			time_totals[key] += float(row.time_seconds)
+			time_counts[key] += 1
 		for concept in _split_tags(row.concept_tags):
 			concept_stats[concept]["attempts"] += 1
 			if row.correct:
@@ -99,17 +141,41 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 	links: list[dict] = []
 
 	for key, stats in chapter_stats.items():
-		if stats["attempts"]:
-			stats["mastery_pct"] = round(100 * stats["correct"] / stats["attempts"], 1)
-			if time_counts.get(key):
-				stats["avg_time"] = round(time_totals[key] / time_counts[key], 1)
+		attempted = int(attempted_by_chapter.get(key) or 0)
+		correct = int(correct_by_chapter.get(key) or 0)
+		stats["attempts"] = attempted
+		stats["correct"] = correct
+		quiz_size = int(stats["quiz_size"] or 0)
+		quiz_pct = latest_quiz_pct.get(key)
+		stats["quiz_pct"] = quiz_pct
+		# Full chapter MCQ attempt = every quiz question answered, or a quiz submission.
+		covered = bool(quiz_pct is not None) or (quiz_size > 0 and attempted >= quiz_size)
+		stats["mcq_covered"] = covered
+
+		if quiz_pct is not None:
+			stats["mastery_pct"] = round(flt(quiz_pct), 1)
+		elif attempted:
+			stats["mastery_pct"] = round(100 * correct / attempted, 1)
+		else:
+			stats["mastery_pct"] = 0.0
+
+		if time_counts.get(key):
+			stats["avg_time"] = round(time_totals[key] / time_counts[key], 1)
+
+		group = _mastery_group(
+			stats["mastery_pct"],
+			attempted,
+			covered=covered,
+		)
+		stats["group"] = group
 		nodes.append(
 			{
 				"id": key,
 				"label": stats["chapter_title"],
 				"mastery_pct": stats["mastery_pct"],
-				"attempts": stats["attempts"],
-				"group": _mastery_group(stats["mastery_pct"], stats["attempts"]),
+				"attempts": attempted,
+				"group": group,
+				"mcq_covered": covered,
 			}
 		)
 
@@ -118,7 +184,7 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 			continue
 		pct = round(100 * stats["correct"] / stats["attempts"], 1)
 		entry = {"concept": concept, "mastery_pct": pct, "attempts": stats["attempts"]}
-		if pct >= 75 and stats["attempts"] >= 3:
+		if pct >= STRONG_MASTERY_PCT and stats["attempts"] >= 3:
 			strengths.append(entry)
 		elif pct < 60 and stats["attempts"] >= 2:
 			weaknesses.append(entry)
@@ -144,6 +210,23 @@ def build_learning_map(learning_module: str, user: str) -> dict:
 	}
 
 
+def _quiz_question_counts(quiz_names: list[str]) -> dict[str, int]:
+	names = [name for name in quiz_names if name]
+	if not names:
+		return {}
+	rows = frappe.db.sql(
+		"""
+		select parent, count(*) as n
+		from `tabLMS Quiz Question`
+		where parent in %(names)s
+		group by parent
+		""",
+		{"names": names},
+		as_dict=True,
+	)
+	return {row.parent: cint(row.n) for row in rows}
+
+
 def _split_tags(raw: str | None) -> list[str]:
 	if not raw:
 		return []
@@ -158,12 +241,18 @@ def _is_module_assessment_title(title: str | None) -> bool:
 	return "module assessment" in (title or "").lower()
 
 
-def _mastery_group(mastery_pct: float, attempts: int) -> str:
-	if not attempts:
-		return "not_started"
-	if mastery_pct >= 75:
+def _mastery_group(mastery_pct: float, attempts: int, *, covered: bool = False) -> str:
+	"""Chapter mastery group from MCQ evidence only.
+
+	strong — chapter MCQs fully covered (quiz submission or every quiz question
+	attempted) and marks >= 75%. Flashcards alone never qualify.
+	"""
+	pct = flt(mastery_pct)
+	if covered and pct >= STRONG_MASTERY_PCT:
 		return "strong"
-	if mastery_pct >= 50:
+	if not attempts and not covered:
+		return "not_started"
+	if pct >= DEVELOPING_MASTERY_PCT:
 		return "developing"
 	return "needs_work"
 

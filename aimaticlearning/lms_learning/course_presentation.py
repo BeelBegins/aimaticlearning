@@ -5,6 +5,7 @@ import re
 import frappe
 from frappe import _
 
+from aimaticlearning.lms_learning.flashcard_presentation import inline_flashcard_deck_html
 from aimaticlearning.lms_learning.lesson_macros import chapter_hub_renderer
 from aimaticlearning.lms_learning.outline_sync import (
 	link_chapter_to_course,
@@ -194,45 +195,45 @@ def _find_quiz_lesson(course_name: str, chapter_name: str, quiz_id: str) -> str 
 	)
 
 
+def flashcard_lesson_values(
+	chapter_title: str, learning_module: str, course_chapter: str
+) -> dict:
+	"""Learner flashcard lesson payload with the shared inline deck host."""
+	return {
+		"title": f"Flashcards \u2014 {chapter_title}",
+		"body": inline_flashcard_deck_html(learning_module, course_chapter),
+		"content": "",
+	}
+
+
 def _ensure_flashcard_lesson(profile: frappe.Document, course_name: str) -> str | None:
 	if not profile.course_chapter:
 		return None
 
-	title = f"Flashcards — {profile.chapter_title}"
+	values = flashcard_lesson_values(
+		profile.chapter_title, profile.learning_module, profile.course_chapter
+	)
 	existing = frappe.db.get_value(
 		"Course Lesson",
-		{"course": course_name, "chapter": profile.course_chapter, "title": title},
+		{"course": course_name, "chapter": profile.course_chapter, "title": values["title"]},
 		"name",
-	)
-	link = f"/learning-flashcards?chapter_profile={profile.name}"
-	body = (
-		f"## Flashcards\n\n"
-		f"Review key concepts for **{profile.chapter_title}**.\n\n"
-		f"[Open flashcard deck →]({link})"
-	)
-	content = build_editorjs_content(
-		title,
-		[
-			f"Review memory cards for {profile.chapter_title}. "
-			"Rate each card to track your revision."
-		],
 	)
 
 	if existing:
 		lesson = frappe.get_doc("Course Lesson", existing)
-		lesson.body = body
-		lesson.content = content
+		lesson.body = values["body"]
+		lesson.content = values["content"]
 		lesson.save(ignore_permissions=True)
 		lesson_name = existing
 	else:
 		lesson = frappe.get_doc(
 			{
 				"doctype": "Course Lesson",
-				"title": title,
+				"title": values["title"],
 				"course": course_name,
 				"chapter": profile.course_chapter,
-				"body": body,
-				"content": content,
+				"body": values["body"],
+				"content": values["content"],
 			}
 		)
 		lesson.insert(ignore_permissions=True)

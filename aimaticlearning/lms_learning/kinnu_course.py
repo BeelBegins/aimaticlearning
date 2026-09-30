@@ -10,6 +10,7 @@ from docx import Document
 from frappe import _
 
 from aimaticlearning.lms_learning.content_generation import _link_question_to_quiz
+from aimaticlearning.lms_learning.flashcard_presentation import inline_flashcard_deck_html
 from aimaticlearning.lms_learning.mcq_import import (
 	_even_select,
 	_resolve_source_path,
@@ -534,15 +535,7 @@ def remove_topic_lesson_chrome(course_name: str = COURSE_NAME) -> dict:
 
 
 def _flashcard_lesson_html(profile) -> str:
-	return (
-		'<div class="aimatic-chapter-hub aimatic-flashcard-page" data-aimatic-flashcard-deck'
-		f' data-learning-module="{html.escape(profile.learning_module, quote=True)}"'
-		f' data-course-chapter="{html.escape(profile.course_chapter, quote=True)}">'
-		'<header class="aimatic-topic-intro"><span>Flashcards</span>'
-		'<p>Reveal each answer, then rate how confidently you recalled it.</p></header>'
-		'<div class="aimatic-flashcard-loader" data-aimatic-flashcard-loader>'
-		'<span aria-hidden="true"></span><strong>Loading flashcards…</strong></div></div>'
-	).replace("\n", " ")
+	return inline_flashcard_deck_html(profile.learning_module, profile.course_chapter)
 
 
 def _lesson_url(course_name: str, chapter_index: int, lesson_index: int) -> str:

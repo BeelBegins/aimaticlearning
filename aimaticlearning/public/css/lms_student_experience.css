@@ -636,3 +636,51 @@ body.aimatic-lms-learner .aimatic-sqe-switcher-group > small {
 		transition: none !important;
 	}
 }
+/* Letter every LMS choice consistently in mock exams and chapter MCQs. */
+.aimatic-mcq-option-letter {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 1.7rem;
+	width: 1.7rem;
+	height: 1.7rem;
+	margin-left: 0;
+	border: 1px solid rgba(16, 35, 63, 0.2);
+	border-radius: 999px;
+	background: #fff;
+	color: #10233f;
+	font-size: 0.78rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+/* The letter circle replaces the browser control; selection highlights the full answer row. */
+label.flex.items-center.bg-surface-gray-3.rounded-md:has(.aimatic-mcq-option-letter) input[type="radio"],
+label.flex.items-center.bg-surface-gray-3.rounded-md:has(.aimatic-mcq-option-letter) input[type="checkbox"] {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:checked) {
+	border: 1px solid #c7a900;
+	background: #fff7b8 !important;
+	box-shadow: 0 0 0 2px rgba(255, 229, 0, 0.24);
+}
+
+label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
+	outline: 2px solid #10233f;
+	outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+	.aimatic-mcq-option-letter {
+		flex-basis: 1.55rem;
+		width: 1.55rem;
+		height: 1.55rem;
+		margin-left: 0;
+	}
+}

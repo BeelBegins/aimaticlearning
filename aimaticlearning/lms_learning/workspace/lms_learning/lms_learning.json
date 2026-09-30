@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>LMS Learning</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}},{\"id\":\"lmod-shortcut-buddy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy Chat Log\",\"col\":4}}]",
+ "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>LMS Learning</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-studio\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Content Studio\",\"col\":4}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}},{\"id\":\"lmod-shortcut-buddy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy Chat Log\",\"col\":4}}]",
  "creation": "2026-08-30 00:00:00.000000",
  "doctype": "Workspace",
  "for_user": "",
@@ -83,9 +83,20 @@
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Content Studio",
+   "link_count": 0,
+   "link_to": "learning-content-console",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-09-17 09:40:00.000000",
+ "modified": "2026-09-22 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "LMS Learning",
@@ -97,6 +108,12 @@
  "roles": [],
  "sequence_id": 30.0,
  "shortcuts": [
+  {
+   "color": "Blue",
+   "label": "Content Studio",
+   "link_to": "learning-content-console",
+   "type": "Page"
+  },
   {
    "color": "Blue",
    "doc_view": "List",

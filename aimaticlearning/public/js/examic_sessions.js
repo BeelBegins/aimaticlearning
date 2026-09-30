@@ -11,6 +11,12 @@
 		return COURSE_PATH.test(window.location.pathname);
 	}
 
+	function lessonCourse() {
+		const match = window.location.pathname.match(/^\/lms\/courses\/([^/]+)/);
+		return match ? match[1] : "";
+	}
+
+
 	function safeJson(value, fallback) {
 		try { return JSON.parse(value) || fallback; } catch (error) { return fallback; }
 	}
@@ -219,10 +225,30 @@
 			card.hidden = cardIndex !== index;
 			const front = card.querySelector(".ach-card-front");
 			const back = card.querySelector(".ach-card-back");
+			const flip = card.querySelector("[data-ach-flash-card]");
+			const label = card.querySelector(".ach-flip-label");
 			if (front) front.hidden = false;
 			if (back) back.hidden = true;
+			if (flip) {
+				flip.classList.remove("is-back");
+				flip.setAttribute("aria-pressed", "false");
+				flip.setAttribute("aria-label", "Flashcard. Select to reveal the answer.");
+			}
+			if (label) label.textContent = "Select to reveal";
 		});
 		study.querySelectorAll("[data-ach-rating]").forEach(function (button) { button.disabled = true; });
+	}
+
+	function abandonFlashcardSession(host) {
+		nativeRemoveItem.call(localStorage, flashcardKey(host));
+		const rating = host.dataset.ratingFilter && host.dataset.ratingFilter !== "all"
+			? host.dataset.ratingFilter
+			: "";
+		if (window.AimaticFlashcards && typeof window.AimaticFlashcards.reload === "function") {
+			window.AimaticFlashcards.reload(host, rating);
+			return;
+		}
+		window.location.reload();
 	}
 
 	function renderFlashcardSummary(host, state, complete) {
@@ -262,19 +288,14 @@
 			});
 			const weak = document.createElement("a");
 			weak.className = "examic-session-link";
-			weak.href = "/learning-revision?course=business-law-practice-blp";
+			weak.href = "/learning-revision" + (lessonCourse() ? "?course=" + encodeURIComponent(lessonCourse()) : "");
 			weak.textContent = "Open weak areas";
 			actions.append(weak);
 		}
 		const abandon = makeButton("Abandon session", "examic-session-link");
 		abandon.addEventListener("click", function () {
 			if (!window.confirm("Abandon this flashcard session and remove its saved progress?")) return;
-			nativeRemoveItem.call(localStorage, flashcardKey(host));
-			state = { index: 0, total: state.total, counts: { hard: 0, good: 0, easy: 0 }, startedAt: Date.now() };
-			setFlashcardState(host, state);
-			intro.hidden = true;
-			study.hidden = false;
-			showFlashcard(study, 0);
+			abandonFlashcardSession(host);
 		});
 		actions.append(resume, abandon);
 		intro.append(actions);
@@ -307,8 +328,7 @@
 			const abandon = makeButton("Abandon saved session", "examic-session-link");
 			abandon.addEventListener("click", function () {
 				if (!window.confirm("Abandon this saved flashcard session?")) return;
-				nativeRemoveItem.call(localStorage, flashcardKey(host));
-				window.location.reload();
+				abandonFlashcardSession(host);
 			});
 			actions.append(start, abandon);
 		} else actions.append(start);

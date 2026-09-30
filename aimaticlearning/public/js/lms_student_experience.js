@@ -34,15 +34,39 @@
 	}, []);
 
 
-	function courseIdFromLink(link) {
+	const EXAM_COURSES = ["sqe1-hard-mocks"];
+
+	function courseSlugFromLink(link) {
 		const match = new URL(link.href, window.location.origin).pathname.match(/^\/lms\/courses\/([^/]+)/);
-		return match && SQE1_SUBJECTS.some(function (subject) { return subject[0] === match[1]; }) ? match[1] : null;
+		return match ? match[1] : null;
+	}
+
+	function isExamCourse(name) {
+		return EXAM_COURSES.indexOf(name) !== -1;
+	}
+
+	function hideExamCourseCards() {
+		Array.from(document.querySelectorAll('a[href*="/lms/courses/"]')).forEach(function (link) {
+			const slug = courseSlugFromLink(link);
+			if (!isExamCourse(slug)) return;
+			const card = link.closest("a, article, li") || link;
+			card.style.setProperty("display", "none", "important");
+			card.setAttribute("hidden", "hidden");
+		});
+	}
+
+	function courseIdFromLink(link) {
+		const slug = courseSlugFromLink(link);
+		return slug && SQE1_SUBJECTS.some(function (subject) { return subject[0] === slug; }) ? slug : null;
 	}
 
 	function addSqePathwayCatalogue() {
 		if (!/^\/lms\/courses\/?$/.test(window.location.pathname)) return;
+		hideExamCourseCards();
 		const links = Array.from(document.querySelectorAll('a[href*="/lms/courses/"]')).filter(function (link) {
-			return !link.closest(".aimatic-sqe-pathway") && Boolean(courseIdFromLink(link));
+			if (link.closest(".aimatic-sqe-pathway")) return false;
+			if (link.hasAttribute("hidden") || link.style.display === "none") return false;
+			return Boolean(courseIdFromLink(link));
 		});
 		if (!links.length) return;
 		const sourceGrid = links[0].closest(".grid");
@@ -178,7 +202,8 @@
 	}
 
 	function isHardMockSitting() {
-		return /^\/lms\/courses\/sqe1-hard-mocks\/learn\//.test(window.location.pathname);
+		return document.body.classList.contains("aimatic-exam-sitting")
+			|| /^\/lms\/courses\/sqe1-hard-mocks\/learn\//.test(window.location.pathname);
 	}
 
 	function applyExamChrome() {
@@ -196,6 +221,31 @@
 		hideLessonNav();
 		hideDiscussions();
 		addExamLobbyLink();
+	}
+
+	function labelMcqChoices() {
+		const path = window.location.pathname;
+		if (
+			!/^\/lms\/quiz\/[^/]+/.test(path) &&
+			!/^\/lms\/courses\/[^/]+\/learn\/[^/]+/.test(path)
+		) return;
+
+		const letters = "ABCDEFGHIJ";
+		document.querySelectorAll("div.border.rounded-lg").forEach(function (card) {
+			const choices = Array.from(card.querySelectorAll(
+				"label.flex.items-center.bg-surface-gray-3.rounded-md"
+			));
+			choices.forEach(function (choice, index) {
+				if (choice.querySelector(".aimatic-mcq-option-letter")) return;
+				const letter = letters[index];
+				if (!letter) return;
+				const marker = makeNode("span", "aimatic-mcq-option-letter", letter);
+				marker.setAttribute("aria-label", "Option " + letter);
+				const input = choice.querySelector('input[type="radio"], input[type="checkbox"]');
+				if (input) input.after(marker);
+				else choice.prepend(marker);
+			});
+		});
 	}
 
 	function hideLessonNav() {
@@ -416,6 +466,7 @@
 			course_chapter: host.dataset.courseChapter || "",
 			limit: "200",
 		});
+		if (host.dataset.chapterProfile) params.set("chapter_profile", host.dataset.chapterProfile);
 		if (host.dataset.ratingFilter && host.dataset.ratingFilter !== "all") {
 			params.set("rating_filter", host.dataset.ratingFilter);
 		}
@@ -443,7 +494,27 @@
 			.finally(function () { window.clearTimeout(requestTimeout); });
 	}
 
+	function upgradeLegacyFlashcardDecks() {
+		document.querySelectorAll(
+			'.aimatic-lms-lesson-main a[href*="/learning-flashcards?chapter_profile="]'
+		).forEach(function (link) {
+			const url = new URL(link.href, window.location.origin);
+			const chapterProfile = url.searchParams.get("chapter_profile");
+			if (!chapterProfile || link.dataset.aimaticFlashcardsUpgraded) return;
+			link.dataset.aimaticFlashcardsUpgraded = "1";
+			const host = makeNode("div", "aimatic-chapter-hub aimatic-flashcard-page");
+			host.setAttribute("data-aimatic-flashcard-deck", "");
+			host.dataset.chapterProfile = chapterProfile;
+			const loader = makeNode("div", "aimatic-flashcard-loader");
+			loader.setAttribute("data-aimatic-flashcard-loader", "");
+			loader.append(makeNode("strong", "", "Loading flashcards..."));
+			host.append(loader);
+			(link.closest("p") || link).replaceWith(host);
+		});
+	}
+
 	function loadFlashcardDecks() {
+		upgradeLegacyFlashcardDecks();
 		document.querySelectorAll("[data-aimatic-flashcard-deck]").forEach(loadFlashcardDeck);
 	}
 
@@ -510,7 +581,9 @@
 
 	function polish() {
 		applyExamChrome();
+		labelMcqChoices();
 		if (isHardMockSitting()) return;
+		hideExamCourseCards();
 		addSqePathwayCatalogue();
 		addSqeSwitcher();
 		addRevisionEntry();

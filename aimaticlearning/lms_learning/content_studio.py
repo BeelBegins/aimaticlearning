@@ -179,6 +179,24 @@ def _learner_notes_body(notes_lesson: str | None) -> str:
 	return frappe.db.get_value("Course Lesson", notes_lesson, "body") or ""
 
 
+def _write_profile_notes_html(profile, html: str, *, bump_revision: bool = True) -> int:
+	"""Persist notes_html despite DocType read_only=1 (Document.save skips it)."""
+	html = sanitize_studio_notes_html(html)
+	current = profile.notes_html or ""
+	revision = cint(profile.source_revision)
+	if bump_revision and current != html:
+		revision += 1
+	frappe.db.set_value(
+		"Learning Chapter Profile",
+		profile.name,
+		{"notes_html": html, "source_revision": revision},
+		update_modified=True,
+	)
+	profile.notes_html = html
+	profile.source_revision = revision
+	return revision
+
+
 def normalize_chapter_title(title: str | None) -> str:
 	return re.sub(r"\s+", " ", (title or "").strip())
 
@@ -549,10 +567,7 @@ def save_chapter_notes(chapter_profile: str, notes_html: str | None = None):
 	require_content_role()
 	profile = frappe.get_doc("Learning Chapter Profile", chapter_profile)
 	html = sanitize_studio_notes_html(notes_html)
-	if (profile.notes_html or "") != html:
-		profile.source_revision = cint(profile.source_revision) + 1
-	profile.notes_html = html
-	profile.save(ignore_permissions=True)
+	revision = _write_profile_notes_html(profile, html)
 
 	lesson_written = False
 	skipped_quiz_lesson = False
@@ -573,7 +588,7 @@ def save_chapter_notes(chapter_profile: str, notes_html: str | None = None):
 	notes_state = notes_publish_state(html, learner_body, notes_lesson=profile.notes_lesson)
 	return {
 		"ok": True,
-		"source_revision": profile.source_revision,
+		"source_revision": revision,
 		"lesson_written": lesson_written,
 		"skipped_quiz_lesson": skipped_quiz_lesson,
 		"notes_status": notes_state["status"],
@@ -621,17 +636,17 @@ def pull_learner_notes_to_studio(chapter_profile: str):
 		if not profile.notes_lesson:
 			raise ContentStudioError("This chapter has no notes lesson to pull from.")
 		learner_body = sanitize_studio_notes_html(_learner_notes_body(profile.notes_lesson))
-		if (profile.notes_html or "") != learner_body:
-			profile.source_revision = cint(profile.source_revision) + 1
-		profile.notes_html = learner_body
-		profile.save(ignore_permissions=True)
+		revision = _write_profile_notes_html(profile, learner_body)
+		# Re-read learner body so status reflects DB truth, not the in-memory copy.
+		db_studio = frappe.db.get_value("Learning Chapter Profile", profile.name, "notes_html") or ""
+		db_learner = _learner_notes_body(profile.notes_lesson)
 		notes_state = notes_publish_state(
-			learner_body, learner_body, notes_lesson=profile.notes_lesson
+			db_studio, db_learner, notes_lesson=profile.notes_lesson
 		)
 		return {
 			"ok": True,
-			"notes_html": learner_body,
-			"source_revision": profile.source_revision,
+			"notes_html": sanitize_studio_notes_html(db_studio),
+			"source_revision": revision,
 			"notes_status": notes_state["status"],
 			"notes_status_label": notes_state["label"],
 			"notes_in_sync": notes_state["in_sync"],
@@ -677,8 +692,7 @@ def save_chapter_heading(chapter_profile: str, chapter_title: str):
 		profile.notes_html, old_titles, new_title
 	)
 	if notes_heading_updated:
-		profile.notes_html = html
-		profile.source_revision = cint(profile.source_revision) + 1
+		_write_profile_notes_html(profile, html)
 		if profile.notes_lesson:
 			quiz_id = frappe.db.get_value("Course Lesson", profile.notes_lesson, "quiz_id") or ""
 			if not (quiz_id or "").strip():

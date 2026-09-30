@@ -53,47 +53,49 @@ def get_sidebar_settings():
 		settings["statistics"] = False
 	if frappe.session.user != "Guest":
 		pages = list(settings.get("web_pages") or [])
-		if not any(
-			str(page.get("route") or page.get("to") or "").strip("/") == "learning-revision"
-			for page in pages
-		):
-			pages.insert(
-				0,
+		owned = []
+		if not any(str(page.get("route") or page.get("to") or "").strip("/") == "learning-dashboard" for page in pages):
+			owned.append(
+				{
+					"label": "Study progress",
+					"to": "learning-dashboard",
+					"route": "learning-dashboard",
+					"icon": "LayoutDashboard",
+					"name": "aimatic-dashboard",
+				}
+			)
+		if not any(str(page.get("route") or page.get("to") or "").strip("/") == "learning-revision" for page in pages):
+			owned.append(
 				{
 					"label": "Revision",
 					"to": "learning-revision",
 					"route": "learning-revision",
 					"icon": "RefreshCcw",
 					"name": "aimatic-revision",
-				},
+				}
 			)
-		if not any(
-			str(page.get("route") or page.get("to") or "").strip("/") == "learning-mock-exam"
-			for page in pages
-		):
-			pages.insert(
-				1,
+		if not any(str(page.get("route") or page.get("to") or "").strip("/") == "learning-mock-exam" for page in pages):
+			owned.append(
 				{
 					"label": "Mock exams",
 					"to": "learning-mock-exam",
 					"route": "learning-mock-exam",
 					"icon": "BookOpen",
 					"name": "aimatic-mock-exam",
-				},
+				}
 			)
 		if can_view_statistics() and not any(
 			str(page.get("route") or page.get("to") or "").strip("/") == "learning-mock-report"
 			for page in pages
 		):
-			pages.insert(
-				2,
+			owned.append(
 				{
 					"label": "Mock coverage",
 					"to": "learning-mock-report",
 					"route": "learning-mock-report",
 					"icon": "BookOpen",
 					"name": "aimatic-mock-report",
-				},
+				}
 			)
-		settings["web_pages"] = pages
+		settings["web_pages"] = owned + pages
 	return settings

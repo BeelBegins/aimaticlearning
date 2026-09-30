@@ -1,6 +1,7 @@
 import frappe
 
 from aimaticlearning.lms_learning.protected_notes import get_notes_for_profile
+from aimaticlearning.lms_learning.revision import _learner_module_title
 
 
 def get_context(context):
@@ -23,7 +24,13 @@ def get_context(context):
 		context.learning_module = profile.learning_module
 		context.course_chapter = profile.course_chapter
 	elif learning_module:
-		title = frappe.db.get_value("Learning Module Config", learning_module, "title") or "Course"
+		row = frappe.db.get_value(
+			"Learning Module Config",
+			learning_module,
+			["title", "lms_course"],
+			as_dict=True,
+		) or {}
+		title = _learner_module_title(row.get("title"), row.get("lms_course"))
 		rating = context.rating_filter
 		if rating in ("hard", "good", "easy"):
 			context.chapter_title = f"{title} · {rating.title()} cards"

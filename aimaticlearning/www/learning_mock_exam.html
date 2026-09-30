@@ -44,6 +44,8 @@
 			color: var(--rev-ink); font-weight: 600; font-size: 0.82rem; text-decoration: none;
 		}
 		.rev-btn-primary { background: var(--rev-accent); border-color: var(--rev-accent); color: #fff !important; }
+		.rev-session-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+		.rev-btn-secondary { background: var(--rev-warm); }
 		.rev-loading { min-height: 136px; padding: 55px 16px; border: 1px dashed var(--rev-line); border-radius: 10px; background: var(--rev-card); color: var(--rev-muted); text-align: center; }
 		.rev-loading.rev-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: var(--ink-red-5, #b52a2a); background: var(--rev-hard-bg); }
 		.rev-noaccess { padding: 48px 24px; border: 1px solid var(--rev-line); border-radius: 10px; background: var(--rev-card); text-align: center; }
@@ -60,13 +62,13 @@
 
 	<div id="exam-loading" class="rev-loading">Loading sittings…</div>
 	<div id="exam-noaccess" class="rev-noaccess is-hidden">
-		<h2>Enrol to sit the papers</h2>
-		<p>You need a place on SQE1 Hard Mocks before you can start a timed session.</p>
-		<a class="rev-btn rev-btn-primary" href="/lms/courses">Browse courses</a>
+		<h2>Sign in to sit the papers</h2>
+		<p>Mock exams are timed sittings, not a course. Sign in, then start a session from this lobby.</p>
+		<a class="rev-btn rev-btn-primary" href="/login?redirect-to=%2Flearning-mock-exam">Sign in</a>
 	</div>
 	<div id="exam-body" class="is-hidden">
 		<div id="exam-papers"></div>
-		<p><a class="rev-back" href="/lms/courses">Back to courses</a></p>
+		<p><a class="rev-back" href="/lms/courses">Back to subjects</a></p>
 	</div>
 </div>
 
@@ -118,17 +120,55 @@
 				const meta = document.createElement("small");
 				text(meta, (session.questions || 85) + " questions · " + (session.duration || 153) + " minutes · " + (session.attempts || 0) + " of " + (session.max_attempts || 3) + " attempts used");
 				copy.append(title, meta);
+				const actions = document.createElement("div");
+				actions.className = "rev-session-actions";
 				const start = document.createElement("a");
 				start.className = "rev-btn rev-btn-primary";
 				start.href = session.start_url || "/learning-mock-exam";
 				text(start, "Start session");
-				row.append(copy, start);
+				start.addEventListener("click", function (event) {
+					event.preventDefault();
+					enrolThenStart(start.href);
+				});
+				actions.append(start);
+				if (session.feedback_url) {
+					const feedback = document.createElement("a");
+					feedback.className = "rev-btn rev-btn-secondary";
+					feedback.href = session.feedback_url;
+					text(feedback, "Download feedback (PDF)");
+					actions.append(feedback);
+				}
+				row.append(copy, actions);
 				card.append(row);
 			});
 			el.papers.append(card);
 		});
 		el.loading.classList.add("is-hidden");
 		el.body.classList.remove("is-hidden");
+	}
+
+	function enrolThenStart(startUrl) {
+		fetch("/api/method/aimaticlearning.lms_learning.api.enrol_on_mock_exam", {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+				"X-Frappe-CSRF-Token": frappe.csrf_token || "",
+			},
+			body: "{}",
+		})
+			.then(function (response) {
+				if (response.status === 401 || response.status === 403) {
+					window.location = "/login?redirect-to=" + encodeURIComponent("/learning-mock-exam");
+					return;
+				}
+				if (!response.ok) throw new Error("enrol");
+				window.location = startUrl;
+			})
+			.catch(function () {
+				showLoadError("Could not start the sitting. Try again.");
+			});
 	}
 
 	function load() {

@@ -7,7 +7,7 @@ from pathlib import Path
 import frappe
 from docx import Document
 from frappe import _
-from frappe.utils import get_site_path
+from frappe.utils import cint, get_site_path
 
 from aimaticlearning.lms_learning.content_generation import _link_question_to_quiz
 from aimaticlearning.lms_learning.import_pipeline import _ensure_chapter_quiz
@@ -16,10 +16,10 @@ from aimaticlearning.lms_learning.outline_sync import sync_profile_outline
 DEFAULT_PER_CHAPTER_TARGET = 20
 DEFAULT_MODULE_ASSESSMENT_TARGET = 150
 
-QUESTION_RE = re.compile(r"^Question\s+(\d+(?:\.\d+)?)\s*(.*)$", re.I)
+QUESTION_RE = re.compile(r"^Question\s+(\d+(?:\.\d+)?)\s*[.)]?\s*(.*)$", re.I)
 NUMBERED_QUESTION_RE = re.compile(r"^(\d+(?:\.\d+)?)[.)]\s+(.+)$")
 ANSWER_RE = re.compile(
-	r"^(?:Question\s+(\d+(?:\.\d+)?)\s*[:\-]\s*(?:Answer\s*:?\s*)?"
+	r"^(?:Question\s+(\d+(?:\.\d+)?)\s*[:\-–]\s*(?:(?:Correct\s+)?Answer\s*[:\-–]?\s*)?"
 	r"|Answer\s+(\d+(?:\.\d+)?)\s*[:.\)\-]\s*"
 	r"|(\d+(?:\.\d+)?)\s*[.)]\s*)([A-E])(?=\s|[-–:]|$)"
 	r"(?:\s*[-–:]\s*|\s+)?(.*)$",
@@ -28,6 +28,10 @@ ANSWER_RE = re.compile(
 BARE_ANSWER_RE = re.compile(r"^([A-E])(?:\s*[-–:]\s*|\s+)(.+)$", re.I)
 CORRECT_ANSWER_RE = re.compile(r"^Correct Answer:\s*([A-E])\s*-\s*(.*)$", re.I)
 EXPLANATION_RE = re.compile(r"^(?:Explanation|Reason)\s*:\s*(.*)$", re.I)
+LEARNER_SOURCE_TRAIL_RE = re.compile(
+	r"(?:\s|<br\s*/?>)*(?:source|source reference)\s*:\s*(?:file://)?(?:/home/|/private/files/|/files/).*$",
+	re.I | re.S,
+)
 OPTION_SPLIT_RE = re.compile(r"\s+(?=[A-E][\.\)])")
 OPTION_RE = re.compile(r"^([A-E])[\.\)]\s*(.*)$", re.I)
 SECTION_RE = re.compile(
@@ -114,6 +118,7 @@ def parse_mcqs_from_docx(path: Path, limit: int | None = None) -> list[dict]:
 			i += 1
 			continue
 		section_id += 1
+		section_question_count = 0
 		block_questions: dict[str, dict] = {}
 		active_num: str | None = None
 		i += 1
@@ -216,10 +221,99 @@ def parse_mcqs_from_docx(path: Path, limit: int | None = None) -> list[dict]:
 			if not any(opt.get("is_correct") for opt in normalized["options"]):
 				continue
 			all_questions.append(normalized)
+			section_question_count += 1
 			if limit and len(all_questions) >= limit:
 				return all_questions
+		if not section_question_count:
+			section_id -= 1
 
 	return all_questions
+
+
+def sync_mcq_explanations_from_source(source_file: str, dry_run: bool = True) -> dict:
+	"""Apply vetted DOCX reasons only where the existing mapped MCQ still matches."""
+	path = _resolve_source_path(source_file)
+	parsed = parse_mcqs_from_docx(path)
+	result = {
+		"source_file": path.name,
+		"parsed_questions": len(parsed),
+		"matched_questions": 0,
+		"ready_to_update": 0,
+		"updated_questions": 0,
+		"unmapped": [],
+		"mismatched": [],
+		"missing_source_reason": [],
+	}
+	for item in parsed:
+		source_refs = [
+			item.get("source_reference"),
+			f"{path.name} Ch{item.get('section_id')} Q{item.get('num')}",
+		]
+		meta = None
+		for source_ref in source_refs:
+			if not source_ref:
+				continue
+			meta = frappe.db.get_value(
+				"Learning Question Meta",
+				{"source_reference": source_ref},
+				["lms_question", "source_reference"],
+				as_dict=True,
+			)
+			if meta:
+				break
+		if not meta or not meta.lms_question:
+			result["unmapped"].append(item.get("source_reference"))
+			continue
+
+		doc = frappe.get_doc("LMS Question", meta.lms_question)
+		expected_correct = [
+			index
+			for index, option in enumerate(item.get("options") or [], start=1)
+			if option.get("is_correct")
+		]
+		stored_correct = [
+			index for index in range(1, 6) if cint(doc.get(f"is_correct_{index}"))
+		]
+		if (
+			normalize_text(doc.question) != normalize_text(item.get("question"))
+			or stored_correct != expected_correct
+		):
+			result["mismatched"].append(meta.source_reference)
+			continue
+
+		result["matched_questions"] += 1
+		correct_index = expected_correct[0] if len(expected_correct) == 1 else None
+		reason = (
+			item.get("options", [])[correct_index - 1].get("explanation")
+			if correct_index
+			else ""
+		)
+		reason = (reason or "").strip()
+		if not reason:
+			result["missing_source_reason"].append(meta.source_reference)
+			continue
+
+		field = f"explanation_{correct_index}"
+		current = (doc.get(field) or "").strip()
+		if current and current != reason:
+			result["mismatched"].append(meta.source_reference)
+			continue
+		if current == reason:
+			continue
+
+		result["ready_to_update"] += 1
+		if not dry_run:
+			doc.set(field, reason)
+			doc.save(ignore_permissions=True)
+			result["updated_questions"] += 1
+
+	if not dry_run:
+		frappe.db.commit()
+	return result
+
+
+def normalize_text(value: str | None) -> str:
+	return " ".join((value or "").split())
 
 
 def parse_verified_flk2_mcqs_from_docx(path: Path | str) -> dict:
@@ -701,6 +795,34 @@ def _without_explanation_label(text: str) -> str:
 	return (text[match.end() :] if match else text or "").strip()
 
 
+def _without_learner_source_trace(text: str) -> str:
+	"""Keep internal source metadata out of student-facing MCQ explanations."""
+	return LEARNER_SOURCE_TRAIL_RE.sub("", text or "").strip()
+
+
+def _repeated_choice_explanation_updates(row: dict) -> dict:
+	"""Keep a shared general explanation only under the correct answer choice."""
+	explained = [
+		index
+		for index in range(1, 6)
+		if (row.get(f"option_{index}") or "").strip()
+		and (row.get(f"explanation_{index}") or "").strip()
+	]
+	if len(explained) < 2:
+		return {}
+	explanations = {(row.get(f"explanation_{index}") or "").strip() for index in explained}
+	if len(explanations) != 1:
+		return {}
+	correct = [index for index in explained if cint(row.get(f"is_correct_{index}"))]
+	if len(correct) != 1:
+		return {}
+	return {
+		f"explanation_{index}": ""
+		for index in explained
+		if index != correct[0]
+	}
+
+
 def _append_explanation(row: dict, text: str) -> None:
 	text = (text or "").strip()
 	if not text:
@@ -1127,7 +1249,9 @@ def _upsert_lms_question_by_source(item: dict) -> str | None:
 		fields[f"option_{idx}"] = opt.get("text")
 		fields[f"is_correct_{idx}"] = 1 if opt.get("is_correct") else 0
 		if opt.get("explanation"):
-			fields[f"explanation_{idx}"] = opt.get("explanation")
+			fields[f"explanation_{idx}"] = _without_learner_source_trace(
+				opt.get("explanation")
+			)
 
 	if existing:
 		doc = frappe.get_doc("LMS Question", existing)
@@ -1138,3 +1262,53 @@ def _upsert_lms_question_by_source(item: dict) -> str | None:
 	doc = frappe.get_doc(fields)
 	doc.insert(ignore_permissions=True)
 	return doc.name
+
+
+def remove_learner_source_traces() -> dict:
+	"""Remove legacy filesystem source suffixes from existing LMS question explanations."""
+	fields = [f"explanation_{index}" for index in range(1, 6)]
+	rows = frappe.db.get_all("LMS Question", fields=["name", *fields])
+	updated_questions = 0
+	updated_explanations = 0
+	for row in rows:
+		updates = {}
+		for field in fields:
+			original = row.get(field) or ""
+			cleaned = _without_learner_source_trace(original)
+			if cleaned != original:
+				updates[field] = cleaned
+		if not updates:
+			continue
+		frappe.db.set_value("LMS Question", row.name, updates, update_modified=False)
+		updated_questions += 1
+		updated_explanations += len(updates)
+	frappe.db.commit()
+	return {
+		"updated_questions": updated_questions,
+		"updated_explanations": updated_explanations,
+	}
+
+
+def remove_repeated_choice_explanations() -> dict:
+	"""Remove legacy duplicate feedback while retaining it beneath the correct option."""
+	fields = [
+		"name",
+		*[f"option_{index}" for index in range(1, 6)],
+		*[f"is_correct_{index}" for index in range(1, 6)],
+		*[f"explanation_{index}" for index in range(1, 6)],
+	]
+	rows = frappe.db.get_all("LMS Question", fields=fields)
+	updated_questions = 0
+	updated_explanations = 0
+	for row in rows:
+		updates = _repeated_choice_explanation_updates(row)
+		if not updates:
+			continue
+		frappe.db.set_value("LMS Question", row.name, updates, update_modified=False)
+		updated_questions += 1
+		updated_explanations += len(updates)
+	frappe.db.commit()
+	return {
+		"updated_questions": updated_questions,
+		"updated_explanations": updated_explanations,
+	}
