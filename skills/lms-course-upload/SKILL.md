@@ -65,6 +65,16 @@ recurred as a real, separately-fixed defect:
   the subject's Module Assessment "Quick Revision Notes — Key Concepts &
   Glossary" lesson, before the assessment — not inside the notes body. Scan
   every imported chapter's notes for these banners before publish.
+- **Quiz lesson with empty `body` renders blank.** A quiz-wired lesson needs
+  `content = ""` (required, hides the EditorJS quiz widget) **and** a
+  non-empty `body` (Frappe LMS only mounts the quiz through the body
+  fallback when content is empty — if body is also null/empty, the learner
+  sees a blank lesson with no visible error). Every `quiz_id` lesson must
+  have a short placeholder body, e.g. `Complete this quiz, then submit your
+  attempt to review the results.` This exact defect has recurred twice
+  (SQE1 hard mocks, 2026-09-17; a normal Dispute Resolution chapter MCQ,
+  2026-09-30) — check `body` is non-empty on every `quiz_id` lesson before
+  publish, not just that `content` is empty.
 
 ## Notes
 
