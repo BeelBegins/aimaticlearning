@@ -172,22 +172,33 @@ for future imports. Expires when: a future audit confirms no other subject
 has reintroduced this pattern, or the importer itself is fixed to strip it
 at import time rather than needing a follow-up sweep.
 
-**Quiz-lesson content guard added but NOT YET LIVE (2026-09-30):** Root
+**Quiz-lesson content guard added and confirmed LIVE (2026-09-30):** Root
 caused BLP Chapter 1's recurring "MCQs invisible to students" defect — the
 native Frappe LMS lesson editor round-trips `body` text into `content` on a
 plain open-then-save, and a non-empty `content` hides the quiz widget behind
 EditorJS. Added `outline_sync.enforce_empty_quiz_content` as a `Course
 Lesson` `validate` hook (`hooks.py`) so this is enforced on every save
 regardless of origin, instead of only as a side effect of specific Content
-Studio actions. **`doc_events` hooks need a worker/web restart (or `bench
-clear-cache`) to take effect on the shared bench — not done yet, needs
-separate explicit approval since it also touches live `szl`.** Until that
-restart happens, the fix exists in code only; the next native-editor
-open-then-save on any quiz lesson anywhere in the LMS will still silently
-re-break it. Swept the whole LMS: 0 quiz lessons are currently poisoned, so
-no live cleanup is pending, only the restart to arm the guard. See
+Studio actions. User restarted the bench; confirmed live two ways —
+`frappe.get_hooks()` returns the registration, and a functional test
+(poison `content` on the same lesson, call `.save()`) shows it self-clears.
+Swept the whole LMS beforehand: 0 quiz lessons were poisoned at the time, so
+this was preventive, not a live cleanup. See
 `docs/lms-findings-and-fixes.md` for the full Version-history evidence
-trail. Expires when: the restart happens and the hook is confirmed live.
+trail.
+
+**BLP Ch.3 Q16/Q17 wrong answer key, fixed (2026-09-30); source-file
+regression not yet swept elsewhere:** Both questions' live answer keys
+contradicted the chapter's own notes and were traced to a 2026-09-24
+re-upload (`BLP notes75b9d6.docx`) that regressed at least these two answers
+from a previously-correct state in the still-present 2026-09-02 file (`BLP
+notes and Questions .docx`). Fixed both (Q16 B→C, Q17 C→D) using the
+correct source's reasoning; backup and full detail in
+`docs/lms-findings-and-fixes.md`. **Not done:** a question-by-question diff
+of the 09-02 vs 09-24 BLP files across all 8 chapters to check for other
+regressed answers, and a check of whether any other subject's source file
+was similarly re-uploaded with regressions. Expires when: that diff is run,
+or the 09-24 files are established as reliable after review.
 
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").

@@ -279,3 +279,59 @@ to be `body` going null/empty instead (the exact shape of the earlier
 Dispute Resolution Ch.8 incident), this hook won't catch that — that failure
 mode still has no systemic guard, only the manual
 `lms-course-upload/SKILL.md` checklist.
+
+## 2026-09-30 — BLP Chapter 3 Q16/Q17 wrong answer key, traced to a source-file regression
+
+**Scope:** `business-law-practice-blp` Chapter 3 ("Private Limited
+Companies – Formalities, Statutory Filing and Disclosure"), quiz
+`the-tax-year-and-collection-methods-chapter-mcq-20`, questions 16
+(`QTS-2026-00140`) and 17 (`QTS-2026-00141`). Both tagged `ai_generated=0`
+(human-reviewed).
+
+**Finding:** User reported the marked-correct answers for Q16/Q17 were
+wrong and didn't match the chapter notes. Checked the chapter's own
+notes_html first: it states plainly, three separate times (main text,
+glossary, chapter summary), that "the model articles do not include
+restrictions on the transfer of shares... members are free to transfer
+their shares to anyone." Q16's live answer key marked option B ("the model
+articles give directors power to refuse transfers") correct, citing a
+specific but unverifiable "Article 26" — directly contradicting the
+chapter's own teaching 3-to-1 within the same document. Traced to the
+source file: the question's `source_reference` cited the original `BLP
+notes.docx` (uploaded 2026-08-30), which no longer exists on disk — it was
+silently replaced by a 2026-09-24 re-upload (`BLP notes75b9d6.docx`, a
+duplicate of `BLP notes75b9d675b9d6.docx`). That 09-24 file has the *same*
+wrong answers live in the DB today (B for Q16, C for Q17) — but an older,
+still-present file, `BLP notes and Questions .docx` (orphaned, no `File`
+record, uploaded 2026-09-02 — the one already established as the real
+source for this subject's 181 human-reviewed questions), has *correct*
+answers for both, with explanations that quote the chapter's own notes
+verbatim and properly engage with the competing options (Q17's correct
+answer, D, explicitly rules out C: "Option C treats this as pure
+entrenchment requiring procedural compliance" — a nuance the live/wrong
+version's explanation never addressed). Conclusion: the 09-24 re-upload
+regressed at least these two answer keys from a previously-correct state —
+not an import bug, an authoring regression in the source material itself.
+
+**Fix:** Updated both `LMS Question` docs directly: Q16 correct option
+flipped B→C, Q17 correct option flipped C→D, explanations replaced with the
+full reasoning from the correct (2026-09-02) source, and each question's
+`Learning Question Meta.source_reference` repointed from `BLP notes.docx`
+(gone, wrong-answer version) to `BLP notes and Questions .docx` (present,
+correct-answer version). Backup of both full question + meta docs before
+edit: `private/files/lms_learning_exports/blp-ch3-q16-q17-answer-fix-20260930.json`.
+Both saved via `.save()` (Version-logged).
+
+**Verification:** Re-read both questions after save — exactly one option
+flagged correct on each (C for Q16, D for Q17), explanation present only on
+the correct option, `source_reference` updated on both.
+
+**Remaining risk:** This was a manual, evidence-led fix for two specific
+flagged questions, not a systemic sweep. If the 09-24 re-upload regressed
+other answer keys the same way, they're still live and wrong — this
+incident is reason enough to diff `BLP notes and Questions .docx` (09-02,
+correct) against `BLP notes75b9d6.docx`/`BLP notes75b9d675b9d6.docx` (09-24,
+at least 2 answers regressed) question-by-question across all 8 BLP
+chapters before trusting the rest of the bank, and to check whether any
+other subject's "answer key" source file was similarly re-uploaded with
+regressions. Not done in this session — flagging for a dedicated pass.
