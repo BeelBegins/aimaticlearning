@@ -18,6 +18,9 @@ doc_events = {
 	"User": {
 		"after_insert": "aimaticlearning.lms_learning.enrollment.send_student_welcome_email",
 	},
+	"Course Lesson": {
+		"validate": "aimaticlearning.lms_learning.outline_sync.enforce_empty_quiz_content",
+	},
 }
 
 # Lesson audio generation is a manual "Generate Audio" button on the form,

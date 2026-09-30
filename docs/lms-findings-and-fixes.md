@@ -215,3 +215,67 @@ importer. `lms-course-upload/SKILL.md`'s Post-import verification step
 to scan for this before publish; it should be extended to explicitly cover
 embedded MCQ/answer-key blocks too, not just glossary banners, since that
 turned out to be the more serious leak shape.
+
+## 2026-09-30 — BLP Chapter 1 MCQs invisible to students, recurring defect finally root-caused
+
+**Scope:** `business-law-practice-blp` Chapter 1 ("Forms of Business
+Organisations") chapter MCQ lesson (`0062 Chapter MCQ — Introduction`,
+quiz `introduction-chapter-mcq-20`). Same class of defect as the 2026-09-17
+"SQE1 hard mocks empty lesson fix" and the 2026-09-30 Dispute Resolution
+Ch.8 finding above — this is the third confirmed occurrence, and the first
+one actually root-caused at the mechanism level rather than fixed by
+deleting/recreating the broken lesson.
+
+**Finding:** User reported BLP Chapter 1 MCQs weren't showing for students;
+editing one MCQ in Content Studio made all of them reappear, and asked why
+this keeps recurring given it was "fixed" before. `Version` history on the
+lesson gave the exact mechanism: Frappe LMS's `Lesson.vue` renders the
+CodeX/EditorJS widget whenever `Course Lesson.content` is truthy, and only
+falls through to the `body` + `quiz_id` quiz widget when `content` is empty
+(documented in this repo's own `new_quiz_lesson_values` docstring — the
+convention was known, just not enforced). On 2026-09-30 11:14–11:15, a real
+content-team login (`sehrishishtiaq331@gmail.com`, not `Administrator`) made
+three saves roughly 20 seconds apart, each one changing `content` from
+empty to a one-paragraph EditorJS blob carrying the *same text as the
+existing `body` placeholder* — the signature of the native Frappe LMS lesson
+editor round-tripping `body` into its `content` working buffer and
+committing it on save, with no real edit involved. This hid the quiz widget
+behind a static paragraph for every student until the chapter re-render.
+`_empty_quiz_lesson_content()` / `ensure_quiz_lesson()` already existed and
+correctly clear `content` — but only as a side effect of specific Content
+Studio actions (`save_chapter_mcq`, chapter add/remove), never as a general
+invariant. Editing any MCQ in that chapter incidentally called
+`ensure_quiz_lesson`, which is why that "fixed" it — coincidence, not
+causation. A standalone manual sweep/fix utility
+(`outline_sync.clear_quiz_lesson_editorjs`) already existed too, but nothing
+called it automatically. Swept the whole LMS: zero other quiz lessons are
+currently poisoned (BLP Ch.1 was already fixed by the user's Studio edit
+before this investigation), so this was a preventive fix, not a live
+cleanup.
+
+**Fix:** Added `outline_sync.enforce_empty_quiz_content(doc, method=None)`
+and wired it as a `Course Lesson` `validate` hook in `hooks.py`. Runs on
+*every* save of a `Course Lesson`, regardless of which UI or script wrote
+it — the native Frappe LMS lesson editor, Content Studio, a one-off script,
+anything. Turns the "quiz lessons must keep `content` empty" convention from
+a Studio-only side effect into an enforced doctype-level invariant.
+
+**Verification:** `python3 -m py_compile` clean on `outline_sync.py` and
+`hooks.py`. Added `TestEnforceEmptyQuizContent` (3 cases: clears when
+`quiz_id`+`content` both set, leaves alone when no `quiz_id`, no-op when
+already empty) to `test_outline_sync.py` — full module (5 tests) passes.
+**Not yet effective on the running site** — `doc_events` hooks are read from
+the app's hooks cache at process start; the web/worker processes need a
+restart (or `bench clear-cache` at minimum) to pick up the new registration.
+That is a live, impactful action on a shared bench that also runs
+production `szl` — needs separate explicit approval before it's actually
+enforced, not just written.
+
+**Remaining risk:** Until that restart happens, this fix exists in code but
+is not actually protecting anything yet — the next native-editor
+open-then-save on any quiz lesson will still poison it exactly as before.
+Also: this only guards `Course Lesson.content`; if a future defect turns out
+to be `body` going null/empty instead (the exact shape of the earlier
+Dispute Resolution Ch.8 incident), this hook won't catch that — that failure
+mode still has no systemic guard, only the manual
+`lms-course-upload/SKILL.md` checklist.

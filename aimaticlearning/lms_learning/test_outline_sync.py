@@ -1,6 +1,8 @@
 import unittest
+from types import SimpleNamespace
 
 from aimaticlearning.lms_learning.outline_sync import (
+	enforce_empty_quiz_content,
 	new_quiz_lesson_values,
 	quiz_lessons_with_editorjs,
 )
@@ -33,3 +35,20 @@ class TestQuizLessonContent(unittest.TestCase):
 		]
 		blocked = quiz_lessons_with_editorjs(rows)
 		self.assertEqual([row["name"] for row in blocked], ["blocked"])
+
+
+class TestEnforceEmptyQuizContent(unittest.TestCase):
+	def test_clears_content_when_quiz_id_and_content_both_set(self):
+		doc = SimpleNamespace(quiz_id="introduction-chapter-mcq-20", content='{"blocks":[{"type":"paragraph"}]}')
+		enforce_empty_quiz_content(doc)
+		self.assertEqual(doc.content, "")
+
+	def test_leaves_content_alone_when_no_quiz_id(self):
+		doc = SimpleNamespace(quiz_id="", content='{"blocks":[{"type":"paragraph"}]}')
+		enforce_empty_quiz_content(doc)
+		self.assertEqual(doc.content, '{"blocks":[{"type":"paragraph"}]}')
+
+	def test_noop_when_content_already_empty(self):
+		doc = SimpleNamespace(quiz_id="introduction-chapter-mcq-20", content="")
+		enforce_empty_quiz_content(doc)
+		self.assertEqual(doc.content, "")

@@ -172,6 +172,23 @@ for future imports. Expires when: a future audit confirms no other subject
 has reintroduced this pattern, or the importer itself is fixed to strip it
 at import time rather than needing a follow-up sweep.
 
+**Quiz-lesson content guard added but NOT YET LIVE (2026-09-30):** Root
+caused BLP Chapter 1's recurring "MCQs invisible to students" defect — the
+native Frappe LMS lesson editor round-trips `body` text into `content` on a
+plain open-then-save, and a non-empty `content` hides the quiz widget behind
+EditorJS. Added `outline_sync.enforce_empty_quiz_content` as a `Course
+Lesson` `validate` hook (`hooks.py`) so this is enforced on every save
+regardless of origin, instead of only as a side effect of specific Content
+Studio actions. **`doc_events` hooks need a worker/web restart (or `bench
+clear-cache`) to take effect on the shared bench — not done yet, needs
+separate explicit approval since it also touches live `szl`.** Until that
+restart happens, the fix exists in code only; the next native-editor
+open-then-save on any quiz lesson anywhere in the LMS will still silently
+re-break it. Swept the whole LMS: 0 quiz lessons are currently poisoned, so
+no live cleanup is pending, only the restart to arm the guard. See
+`docs/lms-findings-and-fixes.md` for the full Version-history evidence
+trail. Expires when: the restart happens and the hook is confirmed live.
+
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").
 Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4

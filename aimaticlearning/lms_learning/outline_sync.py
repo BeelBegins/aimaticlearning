@@ -167,6 +167,26 @@ def _empty_quiz_lesson_content(lesson_name: str) -> bool:
 	return True
 
 
+def enforce_empty_quiz_content(doc, method=None) -> None:
+	"""Course Lesson `validate` hook (see hooks.py doc_events).
+
+	Quiz-wired lessons must keep EditorJS `content` empty (see
+	`new_quiz_lesson_values`'s docstring for why). This invariant used to be
+	enforced only as a side effect of specific Content Studio saves
+	(`_empty_quiz_lesson_content`, called from `ensure_quiz_lesson`) — any
+	other editor could silently re-break it. Confirmed root cause 2026-09-30
+	for BLP Chapter 1: the native Frappe LMS lesson editor round-trips the
+	placeholder `body` text into `content` on a plain open-then-save (no
+	real edit), which hides the quiz widget behind the CodeX/EditorJS
+	renderer for every student until someone happens to save an MCQ in
+	Content Studio (which incidentally clears `content` again via
+	`ensure_quiz_lesson`). Enforce it on every save, regardless of which UI
+	or script wrote it, instead of relying on Studio-only side effects.
+	"""
+	if (doc.quiz_id or "").strip() and (doc.content or "").strip():
+		doc.content = ""
+
+
 def ensure_quiz_lesson(profile_name: str) -> str | None:
 	profile = frappe.get_doc("Learning Chapter Profile", profile_name)
 	if not profile.chapter_quiz or not profile.course_chapter:
