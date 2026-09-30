@@ -129,14 +129,31 @@ the 19 orphaned quizzes. Backup:
 `private/files/lms_learning_exports/public-law-ai-content-removed-20260930.json`
 (full doc dumps, not just names). Verified after: `public-law` bank is
 220/220 non-AI; its 7 chapter quizzes (20/20 each) and module assessment
-(140/140) untouched. **Not yet checked**: whether Legal Services and BLP have
-similar real source files that would let their orphaned 65/40 AI items
-(currently unlinked to any quiz, so not live-exposed) be deleted the same way.
+(140/140) untouched. **Legal Services and BLP checked and resolved
+(2026-09-30)**: real source files found (`BLP notes and Questions .docx`,
+uploaded on disk without a `File` record, same orphan pattern as `PL
+MCQs.docx`; `MCQs_LegalServices.docx`, uploaded via the desk today). Unlike
+Public Law, stem-matching showed the AI items were **not** duplicates of the
+source content — BLP's 40 AI items were VAT tax-point questions and Legal
+Services' 65 were funding/costs/legal-aid questions, topics the human source
+files don't cover at all (181/181 and 160/160 *human* items matched their
+sources exactly; 0/40 and 0/65 AI items did). Both sets were orphaned (0 quiz
+links, 0 submission results) so deletion was still safe for submission
+integrity, but it does leave those two sub-topics with no reviewed MCQ
+coverage until a human authors replacements. Deleted per explicit instruction
+("delete both anyway" — same no-AI-content policy as Public Law, gap accepted
+for now). Backup:
+`private/files/lms_learning_exports/blp-legal-services-ai-content-removed-20260930.json`.
+Verified after: `business-law-practice-blp` 181/181 non-AI, `legal-services`
+160/160 non-AI. **Gap to fill later**: VAT tax-point mechanics (BLP) and
+funding/costs/legal-aid mechanics (Legal Services) have zero MCQ coverage now.
 No decision yet on re-gating `dispute-resolution`/`legal-services`/
-`criminal-law` back to `published=0` pending review — doing so may re-break
-whatever learner access problem the 13:00:25 write was fixing; left published
-per explicit instruction. Expires when: Legal Services/BLP are checked, or the
-publish/review-gate question is resolved.
+`criminal-law` back to `published=0` pending review, or on Criminal Law's 97
+live AI items in the published `criminal-law` course (still untouched) —
+doing so may re-break whatever learner access problem the 13:00:25 write was
+fixing; left published per explicit instruction. Expires when: the
+publish/review-gate question is resolved, Criminal Law's AI items are
+addressed, or the VAT/funding-costs content gaps are filled.
 
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").
