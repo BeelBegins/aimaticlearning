@@ -155,6 +155,23 @@ fixing; left published per explicit instruction. Expires when: the
 publish/review-gate question is resolved, Criminal Law's AI items are
 addressed, or the VAT/funding-costs content gaps are filled.
 
+**Leaked quiz/glossary content removed from student notes (2026-09-30):**
+22 chapters across 5 published, enrolled courses (Solicitors Accounts,
+Criminal Litigation, Wills & Administration, Tort Law, Public Law) had
+embedded glossary/exam-guide/MCQ-answer-key content in student-facing notes
+— worst case, a literal answer key with explanations in Solicitors Accounts
+Ch.8. Root cause: Word sources that combined notes and a question bank in
+one document; the "strip junk headings, keep them out of notes" convention
+existed (`dr_clean_notes.py`) but was only ever run for Dispute Resolution.
+Generalized into `clean_leaked_notes.py`, backed up, applied, verified — see
+`docs/lms-findings-and-fixes.md` for full detail. One chapter (Dispute
+Resolution Ch.6) was checked and correctly left untouched — its "Summary of
+Common Remedies" heading is real teaching content, not junk. Post-import
+verification in `lms-course-upload/SKILL.md` extended to cover this pattern
+for future imports. Expires when: a future audit confirms no other subject
+has reintroduced this pattern, or the importer itself is fixed to strip it
+at import time rather than needing a follow-up sweep.
+
 Backup `20260922_134154-lms_aimatic_tech-*` (pre-dates the Mock 4 add; no new
 backup was taken for the Mock 4 build per "don't back up LMS unless asked").
 Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4

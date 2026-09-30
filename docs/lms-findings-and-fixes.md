@@ -143,3 +143,75 @@ live Studio edit end-to-end.
 Studio and confirming a `Version` row appears with the correct before/after
 diff). Should be spot-checked next time notes or a chapter title are edited
 through Studio.
+
+**Update (same day):** Verified live during the leaked-notes cleanup below —
+`Learning Chapter Profile` and `Course Lesson` Version rows were created with
+correct before/after diffs for every chapter touched, timestamped at the
+apply run. Confirmed working, not just compiled.
+
+## 2026-09-30 — Embedded quiz/glossary content leaking into student notes, 6 subjects
+
+**Scope:** 22 chapters across 5 published, enrolled courses: Solicitors
+Accounts (2), Criminal Litigation (10), Wills & Administration of Estates
+(6), Tort Law (2), Public Law (2). A 23rd chapter (Dispute Resolution Ch.6
+"Remedies") was checked and correctly excluded — see below.
+
+**Finding:** The user had previously set up a "glossary and key terms go to
+a Module Assessment revision lesson, not the chapter notes" convention
+(documented in `lms-course-upload/SKILL.md`'s Post-import verification, and
+partly built as a one-off `dr_clean_notes.py` script for Dispute Resolution
+only) but it was never generalized or run for other subjects. A full sweep
+of every `Learning Chapter Profile.notes_html` in the LMS for junk-heading
+patterns found real leaks well beyond glossaries: Solicitors Accounts Ch.8
+had a literal **answer key with explanations** embedded in student notes
+(`Question 1: Answer C`, `Question 2: Answer C`, ... with full reasoning per
+question) — a genuine academic-integrity leak, since a student could read
+the answers directly from their notes without attempting the quiz. Criminal
+Litigation (all 10 chapters) and Wills (6 of 6) had full "Scenario-Based
+Multiple Choice Questions" / "CHAPTER N: MULTIPLE CHOICE QUESTIONS" sections
+with embedded Q&A. Tort Law had exam-technique/"how questions are tested"
+guide prose, not actual MCQs. All 6 courses (including Dispute Resolution)
+are `published=1` with real enrolled learners (2–4 each) at the time of this
+finding.
+
+**Fix:** Generalized `dr_clean_notes.py` into
+`aimaticlearning/lms_learning/clean_leaked_notes.py` — same heading-strip
+approach (BeautifulSoup, regex-matched junk headings, remove heading +
+following siblings up to the next same/higher-level heading), plus a new
+`TERMINAL_JUNK_HEADING` category for whole-section MCQ dumps: verified
+across every real instance that this heading is always the chapter's last
+(or second-to-last, followed only by a stray malformed options-as-heading
+fragment from the original Word import) section, so those consume to end of
+document rather than stopping at the next heading — the non-terminal size
+cap (3000 chars, a false-positive guard) doesn't apply to them since the
+heading text itself is specific enough that false positives aren't a risk.
+Ran dry-run first (read-only), manually checked the one non-terminal
+oversized skip (DR Ch.6, 6197 chars) by reading its actual content —
+legitimate substantive teaching on contract/tort remedies (Hadley v
+Baxendale, penalty clauses), not junk, correctly left untouched — then
+applied. Full per-chapter backup (`before`/`after` body, notes_html,
+content) written to
+`private/files/lms_learning_exports/leaked-notes-cleanup-backup-20260930-205037.json`
+before any write. Every write now also logs a `Version` record via
+`content_studio._log_manual_version` (see the audit-trail fix above),
+timestamped at the apply run.
+
+**Verification:** `verify()` after apply: only the DR Ch.6 false-positive
+still shows its (legitimate) heading — every one of the 22 real leak
+chapters is clean, no leftover junk headings, `content` empty on every
+touched lesson, `<article>` tags balanced. Spot-checked Solicitors Accounts
+Ch.8 directly: `"Answer C"` and `"Answers with Explanations"` no longer
+present anywhere in the notes; `Version` rows exist for both the `Learning
+Chapter Profile` and `Course Lesson` with the correct before/after diff.
+182,438 characters removed across 22 chapters.
+
+**Remaining risk:** This was a one-time sweep of content that existed today.
+If future Word imports for these or other subjects reintroduce the same
+"notes + embedded questions" combined-source pattern (seen earlier this
+session in the raw `BLP notes and Questions .docx` / `PL MCQs.docx` source
+files), the leak recurs — the fix is in the cleanup script, not the
+importer. `lms-course-upload/SKILL.md`'s Post-import verification step
+("Glossary/key-concepts leaking into notes") already tells future imports
+to scan for this before publish; it should be extended to explicitly cover
+embedded MCQ/answer-key blocks too, not just glossary banners, since that
+turned out to be the more serious leak shape.

@@ -59,12 +59,23 @@ recurred as a real, separately-fixed defect:
   quiz question count against its target spec (e.g. `FLK2_MCQ_SPECS` or the
   equivalent for the subject). A short count is a gap to report and fix, not
   something to publish silently short.
-- **Glossary/key-concepts leaking into notes.** Chapter study notes must not
-  contain an embedded end-of-chapter summary/glossary bank (literal banners
-  like `CHAPTER N SUMMARY` or `Key Glossary Terms`). That content belongs in
-  the subject's Module Assessment "Quick Revision Notes — Key Concepts &
-  Glossary" lesson, before the assessment — not inside the notes body. Scan
-  every imported chapter's notes for these banners before publish.
+- **Glossary/key-concepts/embedded-questions leaking into notes.** Chapter
+  study notes must not contain an embedded end-of-chapter summary/glossary
+  bank (literal banners like `CHAPTER N SUMMARY` or `Key Glossary Terms`),
+  nor an embedded question bank/answer key (`Scenario-Based Multiple Choice
+  Questions`, `CHAPTER N: MULTIPLE CHOICE QUESTIONS`, `Question N: Answer
+  X`, `Answers with Explanations`), nor exam-technique/"how questions are
+  tested" guide prose. That content either belongs in the subject's Module
+  Assessment "Quick Revision Notes — Key Concepts & Glossary" lesson (for
+  glossary/summary) or nowhere in student-facing notes at all (for embedded
+  MCQs/answer keys — those are an academic-integrity leak, not a filing
+  mistake). Found live 2026-09-30 across 22 chapters / 5 published courses,
+  including a literal answer key in Solicitors Accounts notes — source was
+  Word files that combined notes and a question bank in one document (see
+  `docs/lms-findings-and-fixes.md`). Scan every imported chapter's notes for
+  these patterns before publish — reuse
+  `aimaticlearning/lms_learning/clean_leaked_notes.py`'s `JUNK_HEADING`/
+  `TERMINAL_JUNK_HEADING` regexes rather than re-deriving them.
 - **Quiz lesson with empty `body` renders blank.** A quiz-wired lesson needs
   `content = ""` (required, hides the EditorJS quiz widget) **and** a
   non-empty `body` (Frappe LMS only mounts the quiz through the body
