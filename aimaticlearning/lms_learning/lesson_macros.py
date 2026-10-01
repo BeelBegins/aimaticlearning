@@ -160,6 +160,8 @@ def _build_flashcard_details(profile: frappe.Document) -> str:
 			f"<span class=\"ach-card-face ach-card-front\">{front}</span>"
 			f"<span class=\"ach-card-face ach-card-back\" hidden>{back}</span>"
 			f"<span class=\"ach-flip-label\">Tap to flip</span></div>"
+			f"<button type=\"button\" class=\"ach-flag\" data-ach-flag title=\"Flag this card for review\""
+			f" aria-label=\"Flag this card for review\">&#9873;</button>"
 			f"<div class=\"ach-flash-card-meta\"><span>{difficulty}</span>"
 			f"<span data-ach-flash-progress>Card {i} of {len(cards)}</span></div></article>"
 		)

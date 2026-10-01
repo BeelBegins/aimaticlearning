@@ -67,6 +67,15 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
   lesson in a browser. Passing means it shows the inline session card (for
   example, `30 cards ready` and Start deck), not a plain outbound deck link,
   and the course-specific weak-areas link is correct.
+- A learner-facing flashcard change (button, flag, control, copy) has several
+  render paths: server-side `lesson_macros.py`, the JS-built deck in
+  `lms_student_experience.js`, and `www/learning_flashcards.html`. Before
+  coding, grep all of them and change every path the learner can reach. A
+  change in one path alone shipped a flag nobody could see.
+- Do not report such a change as done from code, a commit, or a served asset
+  alone. Done means a learner lesson page was loaded after migrate/restart and
+  the control was seen working (or its HTML checked on the real rendered
+  page). If no learner login is available, say it is unverified.
 
 ## Learning data and release
 
