@@ -405,3 +405,32 @@ tables. Lesson learned: a document-internal-consistency argument (two
 sections of the same file agreeing) is not a substitute for asking whose
 revision is authoritative — should have asked before applying the 09-30 fix
 instead of inferring it from file structure alone.
+
+## 2026-10-01 — Criminal Litigation question bank: every question started with a stray ": "
+
+**Scope:** `criminal-litigation` course (`LMOD-01087`), all 11 chapters, all
+220 chapter-MCQ questions (`QTS-2026-01191`–`QTS-2026-01410` range).
+Published, `ai_generated=0` (human-reviewed), live with 582 quiz links
+across chapter quizzes, the module assessment, and mocks.
+
+**Finding:** User reported a question rendering with a leading colon. A
+database scan for `question like ': %'` found the defect was not isolated —
+literally every question in the Criminal Litigation bank had the exact same
+`": "` (colon-space) prefix, e.g. `": What is the primary purpose of PACE
+1984..."`. Root cause not investigated further (importer/parser artifact
+from stripping a "Question N:" label and leaving the trailing colon-space
+behind) — scope was 100% of one course's bank, not a scattered issue, so no
+further root-cause chase was needed to size the fix.
+
+**Fix:** Backed up all 220 `question` field values before editing:
+`private/files/lms_learning_exports/criminal-litigation-colon-prefix-fix-20261001.json`.
+Stripped the leading `": "` from each via `.save()` (Version-logged).
+
+**Verification:** Re-queried `question like ': %'` after the fix — 0 rows
+remain. Spot-checked 5 fixed questions render clean stems with no leading
+punctuation.
+
+**Remaining risk:** Checked `option_1`–`option_5` and `explanation_1`–
+`explanation_5` for the same `": "` prefix — 0 hits, so the artifact was
+confined to the question stem. Other subjects were not swept for the same
+pattern — this was scoped to the one course the user flagged.
