@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "autoname": "format:FCF-{YYYY}-{#####}",
+ "creation": "2026-10-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "learning_flashcard",
+  "front",
+  "learning_module",
+  "course_chapter",
+  "column_break_flag",
+  "flagged_by",
+  "reason",
+  "status",
+  "section_break_note",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "learning_flashcard",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Flashcard",
+   "options": "Learning Flashcard",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "learning_flashcard.front",
+   "fieldname": "front",
+   "fieldtype": "Text",
+   "label": "Front",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "learning_flashcard.learning_module",
+   "fieldname": "learning_module",
+   "fieldtype": "Link",
+   "label": "Learning Module",
+   "options": "Learning Module Config",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "learning_flashcard.course_chapter",
+   "fieldname": "course_chapter",
+   "fieldtype": "Link",
+   "label": "Course Chapter",
+   "options": "Course Chapter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_flag",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "flagged_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Flagged By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reason",
+   "options": "Incorrect\nUnclear\nOutdated\nDuplicate\nOther"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nResolved"
+  },
+  {
+   "fieldname": "section_break_note",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Learner Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Learning Flashcard Flag",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "LMS Content Reviewer",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "front"
+}

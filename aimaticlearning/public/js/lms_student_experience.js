@@ -409,6 +409,14 @@
 			flip.append(makeNode("span", "ach-flip-label", "Select to reveal"));
 			card.append(flip);
 
+			// Temporary reviewer-feedback flag; remove with flagFlashcard() and .ach-flag CSS.
+			const flag = makeNode("button", "ach-flag", "\u2691");
+			flag.type = "button";
+			flag.dataset.achFlag = "";
+			flag.title = "Flag this card for review";
+			flag.setAttribute("aria-label", "Flag this card for review");
+			card.append(flag);
+
 			const meta = makeNode("div", "ach-flash-card-meta");
 			meta.append(makeNode("span", "", cardData.difficulty || "Medium"));
 			meta.append(makeNode("span", "", "Card " + (index + 1) + " of " + cards.length));
@@ -575,6 +583,32 @@
 			});
 	}
 
+	function flagFlashcard(button) {
+		const study = button.closest("[data-ach-flash-study]");
+		const current = study && Array.from(study.querySelectorAll("[data-ach-card]")).find(function (item) {
+			return !item.hidden;
+		});
+		if (!current || button.disabled) return;
+		button.disabled = true;
+		fetch("/api/method/aimaticlearning.lms_learning.api.flag_flashcard", {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Frappe-CSRF-Token": window.csrf_token || "",
+			},
+			body: JSON.stringify({ name: current.dataset.achCardName }),
+		})
+			.then(function (response) {
+				if (!response.ok) throw new Error("Flashcard could not be flagged.");
+				button.classList.add("is-flagged");
+				button.title = "Flagged for review";
+			})
+			.catch(function () {
+				button.disabled = false;
+			});
+	}
+
 	window.AimaticFlashcards = {
 		reload: reloadFlashcardDeck,
 	};
@@ -617,6 +651,13 @@
 				if (study) study.querySelectorAll("[data-ach-rating]").forEach(function (rating) {
 					rating.disabled = !revealing;
 				});
+				return;
+			}
+			const flagButton = event.target.closest("[data-ach-flag]");
+			if (flagButton && flagButton.closest("[data-aimatic-flashcard-deck]")) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				flagFlashcard(flagButton);
 				return;
 			}
 			const button = event.target.closest("[data-ach-rating]");

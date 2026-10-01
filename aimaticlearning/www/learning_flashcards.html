@@ -164,7 +164,12 @@
 	<div id="fc-loading" class="fc-loading">Loading deck…</div>
 	<div id="fc-empty" class="fc-empty is-hidden">No matching flashcards for this filter yet. Rate a deck first, or open Revision.</div>
 	<div id="fc-deck" class="is-hidden">
-		<div class="fc-card" id="fc-card" role="button" tabindex="0" aria-label="Flashcard. Tap to flip."></div>
+		<div class="fc-card-wrap" style="position:relative">
+			<div class="fc-card" id="fc-card" role="button" tabindex="0" aria-label="Flashcard. Tap to flip."></div>
+			<!-- Temporary reviewer-feedback flag; remove with the fc-flag handler. -->
+			<button type="button" id="fc-flag" title="Flag this card for review" aria-label="Flag this card for review"
+				style="position:absolute;top:8px;right:8px;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;opacity:.45;font-size:16px;cursor:pointer">&#9873;</button>
+		</div>
 		<div class="fc-meta">
 			<span id="fc-progress"></span>
 			<span id="fc-concept"></span>
@@ -205,6 +210,9 @@
 		el.card.classList.remove("is-back");
 		el.progress.textContent = "Card " + (index + 1) + " of " + cards.length;
 		el.concept.textContent = card.concept || "";
+		flagBtn.disabled = false;
+		flagBtn.style.color = "";
+		flagBtn.style.opacity = "";
 	}
 
 	function flip() {
@@ -303,6 +311,30 @@
 
 	el.card.addEventListener("click", flip);
 	el.next.addEventListener("click", nextCard);
+
+	const flagBtn = document.getElementById("fc-flag");
+	flagBtn.addEventListener("click", function () {
+		const card = cards[index];
+		if (!card) return;
+		flagBtn.disabled = true;
+		fetch("/api/method/aimaticlearning.lms_learning.api.flag_flashcard", {
+			method: "POST",
+			credentials: "same-origin",
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+				"X-Frappe-CSRF-Token": csrfToken(),
+			},
+			body: JSON.stringify({ name: card.name }),
+		})
+			.then(function (response) {
+				if (!response.ok) throw new Error("flag failed");
+				flagBtn.style.color = "#c0392b";
+				flagBtn.style.opacity = "1";
+				flagBtn.title = "Flagged for review";
+			})
+			.catch(function () { flagBtn.disabled = false; });
+	});
 
 	document.querySelectorAll("[data-rating]").forEach(function (btn) {
 		btn.addEventListener("click", function () {

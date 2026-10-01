@@ -248,6 +248,40 @@ def review_flashcard(name: str, rating: str):
 
 
 @frappe.whitelist()
+def flag_flashcard(name: str, reason: str | None = None, note: str | None = None):
+	"""Let a learner flag a card so a reviewer can fix or retire it. Idempotent per user."""
+	user = frappe.session.user
+	card = frappe.db.get_value(
+		"Learning Flashcard", name, ["name", "learning_module"], as_dict=True
+	)
+	if not card:
+		frappe.throw("Flashcard was not found.")
+	course = frappe.db.get_value("Learning Module Config", card.learning_module, "lms_course")
+	if not course or not user_can_access_course(course, user):
+		throw_access_denied()
+
+	reason = reason if reason in ("Incorrect", "Unclear", "Outdated", "Duplicate", "Other") else "Other"
+	existing = frappe.db.get_value(
+		"Learning Flashcard Flag",
+		{"learning_flashcard": card.name, "flagged_by": user, "status": "Open"},
+		"name",
+	)
+	if existing:
+		return {"ok": True, "name": existing, "already_flagged": True}
+	doc = frappe.get_doc(
+		{
+			"doctype": "Learning Flashcard Flag",
+			"learning_flashcard": card.name,
+			"flagged_by": user,
+			"reason": reason,
+			"note": (note or "")[:500],
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return {"ok": True, "name": doc.name}
+
+
+@frappe.whitelist()
 def repair_blp_course_content():
 	frappe.only_for(("System Manager", "LMS Content Reviewer", "Course Creator"))
 	return repair_course_content()
