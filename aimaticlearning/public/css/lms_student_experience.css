@@ -689,21 +689,25 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
 body.aimatic-lms-learner .ach-flash-item { position: relative; }
 body.aimatic-lms-learner .ach-flag {
 	position: absolute;
-	top: 8px;
-	right: 8px;
+	top: 10px;
+	right: 10px;
 	z-index: 2;
-	width: 32px;
-	height: 32px;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: transparent;
-	color: inherit;
-	opacity: .45;
-	font-size: 16px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 34px;
+	padding: 0 14px;
+	border: 1px solid #c0392b;
+	border-radius: 999px;
+	background: #fff;
+	color: #c0392b;
+	font-size: 14px;
+	font-weight: 600;
 	line-height: 1;
 	cursor: pointer;
 }
-body.aimatic-lms-learner .ach-flag:hover { opacity: .9; }
-body.aimatic-lms-learner .ach-flag.is-flagged { color: #c0392b; opacity: 1; }
+body.aimatic-lms-learner .ach-flag::after { content: "Flag"; }
+body.aimatic-lms-learner .ach-flag:hover { background: #fdecea; }
+body.aimatic-lms-learner .ach-flag.is-flagged { background: #c0392b; color: #fff; }
+body.aimatic-lms-learner .ach-flag.is-flagged::after { content: "Flagged"; }
 body.aimatic-lms-learner .ach-flag:disabled { cursor: default; }

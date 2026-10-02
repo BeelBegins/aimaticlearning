@@ -10,7 +10,7 @@ ASSET_MARKER = "examic-study-learning-assets"
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-studentmeta2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260917-railfix1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261001-flag1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261002-flag2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20260925-dash4">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261001-calc1">
