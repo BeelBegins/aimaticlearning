@@ -19,6 +19,27 @@ Frappe LMS.
   records, re-importing content, relinking quiz questions, or publishing a
   changed question bank.
 
+## Source rules (learner-facing content)
+
+- **Never author MCQs.** Chapter MCQs come only from the uploaded Practice
+  Questions Word file, with its own answers and explanations, through
+  `parse_mcqs_from_docx`. If a chapter has no source MCQs, report the gap;
+  do not generate questions, even from the chapter notes. A model-written
+  MCQ is `ai_generated = 1`, is never linked to a chapter quiz, and is kept
+  out of learners' sight unless the user explicitly sends it to mocks.
+- **Names:** scenarios use common English names (Emma, Oliver, James, Emily).
+  Never use culturally specific names such as Nadia, Zoe or Zoha. Check
+  question, option, and explanation text.
+- **Flashcards:** each `source_quote` must match the notes text after tags are
+  stripped to spaces, so keep quotes inside one formatted run (no bold terms or
+  bracketed citations at their edges). Never split notes by paragraph into
+  "What is the key point about…" cards.
+- **Before importing a chapter,** count its MCQs, flashcards and notes in the
+  database first; an empty chapter with notes is a content gap, not a layout
+  problem. After import, confirm one correct option and a non-empty
+  explanation per question, and read the learner deck/quiz as an enrolled
+  student.
+
 ## Quality gates
 
 For each affected chapter MCQ or mock item, verify:
