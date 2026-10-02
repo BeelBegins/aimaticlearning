@@ -211,8 +211,10 @@
 		el.progress.textContent = "Card " + (index + 1) + " of " + cards.length;
 		el.concept.textContent = card.concept || "";
 		flagBtn.disabled = false;
+		flagBtn.dataset.flagged = "";
 		flagBtn.style.color = "";
 		flagBtn.style.opacity = "";
+		flagBtn.title = "Flag for review";
 	}
 
 	function flip() {
@@ -317,7 +319,8 @@
 		const card = cards[index];
 		if (!card) return;
 		flagBtn.disabled = true;
-		fetch("/api/method/aimaticlearning.lms_learning.api.flag_flashcard", {
+		const unflagging = flagBtn.dataset.flagged === "1";
+		fetch("/api/method/aimaticlearning.lms_learning.api." + (unflagging ? "unflag_flashcard" : "flag_flashcard"), {
 			method: "POST",
 			credentials: "same-origin",
 			headers: {
@@ -329,11 +332,20 @@
 		})
 			.then(function (response) {
 				if (!response.ok) throw new Error("flag failed");
-				flagBtn.style.color = "#c0392b";
-				flagBtn.style.opacity = "1";
-				flagBtn.title = "Flagged for review";
+				if (unflagging) {
+					flagBtn.dataset.flagged = "";
+					flagBtn.style.color = "";
+					flagBtn.style.opacity = "";
+					flagBtn.title = "Flag for review";
+				} else {
+					flagBtn.dataset.flagged = "1";
+					flagBtn.style.color = "#c0392b";
+					flagBtn.style.opacity = "1";
+					flagBtn.title = "Flagged for review (click to unflag)";
+				}
 			})
-			.catch(function () { flagBtn.disabled = false; });
+			.catch(function () {})
+			.finally(function () { flagBtn.disabled = false; });
 	});
 
 	document.querySelectorAll("[data-rating]").forEach(function (btn) {

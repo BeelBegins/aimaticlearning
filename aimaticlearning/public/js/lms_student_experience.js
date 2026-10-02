@@ -590,7 +590,8 @@
 		});
 		if (!current || button.disabled) return;
 		button.disabled = true;
-		fetch("/api/method/aimaticlearning.lms_learning.api.flag_flashcard", {
+		const unflagging = button.classList.contains("is-flagged");
+		fetch("/api/method/aimaticlearning.lms_learning.api." + (unflagging ? "unflag_flashcard" : "flag_flashcard"), {
 			method: "POST",
 			credentials: "same-origin",
 			headers: {
@@ -600,11 +601,12 @@
 			body: JSON.stringify({ name: current.dataset.achCardName }),
 		})
 			.then(function (response) {
-				if (!response.ok) throw new Error("Flashcard could not be flagged.");
-				button.classList.add("is-flagged");
-				button.title = "Flagged for review";
+				if (!response.ok) throw new Error("Flashcard flag could not be saved.");
+				button.classList.toggle("is-flagged", !unflagging);
+				button.title = unflagging ? "Flag for review" : "Flagged for review (click to unflag)";
 			})
-			.catch(function () {
+			.catch(function () {})
+			.finally(function () {
 				button.disabled = false;
 			});
 	}

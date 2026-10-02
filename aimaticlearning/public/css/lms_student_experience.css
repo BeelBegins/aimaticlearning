@@ -710,4 +710,4 @@ body.aimatic-lms-learner .ach-flag::after { content: "Flag"; }
 body.aimatic-lms-learner .ach-flag:hover { background: #fdecea; }
 body.aimatic-lms-learner .ach-flag.is-flagged { background: #c0392b; color: #fff; }
 body.aimatic-lms-learner .ach-flag.is-flagged::after { content: "Flagged"; }
-body.aimatic-lms-learner .ach-flag:disabled { cursor: default; }
+body.aimatic-lms-learner .ach-flag:disabled { cursor: progress; }

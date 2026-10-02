@@ -282,6 +282,23 @@ def flag_flashcard(name: str, reason: str | None = None, note: str | None = None
 
 
 @frappe.whitelist()
+def unflag_flashcard(name: str):
+	"""Withdraw the learner's own open flag on a card. Idempotent."""
+	user = frappe.session.user
+	if not frappe.db.exists("Learning Flashcard", name):
+		frappe.throw("Flashcard was not found.")
+	removed = 0
+	for flag in frappe.get_all(
+		"Learning Flashcard Flag",
+		filters={"learning_flashcard": name, "flagged_by": user, "status": "Open"},
+		pluck="name",
+	):
+		frappe.delete_doc("Learning Flashcard Flag", flag, ignore_permissions=True)
+		removed += 1
+	return {"ok": True, "removed": removed}
+
+
+@frappe.whitelist()
 def repair_blp_course_content():
 	frappe.only_for(("System Manager", "LMS Content Reviewer", "Course Creator"))
 	return repair_course_content()
