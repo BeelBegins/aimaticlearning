@@ -106,6 +106,32 @@ DR/Legal Services/Legal System, previously reported "tight" for even 3
 sittings (75/80/80 eligible), have grown substantially since 09-17 (362/160/220
 eligible) and are no longer a blocker at 4 or 5 sittings.
 
+**Criminal Law's 97 `ai_generated=1` items verified against a solicitor
+source (2026-10-01):** User pasted a solicitor-provided "Criminal Law Notes
+for SQE1" document (6 chapters, notes + 20 MCQs each). Cross-checked against
+live data: Chapters 2-6 live quiz questions (20/20 each, 100 total) match
+this source verbatim — stem, all options, correct answer, and explanation —
+confirmed by full-detail spot checks (Ch6 Q1, Ch4 Q20) plus stem checks
+across all 6 chapters. This is the first confirmed real source for the 97
+AI-flagged items; they are not ungrounded LLM output, they match a
+solicitor-authored document exactly. No `ai_generated` flags changed — that
+decision is still pending explicit instruction. Two things noted, not
+acted on: (1) Chapter 6 has 20 live quiz questions but only 17 carry a
+`Learning Question Meta` tracking row — 3 questions have no review-status
+record (admin-tracking gap only, not a student-facing defect). (2) The
+source document itself hedges on at least 4 answers ("B or C", "A or D", "A
+(or possibly A and B)", "E (or possibly C)") in Chapters 2 and 4 — per the
+[[lms-mcq-quality]] single-correct-option rule and the BLP Q16/Q17 lesson
+above, these need the solicitor to pick one definitive letter; do not guess
+which one.
+
+**Status 2026-10-02 (re-checked live): unchanged, still open.** Criminal Law still has
+97 `ai_generated=1` and 20 `ai_generated=0` meta rows (the 97 were last modified
+2026-09-07), and Chapter 6 still has 17 meta rows for 20 questions. Nothing was
+done on the flag decision, the Ch6 tracking gap or the hedged answers; each
+needs explicit instruction. Criminal Litigation is done: see
+`docs/lms-findings-and-fixes.md`.
+
 **AI-drafted MCQs live in published courses (found and partly fixed
 2026-09-30):** Auditing the Criminal Law AI-content gap above surfaced a wider
 issue: `public-law`, `legal-services`, and `business-law-practice-blp` also
@@ -186,6 +212,8 @@ Swept the whole LMS beforehand: 0 quiz lessons were poisoned at the time, so
 this was preventive, not a live cleanup. See
 `docs/lms-findings-and-fixes.md` for the full Version-history evidence
 trail.
+
+**BLP Ch.3 Q16/Q17 (2026-10-02):** Keys stay Q16=B, Q17=C (art. 26(5) Model Articles; CA 2006 s.22). Explanations rewritten and lesson `0023` corrected by the user. Red text in the 09-24 file is colour `EE0000`. The other red-marked questions are not yet checked against the notes; see `docs/lms-findings-and-fixes.md`.
 
 **BLP Ch.3 Q16/Q17: 2026-09-30 fix was wrong, reverted 2026-10-01.** The
 2026-09-30 entry below (now struck through in spirit, kept for history) fixed

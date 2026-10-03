@@ -58,7 +58,7 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
   `data-aimatic-flashcard-deck` host with both `data-learning-module` and
   `data-course-chapter`, a loading state, reveal/Hard/Good/Easy controls, and
   pause/resume session behaviour. Reuse a shared renderer; do not copy the
-  BLP-only `kinnu_course` implementation into each subject.
+  BLP-only flashcard implementation into each subject.
 - Never gate flashcard loading, the session decorator, or the weak-areas link
   on `business-law-practice-blp`. Derive the active course from the lesson URL
   or deck data so `examic_sessions.js` gives every SQE subject the same session

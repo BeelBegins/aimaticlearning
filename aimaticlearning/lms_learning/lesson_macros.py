@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 import frappe
 from frappe import _
 
+from aimaticlearning.lms_learning.clean_leaked_notes import split_learner_notes
 from aimaticlearning.lms_learning.protected_notes import get_notes_for_profile
 
 
@@ -15,7 +16,8 @@ def chapter_hub_renderer(profile_name: str) -> str:
 	if not frappe.db.exists("Learning Chapter Profile", profile_name):
 		return f"<p>{_('Chapter content not found.')}</p>"
 	profile = frappe.get_doc("Learning Chapter Profile", profile_name)
-	return profile.notes_html or "<p>No study notes are available for this chapter yet.</p>"
+	visible = split_learner_notes(profile.notes_html or "")["notes_html"]
+	return visible or "<p>No study notes are available for this chapter yet.</p>"
 
 def notes_paragraphs_from_html(notes_html: str) -> list[str]:
 	if not notes_html:

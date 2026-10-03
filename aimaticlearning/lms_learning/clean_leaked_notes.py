@@ -60,6 +60,21 @@ TERMINAL_JUNK_HEADING = re.compile(
     re.I | re.X,
 )
 
+# These sections are legitimate revision material, but they belong in the
+# course-end Quick Revision lesson rather than in a chapter's study notes.
+# Keep this narrower than JUNK_HEADING: embedded MCQs and answer keys must be
+# removed from notes, never copied into a learner revision rail.
+REVISION_HEADING = re.compile(
+    r"""^\s*(
+        (?:chapter\s+)?summary(?:\s+of\s+.*)?
+        |(?:chapter\s+)?glossary(?:\s+of\s+terms?)?
+        |(?:chapter\s+)?summary\s*(?:&|and)\s*(?:glossary|key\s+(?:terms|concepts|points?))
+        |key\s+(?:concepts?|terms?|glossary\s+terms?)\s+summary
+        |key\s+(?:terms?|glossary\s+terms?)
+    )\s*[:.]?\s*$""",
+    re.I | re.X,
+)
+
 HEADING_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6"}
 
 # Safety cap for the general JUNK_HEADING removals (summary/glossary/key-terms
@@ -134,6 +149,89 @@ def clean_html(html: str):
         removed.append(f"<h{level}> {label}" + (" [terminal]" if terminal else ""))
 
     return str(soup), removed, skipped
+
+
+def split_learner_notes(html: str) -> dict:
+    """Split chapter notes into learner notes and course-end revision blocks.
+
+    The profile remains the editor's working source. This transformation gives
+    both the learner renderer and Content Studio the same view: summary/glossary
+    sections are removed from chapter notes, while embedded MCQ/answer-key
+    sections are removed and never promoted.
+    """
+    if not html or not html.strip():
+        return {
+            "notes_html": html or "",
+            "revision_html": "",
+            "removed": [],
+            "moved": [],
+            "skipped": [],
+        }
+
+    soup = BeautifulSoup(html, "html.parser")
+    removed = []
+    moved = []
+    moved_labels = []
+    skipped = []
+    rejected_ids = set()
+
+    while True:
+        target = None
+        terminal = False
+        action = "remove"
+        for tag in soup.find_all(list(HEADING_TAGS)):
+            if id(tag) in rejected_ids:
+                continue
+            text = _heading_text(tag)
+            if TERMINAL_JUNK_HEADING.match(text):
+                target = tag
+                terminal = True
+                action = "remove"
+                break
+            if REVISION_HEADING.match(text):
+                target = tag
+                action = "move"
+                break
+            if JUNK_HEADING.match(text):
+                target = tag
+                action = "remove"
+                break
+        if target is None:
+            break
+
+        level = int(target.name[1])
+        label = _heading_text(target)
+        doomed = [target]
+        if terminal:
+            doomed.extend(target.next_siblings)
+        else:
+            for sibling in target.next_siblings:
+                name = getattr(sibling, "name", None)
+                if name in HEADING_TAGS and int(name[1]) <= level:
+                    break
+                doomed.append(sibling)
+
+            size = _plain_len(doomed)
+            if size > MAX_JUNK_BLOCK_CHARS:
+                rejected_ids.add(id(target))
+                skipped.append(f"<h{level}> {label} (oversized, {size} chars)")
+                continue
+
+        if action == "move":
+            moved.extend(str(node) for node in doomed)
+            moved_labels.append(label)
+        else:
+            removed.append(f"<h{level}> {label}" + (" [terminal]" if terminal else ""))
+        for node in doomed:
+            node.extract()
+
+    return {
+        "notes_html": str(soup),
+        "revision_html": "".join(moved),
+        "removed": removed,
+        "moved": moved_labels,
+        "skipped": skipped,
+    }
 
 
 def _chapter_no(title):

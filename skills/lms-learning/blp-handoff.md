@@ -6,7 +6,7 @@
 
 ## Product goal
 
-UK SQE1 prep platform (Imran Sb model): UK solicitor owns content/credibility; Pakistan tech owns LMS, MCQs, analytics, AI; separate UK EdTech brand target. Positioning: Kinnu-basic / QLTS-premium → all-in-one portal at sharper price. Pilot 50–100 candidates → July 2027 SQE1 commercial launch → ~1000 subscribers.
+UK SQE1 prep platform (Imran Sb model): UK solicitor owns content/credibility; Pakistan tech owns LMS, MCQs, analytics, AI; separate UK EdTech brand target. Positioning: all-in-one portal at a sharper price than premium SQE prep. Pilot 50–100 candidates → July 2027 SQE1 commercial launch → ~1000 subscribers.
 
 **Do not auto-enroll** students on signup. Solicitor/admin enrolls or invites.
 
@@ -55,7 +55,7 @@ All LMS product code: `apps/aimaticlearning/aimaticlearning/lms_learning/` — *
 | `import_pipeline.py` | Docx → course/chapters/profiles |
 | `outline_sync.py` | Chapter/lesson links; notes lesson population |
 | `mcq_import.py` | Parse MCQs from docx → LMS Question + chapter quizzes |
-| `course_presentation.py` | **Chapter hub UI** — one lesson/chapter, Kinnu-style tabs; `repair_course_presentation()` |
+| `course_presentation.py` | **Chapter hub UI** — one lesson/chapter, hub tabs; `repair_course_presentation()` |
 | `lesson_macros.py` | Renders inline HTML hub (notes/MCQ/flashcards) into lesson `body` |
 | `templates/lms_learning/chapter_hub.html` | Hub markup + embedded CSS (Bricolage + Source Serif) |
 | `enrollment.py` | Signup config, Zoho helper, invite APIs, **no auto-enroll** |
@@ -128,7 +128,7 @@ Desk API: `aimaticlearning.lms_learning.api.repair_blp_presentation` (System Man
 
 1. **Flashcards:** AI batch → review → import to 200 published (`import_generated_flashcard_json`).
 2. **MCQs:** Generate tax-chapter-aligned MCQs (20/ch) or restructure course to match docx company-law MCQs.
-3. **Hub UI polish:** User wants more Kinnu-like polish; may need LMS SPA-safe assets if inline `<style>` stripped by sanitizer — verify in browser.
+3. **Hub UI polish:** May need LMS SPA-safe assets if inline `<style>` is stripped by the sanitizer — verify in browser.
 4. **Learning map / analytics:** Wire quiz attempts to `Learning Attempt Detail`; Desk page exists.
 5. **UK brand:** Replace “Aimatic Learning” on public surfaces when brand name finalized.
 6. **Rotate Zoho app password** (was exposed in chat).

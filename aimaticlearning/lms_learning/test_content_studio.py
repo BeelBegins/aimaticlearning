@@ -13,6 +13,7 @@ from aimaticlearning.lms_learning.content_studio import (
 	validate_mcq_payload,
 )
 from aimaticlearning.lms_learning.outline_sync import new_quiz_lesson_values
+from aimaticlearning.lms_learning.clean_leaked_notes import split_learner_notes
 
 
 class TestContentStudio(unittest.TestCase):
@@ -243,14 +244,13 @@ class TestContentStudio(unittest.TestCase):
 		self.assertTrue(synced["in_sync"])
 		self.assertEqual(synced["label"], "Notes published")
 
-		drift = notes_publish_state(
+		moved_revision = notes_publish_state(
 			"<h2>Offer</h2><p>Acceptance</p><h3>CHAPTER SUMMARY AND KEY CONCEPTS</h3>",
 			"<h2>Offer</h2><p>Acceptance</p>",
 			notes_lesson="lesson-1",
 		)
-		self.assertEqual(drift["status"], "out_of_sync")
-		self.assertFalse(drift["in_sync"])
-		self.assertGreater(drift["studio_chars"], drift["learner_chars"])
+		self.assertEqual(moved_revision["status"], "in_sync")
+		self.assertTrue(moved_revision["in_sync"])
 
 		missing = notes_publish_state("<p>x</p>", "", notes_lesson="")
 		self.assertEqual(missing["status"], "missing_lesson")
@@ -275,3 +275,22 @@ class TestContentStudio(unittest.TestCase):
 			validate_chapter_removal_confirm("VAT Registration", "VAT")
 		self.assertIn("exact chapter heading", str(raised.exception).lower())
 
+	def test_split_moves_summary_and_glossary_to_revision_output(self):
+		html = (
+			"<h2>Offer and acceptance</h2><p>Keep this teaching content.</p>"
+			"<h2>Chapter Summary and Glossary</h2><h3>Key Terms</h3><p>Move this revision content.</p>"
+			"<h2>Next topic</h2><p>Keep this too.</p>"
+		)
+		result = split_learner_notes(html)
+		self.assertIn("Keep this teaching content", result["notes_html"])
+		self.assertIn("Keep this too", result["notes_html"])
+		self.assertNotIn("Move this revision content", result["notes_html"])
+		self.assertIn("Move this revision content", result["revision_html"])
+		self.assertIn("Chapter Summary and Glossary", result["moved"])
+
+	def test_split_removes_embedded_answer_key_without_promoting_it(self):
+		html = "<h2>Offer</h2><p>Keep.</p><h2>Answer Key</h2><p>Do not show this.</p>"
+		result = split_learner_notes(html)
+		self.assertIn("Keep.", result["notes_html"])
+		self.assertNotIn("Do not show this", result["notes_html"])
+		self.assertEqual(result["revision_html"], "")

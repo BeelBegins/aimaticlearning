@@ -295,6 +295,47 @@
 	align-items: center;
 }
 
+.aimatic-content-studio .revision-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	width: 100%;
+	margin-top: 12px;
+	padding: 10px 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 7px;
+	background: var(--card-bg, #fff);
+	text-align: left;
+}
+
+.aimatic-content-studio .revision-btn.active {
+	border-color: var(--primary, #2490ef);
+	box-shadow: 0 0 0 1px var(--primary, #2490ef);
+}
+
+.aimatic-content-studio .revision-title {
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.aimatic-content-studio .revision-meta,
+.aimatic-content-studio .revision-help {
+	color: var(--text-muted);
+	font-size: 12px;
+}
+
+.aimatic-content-studio .revision-editor-host .ql-editor,
+.aimatic-content-studio .revision-editor-host .ace_editor {
+	min-height: 520px;
+}
+
+.aimatic-content-studio .mcq-metadata-help {
+	margin-top: 6px;
+	color: var(--text-muted);
+	font-size: 12px;
+	line-height: 1.4;
+}
+
 @media (max-width: 900px) {
 	.aimatic-content-studio .studio-shell {
 		grid-template-columns: 1fr;

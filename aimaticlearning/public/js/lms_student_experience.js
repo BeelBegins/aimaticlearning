@@ -248,6 +248,273 @@
 		});
 	}
 
+	function isChapterMcqLesson() {
+		return (
+			/^\/lms\/courses\/[^/]+\/learn\/[^/]+/.test(window.location.pathname) &&
+			!isHardMockSitting()
+		);
+	}
+
+	function quizRefValue(value) {
+		if (value && Object.prototype.hasOwnProperty.call(value, "value")) return value.value;
+		return value;
+	}
+
+	function setQuizRef(refOrValue, next) {
+		if (refOrValue && Object.prototype.hasOwnProperty.call(refOrValue, "value")) {
+			refOrValue.value = next;
+			return true;
+		}
+		return false;
+	}
+
+	function functionSource(fn) {
+		try {
+			return Function.prototype.toString.call(fn);
+		} catch (error) {
+			return "";
+		}
+	}
+
+	function bagKeys(bag) {
+		const keys = [];
+		try {
+			keys.push.apply(keys, Object.keys(bag));
+		} catch (error) {}
+		try {
+			keys.push.apply(keys, Object.getOwnPropertyNames(bag));
+		} catch (error) {}
+		return keys.filter(function (key, index, all) {
+			return all.indexOf(key) === index;
+		});
+	}
+
+	// Production LMS mangles setup() names (activeQuestion -> n, etc). Discover
+	// the quiz API by function source / ref shapes, not by original identifiers.
+	function discoverQuizState(fromEl, currentNum) {
+		let el = fromEl;
+		while (el) {
+			let inst = el.__vueParentComponent;
+			while (inst) {
+				const bags = [
+					inst.setupState,
+					inst.devtoolsRawSetupState,
+					inst.ctx,
+					inst.proxy,
+					inst.exposed,
+				];
+				for (let b = 0; b < bags.length; b += 1) {
+					const bag = bags[b];
+					if (!bag || typeof bag !== "object") continue;
+					let switchFn = null;
+					let nextFn = null;
+					let activeRef = null;
+					let questionsRef = null;
+					const showAnswerArrays = [];
+					const keys = bagKeys(bag);
+					for (let k = 0; k < keys.length; k += 1) {
+						let val;
+						try {
+							val = bag[keys[k]];
+						} catch (error) {
+							continue;
+						}
+						if (typeof val === "function") {
+							const src = functionSource(val);
+							if (
+								!switchFn &&
+								src.indexOf("<1||") !== -1 &&
+								src.indexOf(".length") !== -1
+							) {
+								switchFn = val;
+							}
+							if (
+								!nextFn &&
+								src.indexOf("show_answers") !== -1 &&
+								src.indexOf("Open Ended") !== -1
+							) {
+								nextFn = val;
+							}
+							continue;
+						}
+						if (!val || typeof val !== "object") continue;
+						if (Object.prototype.hasOwnProperty.call(val, "value")) {
+							const inner = val.value;
+							if (
+								Array.isArray(inner) &&
+								inner.length &&
+								inner[0] &&
+								inner[0].question
+							) {
+								questionsRef = val;
+							} else if (
+								typeof inner === "number" &&
+								inner >= 1 &&
+								(!currentNum || inner === currentNum)
+							) {
+								activeRef = val;
+							}
+						} else if (Array.isArray(val)) {
+							showAnswerArrays.push(val);
+						}
+					}
+					if (bag.activeQuestion != null && bag.questions != null) {
+						return {
+							switchQuestion: bag.switchQuestion || switchFn,
+							nextQuestion: bag.nextQuestion || nextFn,
+							activeQuestion: bag.activeQuestion,
+							questions: bag.questions,
+							showAnswerArrays: showAnswerArrays,
+						};
+					}
+					if (switchFn || (activeRef && questionsRef)) {
+						return {
+							switchQuestion: switchFn,
+							nextQuestion: nextFn,
+							activeQuestion: activeRef,
+							questions: questionsRef,
+							showAnswerArrays: showAnswerArrays,
+						};
+					}
+				}
+				inst = inst.parent;
+			}
+			el = el.parentElement;
+		}
+		return null;
+	}
+
+	function liveQuestionCounter() {
+		return Array.from(document.querySelectorAll(".text-sm.text-ink-gray-5")).find(function (node) {
+			return /^Question\s+\d+\s+-/.test((node.textContent || "").trim());
+		});
+	}
+
+	function liveQuestionCard() {
+		const counter = liveQuestionCounter();
+		return counter ? counter.closest("div.border.rounded-lg") : null;
+	}
+
+	function currentQuestionNumber(card) {
+		const counter = (card && card.querySelector(".text-sm.text-ink-gray-5")) || liveQuestionCounter();
+		const match = counter && counter.textContent.trim().match(/^Question\s+(\d+)/);
+		return match ? parseInt(match[1], 10) : 0;
+	}
+
+	function quizQuestionCount(card) {
+		let host = card;
+		for (let i = 0; host && i < 12; i += 1) {
+			const match = (host.textContent || "").match(/consists of\s+(\d+)\s+questions/i);
+			if (match) return parseInt(match[1], 10);
+			host = host.parentElement;
+		}
+		const bodyMatch = (document.body.textContent || "").match(
+			/This quiz consists of\s+(\d+)\s+questions/i
+		);
+		return bodyMatch ? parseInt(bodyMatch[1], 10) : 0;
+	}
+
+	function quizTotalQuestions(card, state) {
+		if (state) {
+			const list = quizRefValue(state.questions);
+			if (list && list.length) return list.length;
+		}
+		return quizQuestionCount(card);
+	}
+
+	function clearShowAnswers(state) {
+		if (!state || !state.showAnswerArrays) return;
+		state.showAnswerArrays.forEach(function (arr) {
+			if (arr && typeof arr.length === "number") arr.length = 0;
+		});
+		if (state.showAnswers && typeof state.showAnswers.length === "number") {
+			state.showAnswers.length = 0;
+		}
+	}
+
+	function goToMcq(target) {
+		const card = liveQuestionCard();
+		if (!card || target < 1) return;
+		const current = currentQuestionNumber(card);
+		if (!current || current === target) return;
+		const state =
+			discoverQuizState(card, current) ||
+			discoverQuizState(document.querySelector(".examic-quiz-toolbar") || document.body, current);
+		const total = quizTotalQuestions(card, state);
+		if (total && target > total) return;
+
+		clearShowAnswers(state);
+		if (state && typeof state.switchQuestion === "function") {
+			state.switchQuestion(target);
+			return;
+		}
+		if (state && setQuizRef(state.activeQuestion, target)) return;
+
+		// Last resort: native Next only exists after Check.
+		if (target === current + 1) {
+			const nativeNext = Array.from(card.querySelectorAll("button")).find(function (button) {
+				return (button.textContent || "").replace(/\s+/g, " ").trim() === "Next";
+			});
+			if (nativeNext) nativeNext.click();
+		}
+	}
+
+	function setNavDisabled(button, disabled) {
+		button.disabled = disabled;
+		button.setAttribute("aria-disabled", String(disabled));
+	}
+
+	function decorateMcqNav() {
+		if (!isChapterMcqLesson()) return;
+		document.querySelectorAll(".aimatic-mcq-side-action").forEach(function (button) {
+			button.remove();
+		});
+		const counter = liveQuestionCounter();
+		if (!counter) return;
+		const card = counter.closest("div.border.rounded-lg");
+		if (!card) return;
+		const header = counter.parentElement;
+		if (!header) return;
+
+		let nav = card.querySelector(":scope > .aimatic-mcq-nav");
+		if (!nav) {
+			nav = document.createElement("div");
+			nav.className = "aimatic-mcq-nav";
+			const prev = document.createElement("button");
+			prev.type = "button";
+			prev.className = "aimatic-mcq-nav-btn";
+			prev.textContent = "<";
+			prev.setAttribute("aria-label", "Previous question");
+			const status = document.createElement("span");
+			status.className = "aimatic-mcq-nav-status";
+			const next = document.createElement("button");
+			next.type = "button";
+			next.className = "aimatic-mcq-nav-btn";
+			next.textContent = ">";
+			next.setAttribute("aria-label", "Next question");
+			prev.addEventListener("click", function () {
+				const live = liveQuestionCard();
+				goToMcq(currentQuestionNumber(live) - 1);
+			});
+			next.addEventListener("click", function () {
+				const live = liveQuestionCard();
+				goToMcq(currentQuestionNumber(live) + 1);
+			});
+			nav.append(prev, status, next);
+			header.insertAdjacentElement("afterend", nav);
+		}
+
+		const current = currentQuestionNumber(card);
+		const state = discoverQuizState(card, current);
+		const total = quizTotalQuestions(card, state);
+		const status = nav.querySelector(".aimatic-mcq-nav-status");
+		const prev = nav.querySelector('[aria-label="Previous question"]');
+		const next = nav.querySelector('[aria-label="Next question"]');
+		if (status) status.textContent = total ? current + " / " + total : String(current);
+		if (prev) setNavDisabled(prev, current <= 1);
+		if (next) setNavDisabled(next, Boolean(total && current >= total));
+	}
+
 	function hideLessonNav() {
 		Array.from(document.querySelectorAll("button")).forEach(function (button) {
 			const label = (button.textContent || "").replace(/\s+/g, " ").trim();
@@ -619,6 +886,7 @@
 		applyExamChrome();
 		labelMcqChoices();
 		if (isHardMockSitting()) return;
+		decorateMcqNav();
 		hideExamCourseCards();
 		addSqePathwayCatalogue();
 		addSqeSwitcher();

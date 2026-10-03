@@ -676,12 +676,59 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
 	outline-offset: 2px;
 }
 
+.aimatic-mcq-nav {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	margin: 8px 0 4px;
+}
+
+.aimatic-mcq-nav-status {
+	min-width: 3.2rem;
+	color: #10233f;
+	font-size: 0.8rem;
+	font-weight: 600;
+	text-align: center;
+}
+
+.aimatic-mcq-nav-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 0;
+	border: 1px solid rgba(16, 35, 63, 0.18);
+	border-radius: 8px;
+	background: #fff;
+	color: #10233f;
+	font-size: 1.1rem;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.aimatic-mcq-nav-btn:hover:not(:disabled) {
+	background: #f4f7f6;
+}
+
+.aimatic-mcq-nav-btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
 @media (max-width: 620px) {
 	.aimatic-mcq-option-letter {
 		flex-basis: 1.55rem;
 		width: 1.55rem;
 		height: 1.55rem;
 		margin-left: 0;
+	}
+
+	.aimatic-mcq-nav {
+		width: 100%;
+		justify-content: space-between;
 	}
 }
 

@@ -5,6 +5,7 @@ import re
 from html import escape, unescape
 
 import frappe
+from bs4 import BeautifulSoup
 from frappe import _
 from frappe.utils import cint
 
@@ -12,6 +13,7 @@ from aimaticlearning.lms_learning.content_generation import (
 	_link_question_to_quiz,
 	_validate_flashcard_source,
 )
+from aimaticlearning.lms_learning.clean_leaked_notes import REVISION_HEADING, split_learner_notes
 from aimaticlearning.lms_learning.course_presentation import _ensure_flashcard_lesson, _profile_sort_key
 from aimaticlearning.lms_learning.import_pipeline import _ensure_chapter_quiz
 from aimaticlearning.lms_learning.exam_surface import is_exam_course
@@ -140,6 +142,7 @@ def sanitize_studio_notes_html(html: str | None) -> str:
 def notes_compare_key(html: str | None) -> str:
 	"""Stable compare for Studio working copy vs learner body (ignore Quill chrome / whitespace)."""
 	text = sanitize_studio_notes_html(html)
+	text = split_learner_notes(text)["notes_html"]
 	text = re.sub(r"\s+", " ", text)
 	return text.strip()
 
@@ -198,6 +201,145 @@ def _learner_notes_body(notes_lesson: str | None) -> str:
 	if not (notes_lesson or "").strip():
 		return ""
 	return frappe.db.get_value("Course Lesson", notes_lesson, "body") or ""
+
+
+def _revision_lesson_for_course(course_name: str, *, create: bool = False, revision_html: str = ""):
+	"""Return the course-end Quick Revision lesson, creating it only when needed."""
+	if not course_name:
+		return None
+	name = frappe.db.get_value(
+		"Course Lesson",
+		{"course": course_name, "title": ["like", "Quick Revision Notes%"]},
+		"name",
+	)
+	if name:
+		return frappe.get_doc("Course Lesson", name)
+	if not create or not revision_html:
+		return None
+	chapter = frappe.db.get_value(
+		"Course Chapter", {"course": course_name, "title": "Module Assessment"}, "name"
+	)
+	if not chapter:
+		last = frappe.get_all(
+			"Course Chapter", filters={"course": course_name}, fields=["name"], order_by="idx desc", limit_page_length=1
+		)
+		chapter = last[0].name if last else None
+	if not chapter:
+		return None
+	lesson = frappe.get_doc(
+		{
+			"doctype": "Course Lesson",
+			"course": course_name,
+			"chapter": chapter,
+			"title": "Quick Revision Notes — Key Concepts & Glossary (All Chapters)",
+			"body": "<p>Key concepts and glossary from the approved chapter notes. Use this for final review before the Module Assessment.</p>",
+			"content": "",
+		}
+	)
+	lesson.insert(ignore_permissions=True)
+	link_lesson_to_chapter(chapter, lesson.name)
+	return lesson
+
+
+def _revision_lesson_summary(lesson) -> dict:
+	"""Return the small amount of metadata needed for the Studio outline."""
+	if not lesson:
+		return {"exists": False, "name": None, "title": "Quick Revision Notes", "chars": 0, "words": 0}
+	text = BeautifulSoup(lesson.body or "", "html.parser").get_text(" ", strip=True)
+	return {
+		"exists": True,
+		"name": lesson.name,
+		"title": lesson.title or "Quick Revision Notes",
+		"chars": len(lesson.body or ""),
+		"words": len(text.split()) if text else 0,
+	}
+
+
+def _revision_section_html(chapter_title: str, revision_html: str, profile_name: str) -> str:
+	"""Build one marked course-end revision section for a chapter."""
+	inner = BeautifulSoup(revision_html or "", "html.parser")
+	first_heading = inner.find(["h1", "h2", "h3", "h4", "h5", "h6"])
+	if first_heading and REVISION_HEADING.match(first_heading.get_text(" ", strip=True)):
+		first_heading.decompose()
+	section = BeautifulSoup("<section></section>", "html.parser").section
+	section["data-aimatic-revision-profile"] = profile_name
+	heading = inner.new_tag("h2")
+	heading.string = chapter_title
+	section.append(heading)
+	for node in list(inner.contents):
+		section.append(node)
+	return str(section)
+
+
+def _update_revision_lesson(profile, revision_html: str):
+	"""Replace this chapter's marked section in the course-end revision lesson."""
+	if not revision_html:
+		return None
+	module = frappe.get_doc("Learning Module Config", profile.learning_module)
+	lesson = _revision_lesson_for_course(module.lms_course, create=True, revision_html=revision_html)
+	if not lesson:
+		return None
+	new_section = BeautifulSoup(
+		_revision_section_html(profile.chapter_title, revision_html, profile.name), "html.parser"
+	).find("section")
+	soup = BeautifulSoup(lesson.body or "", "html.parser")
+	marked = soup.find("section", attrs={"data-aimatic-revision-profile": profile.name})
+	if marked:
+		marked.replace_with(new_section)
+	else:
+		target = None
+		for heading in soup.find_all("h2"):
+			if normalize_chapter_title(heading.get_text(" ", strip=True)) == normalize_chapter_title(profile.chapter_title):
+				target = heading
+				break
+		if target:
+			doomed = [target]
+			for sibling in target.next_siblings:
+				if getattr(sibling, "name", None) == "h2":
+					break
+				doomed.append(sibling)
+			target.insert_before(new_section)
+			for node in doomed:
+				node.extract()
+		else:
+			soup.append(new_section)
+	new_body = str(soup)
+	if new_body != (lesson.body or ""):
+		old_body = lesson.body or ""
+		frappe.db.set_value("Course Lesson", lesson.name, {"body": new_body, "content": ""}, update_modified=True)
+		_log_manual_version("Course Lesson", lesson.name, {"body": (old_body, new_body)})
+		lesson.body = new_body
+	return lesson
+
+
+def _sync_learner_outputs(profile, html: str) -> dict:
+	"""Write the stripped learner notes and promote revision blocks to course end."""
+	split = split_learner_notes(html)
+	lesson_written = False
+	skipped_quiz_lesson = False
+	if profile.notes_lesson:
+		quiz_id = frappe.db.get_value("Course Lesson", profile.notes_lesson, "quiz_id") or ""
+		if quiz_id.strip():
+			skipped_quiz_lesson = True
+		else:
+			old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
+			values = notes_write_values(split["notes_html"])
+			frappe.db.set_value(
+				"Course Lesson", profile.notes_lesson, {"body": values["body"], "content": values["content"]}, update_modified=True
+			)
+			_log_manual_version("Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])})
+			lesson_written = True
+	revision_lesson = _update_revision_lesson(profile, split["revision_html"])
+	return {
+		"learner_html": split["notes_html"],
+		"revision_html": split["revision_html"],
+		"removed_sections": split["removed"],
+		"moved_sections": split["moved"],
+		"skipped_sections": split["skipped"],
+		"lesson_written": lesson_written,
+		"skipped_quiz_lesson": skipped_quiz_lesson,
+		"revision_lesson": revision_lesson.name if revision_lesson else None,
+	}
 
 
 def _write_profile_notes_html(profile, html: str, *, bump_revision: bool = True) -> int:
@@ -527,6 +669,7 @@ def get_studio_tree(learning_module: str | None = None):
 				"outline_idx": outline_by_chapter.get(row.course_chapter),
 			}
 		)
+	revision_lesson = _revision_lesson_for_course(module.lms_course)
 	return {
 		"learning_module": module.name,
 		"title": module.title,
@@ -534,6 +677,7 @@ def get_studio_tree(learning_module: str | None = None):
 		"target_chapter_mcq_count": cint(module.target_chapter_mcq_count) or 20,
 		"import_status": module.import_status,
 		"chapters": chapters,
+		"revision": _revision_lesson_summary(revision_lesson),
 	}
 
 
@@ -577,11 +721,47 @@ def get_chapter_bundle(chapter_profile: str):
 		"flashcard_under_review": fc_counts.get("Under Review", 0),
 		"flashcard_draft": fc_counts.get("Draft", 0),
 		"flashcard_retired": fc_counts.get("Retired", 0),
-		"preview_url": f"/learning-notes/{profile.name}",
 		"flashcards_url": f"/learning-flashcards?chapter_profile={profile.name}",
 		"questions": questions,
 		"flashcards": _chapter_flashcards(profile),
 	}
+
+
+@frappe.whitelist()
+def get_revision_bundle(learning_module: str):
+	"""Return the course-end Quick Revision Notes lesson for direct Studio editing."""
+	require_content_role()
+	module = frappe.get_doc("Learning Module Config", learning_module)
+	lesson = _revision_lesson_for_course(module.lms_course)
+	meta = _revision_lesson_summary(lesson)
+	return {
+		"learning_module": module.name,
+		"module_title": module.title,
+		"lms_course": module.lms_course,
+		"name": meta["name"],
+		"title": meta["title"],
+		"exists": meta["exists"],
+		"body": lesson.body if lesson else "",
+		"chars": meta["chars"],
+		"words": meta["words"],
+	}
+
+
+@frappe.whitelist()
+def save_revision_notes(learning_module: str, notes_html: str | None = None):
+	"""Save the course-end Quick Revision Notes lesson from Content Studio."""
+	require_content_role()
+	module = frappe.get_doc("Learning Module Config", learning_module)
+	html = sanitize_studio_notes_html(notes_html)
+	lesson = _revision_lesson_for_course(module.lms_course, create=True, revision_html=html or "<p></p>")
+	if not lesson:
+		raise ContentStudioError("This course has no Module Assessment chapter for Quick Revision Notes.")
+	values = notes_write_values(html)
+	old_body = lesson.body or ""
+	if old_body != values["body"] or (lesson.content or ""):
+		frappe.db.set_value("Course Lesson", lesson.name, {"body": values["body"], "content": values["content"]}, update_modified=True)
+		_log_manual_version("Course Lesson", lesson.name, {"body": (old_body, values["body"])})
+	return {"ok": True, "name": lesson.name, "title": lesson.title, "body": values["body"]}
 
 
 @frappe.whitelist()
@@ -590,33 +770,16 @@ def save_chapter_notes(chapter_profile: str, notes_html: str | None = None):
 	profile = frappe.get_doc("Learning Chapter Profile", chapter_profile)
 	html = sanitize_studio_notes_html(notes_html)
 	revision = _write_profile_notes_html(profile, html)
-
-	lesson_written = False
-	skipped_quiz_lesson = False
-	if profile.notes_lesson:
-		quiz_id = frappe.db.get_value("Course Lesson", profile.notes_lesson, "quiz_id") or ""
-		if (quiz_id or "").strip():
-			skipped_quiz_lesson = True
-		else:
-			values = notes_write_values(html)
-			old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
-			frappe.db.set_value(
-				"Course Lesson",
-				profile.notes_lesson,
-				{"body": values["body"], "content": values["content"]},
-			)
-			_log_manual_version(
-				"Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])}
-			)
-			lesson_written = True
-
-	learner_body = html if lesson_written else _learner_notes_body(profile.notes_lesson)
+	outputs = _sync_learner_outputs(profile, html)
+	learner_body = outputs["learner_html"] if outputs["lesson_written"] else _learner_notes_body(profile.notes_lesson)
 	notes_state = notes_publish_state(html, learner_body, notes_lesson=profile.notes_lesson)
 	return {
 		"ok": True,
 		"source_revision": revision,
-		"lesson_written": lesson_written,
-		"skipped_quiz_lesson": skipped_quiz_lesson,
+		"lesson_written": outputs["lesson_written"],
+		"skipped_quiz_lesson": outputs["skipped_quiz_lesson"],
+		"moved_sections": outputs["moved_sections"],
+		"revision_lesson": outputs["revision_lesson"],
 		"notes_status": notes_state["status"],
 		"notes_status_label": notes_state["label"],
 		"notes_in_sync": notes_state["in_sync"],
@@ -635,23 +798,16 @@ def sync_notes_to_learner(chapter_profile: str):
 		if (quiz_id or "").strip():
 			raise ContentStudioError("Cannot publish notes onto a quiz-wired lesson.")
 		html = sanitize_studio_notes_html(profile.notes_html)
-		values = notes_write_values(html)
-		old_body = frappe.db.get_value("Course Lesson", profile.notes_lesson, "body") or ""
-		frappe.db.set_value(
-			"Course Lesson",
-			profile.notes_lesson,
-			{"body": values["body"], "content": values["content"]},
-		)
-		_log_manual_version(
-			"Course Lesson", profile.notes_lesson, {"body": (old_body, values["body"])}
-		)
-		notes_state = notes_publish_state(html, values["body"], notes_lesson=profile.notes_lesson)
+		outputs = _sync_learner_outputs(profile, html)
+		notes_state = notes_publish_state(html, outputs["learner_html"], notes_lesson=profile.notes_lesson)
 		return {
 			"ok": True,
 			"notes_status": notes_state["status"],
 			"notes_status_label": notes_state["label"],
 			"notes_in_sync": notes_state["in_sync"],
-			"learner_notes_html": values["body"],
+			"learner_notes_html": outputs["learner_html"],
+			"moved_sections": outputs["moved_sections"],
+			"revision_lesson": outputs["revision_lesson"],
 		}
 	except ContentStudioError as error:
 		_throw(error)
@@ -1505,4 +1661,3 @@ def _write_course_outline(course_name: str, names: list[str]) -> None:
 	for idx, name in enumerate(names, start=1):
 		course.append("chapters", {"chapter": name, "idx": idx})
 	course.save(ignore_permissions=True)
-

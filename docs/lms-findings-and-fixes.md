@@ -434,3 +434,71 @@ punctuation.
 `explanation_5` for the same `": "` prefix — 0 hits, so the artifact was
 confined to the question stem. Other subjects were not swept for the same
 pattern — this was scoped to the one course the user flagged.
+
+## 2026-10-01 — Criminal Litigation Chapter 2 had the wrong display title
+
+**Finding:** User pasted the source "Criminal Litigation" document (11
+chapters, 220 MCQs) for QA. Cross-checked against live data: all 11 content
+chapters' titles, question counts (20/20 each), and Q1 stems matched the
+source verbatim, confirming the colon-prefix fix above preserved content
+correctly. One defect found: `Course Chapter` idx 2 (docname `1090 Chapter
+2: Criminal Litigation`) had `title = "Chapter 2: Criminal Litigation"` — a
+generic placeholder that broke the "Chapter N: <topic>" pattern every other
+chapter follows. The source document's actual Chapter 2 is "Police
+Investigation and Evidence Gathering"; the question content was already
+correct, only the chapter's own display title (shown in course navigation)
+was wrong.
+
+**Fix:** Updated `title` to `"Chapter 2: Police Investigation and Evidence
+Gathering"` via `.save()` (Version-logged). No question/quiz data touched.
+
+**Verification:** Re-read the chapter after save — title confirmed updated.
+The document's internal name/docname still carries the old string
+(`1090 Chapter 2: Criminal Litigation`) since that's just the record's
+system identifier, not a student-facing field.
+
+**Re-verified live 2026-10-02:** Chapter 2's title is still `Chapter 2: Police
+Investigation and Evidence Gathering`; 0 Criminal Litigation questions start
+with `": "`; all 220 question-meta rows are `ai_generated=0`. Both Criminal
+Litigation fixes above are done and holding.
+
+## 2026-10-02 — BLP Ch.3 Q16/Q17: answers confirmed correct, explanations and notes were the defect; remaining red-marked items not yet checked
+
+**Scope:** `business-law-practice-blp` Chapter 3, `QTS-2026-00140` (Q16) and
+`QTS-2026-00141` (Q17), plus lesson `0023 Notes — The Tax Year and Collection
+Methods`.
+
+**Finding:** User reported the marked-correct options and their reasons did not
+match the notes. The newest BLP source is still the 2026-09-24 file
+(`BLP notes75b9d6.docx`, identical to `BLP notes75b9d675b9d6.docx`); no newer
+file exists on disk or as a `File` record. Its solicitor revisions are the text
+coloured `EE0000` (not `FF0000`; a filter on pure red finds nothing). That file
+has 41 red paragraphs; two are Ch3 Q16 = B and Q17 = C, matching the live keys.
+Checked against the law: Model Articles for private companies (SI 2008/3229,
+Sch 1) art. 26(5) lets the directors refuse to register a share transfer, so
+Q16 = B is correct; Companies Act 2006 s.22(1) entrenchment makes Q17 = C
+correct. The real defect was the chapter notes, which said the model articles
+contain no transfer restrictions (in both the docx and lesson `0023`), and
+explanations that did not quote either authority.
+
+**Fix (user-approved):** User rewrote the lesson `0023` passage themselves
+(now: pre-emption rights and consent restrictions are commonly added to the
+articles). Rewrote the Q16 explanation (on B) to quote art. 26(5), the
+directors' duties limit and the notes' pre-emption point; rewrote the Q17
+explanation (on C) to cite s.22(1)/(3). Answer keys unchanged. Shortened
+`source_reference` on both to name the authority (field max is 140
+characters; a longer first attempt failed and wrote nothing). Backup before
+edit: `private/files/lms_learning_exports/blp-ch3-q16-q17-explanations-before-20261002.json`.
+
+**Verification:** Re-read both questions: exactly one correct option (B, C),
+explanation present only on it; lesson `0023` no longer contains the old
+sentence and contains the new pre-emption text.
+
+**Remaining risk / next step:** The other red-marked blocks in the 09-24 file
+have not been compared with the live explanations or the notes lesson text:
+Ch1 Q14, Ch3 Q11, Ch4 Q13 and Q15, Ch5 Q14 (para 2572 area), Ch6 Q17 (no live
+record), Ch7 Q20, Ch8 Q5, Ch9 Q23 and the Ch4 Q4 block. The 2026-10-01 entry
+confirmed their answer letters match the live DB; it did not check the
+explanations, or whether the notes contradict the solicitor's answer the way
+Ch3 Q16 did. Do that check next, one question at a time, and ask before
+changing any answer key.

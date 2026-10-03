@@ -11,6 +11,8 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		modules: [],
 		tree: null,
 		bundle: null,
+		revisionBundle: null,
+		mode: "chapter",
 		tab: "notes",
 		notesControl: null,
 		savedNotes: "",
@@ -30,14 +32,13 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 				<select class="form-control module-select"></select>
 				<button class="btn btn-default btn-refresh">${__("Refresh")}</button>
 				<button class="btn btn-default btn-add-course">${__("Add course")}</button>
-				<a class="btn btn-default-dark btn-preview" target="_blank" rel="noopener" hidden>${__("Preview notes")}</a>
 				<span class="studio-status text-muted"></span>
 				<span class="shortcut-hint">${__("Ctrl/Cmd+S saves the open pane")}</span>
 			</div>
 			<div class="studio-shell">
 				<aside class="studio-chapters"></aside>
 				<section class="studio-main">
-					<div class="studio-empty">${__("Pick a subject, then a chapter. Notes, MCQs, and cards for that chapter stay in this window.")}</div>
+					<div class="studio-empty">${__("Pick a subject, then choose a chapter or Quick Revision Notes. Edit the course content here.")}</div>
 				</section>
 			</div>
 		</div>
@@ -78,7 +79,8 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 	}
 
 	function isDirty() {
-		if (!state.bundle) return false;
+		if (!state.bundle && !state.revisionBundle) return false;
+		if (state.mode === "revision") return Boolean(state.notesEdited);
 		if (state.headingDirty) return true;
 		if (state.notesEdited) return true;
 		if ($root.find(".mcq-card.dirty, .flashcard-card.dirty").length) return true;
@@ -132,9 +134,9 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 	}
 
 	function markSaved() {
-		if (!state.bundle) return;
+		if (!state.bundle && !state.revisionBundle) return;
 		baselineNotes();
-		state.savedHeading = state.bundle.chapter_title || "";
+		state.savedHeading = state.bundle ? state.bundle.chapter_title || "" : "";
 		state.headingDirty = false;
 		$root.find(".mcq-card.dirty, .flashcard-card.dirty").removeClass("dirty");
 		setStatus(__("Saved"), false);
@@ -250,6 +252,13 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		if (!shown) {
 			$list.append(`<div class="text-muted">${__("No chapters match that filter.")}</div>`);
 		}
+		const revision = (state.tree && state.tree.revision) || {};
+		$list.append(`
+			<button type="button" class="revision-btn ${state.mode === "revision" ? "active" : ""}" data-revision="1">
+				<span class="revision-title">${esc(revision.title || __("Quick Revision Notes — Key Concepts & Glossary (All Chapters)"))}</span>
+				<span class="revision-meta">${revision.exists ? `${cint(revision.words)} ${__("words")}` : __("Not created yet")}</span>
+			</button>
+		`);
 		$list.append(
 			`<button type="button" class="btn btn-sm btn-primary btn-add-chapter" style="width:100%;margin-top:8px;">${__("Add chapter")}</button>`
 		);
@@ -264,6 +273,8 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 	function openChapter(chapter_profile, opts) {
 		opts = opts || {};
 		const load = function () {
+			state.mode = "chapter";
+			state.revisionBundle = null;
 			return studioCall({
 				method: "aimaticlearning.lms_learning.content_studio.get_chapter_bundle",
 				args: { chapter_profile },
@@ -289,6 +300,34 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		});
 	}
 
+	function openRevision(opts) {
+		opts = opts || {};
+		const load = function () {
+			const learning_module = selectedModule();
+			if (!learning_module) return;
+			return studioCall({
+				method: "aimaticlearning.lms_learning.content_studio.get_revision_bundle",
+				args: { learning_module },
+			}).then((r) => {
+				state.mode = "revision";
+				state.bundle = null;
+				state.revisionBundle = r.message || {};
+				state.savedNotes = sanitizeNotesHtml(state.revisionBundle.body || "");
+				state.notesEdited = false;
+				state.notesControl = null;
+				state.tab = "notes";
+				renderChapters();
+				renderMain();
+				setStatus("", false);
+			});
+		};
+		if (opts.force) return load();
+		return confirmLeave().then((ok) => {
+			if (!ok) return;
+			return load();
+		});
+	}
+
 	function updateHeaderMeta() {
 		const bundle = state.bundle;
 		if (!bundle) return;
@@ -297,9 +336,6 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 			`${esc(bundle.module_title || "")} · revision ${cint(bundle.source_revision)} · ${bundle.mcq_count}/${bundle.target_chapter_mcq_count} MCQs · <span class="studio-chip notes-chip notes-${esc(bundle.notes_status || "empty")}">${esc(notesLabel)}</span> · ${cint(bundle.flashcard_published)} pub cards`
 		);
 		$root.find(".chapter-heading").val(bundle.chapter_title || "");
-		if (bundle.preview_url) {
-			$root.find(".btn-preview").attr("href", bundle.preview_url).removeAttr("hidden");
-		}
 	}
 
 	function refreshOpenChapter(opts) {
@@ -333,6 +369,10 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 	}
 
 	function showActivePane() {
+		if (state.mode === "revision") {
+			renderRevision($root.find(".studio-main"));
+			return;
+		}
 		$root.find(".studio-pane").attr("hidden", true);
 		$root.find(".btn-tab").removeClass("btn-primary").addClass("btn-default");
 		$root.find(`.btn-tab[data-tab="${state.tab}"]`).removeClass("btn-default").addClass("btn-primary");
@@ -348,19 +388,69 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		}
 	}
 
+	function renderRevision($main) {
+		const bundle = state.revisionBundle || {};
+		$main.html(`
+			<div class="studio-header revision-header">
+				<div class="chapter-heading-row">
+					<h2>${esc(bundle.title || __("Quick Revision Notes — Key Concepts & Glossary (All Chapters)"))}</h2>
+				</div>
+				<div class="text-muted studio-header-meta">
+					${esc(bundle.module_title || "")} · ${cint(bundle.words)} ${__("words")} · ${cint(bundle.chars)} ${__("characters")}
+				</div>
+			</div>
+			<div class="revision-editor-label">${__("Course-end revision content")}</div>
+			<div class="revision-editor-host"></div>
+			<div class="mcq-actions">
+				<button type="button" class="btn btn-primary btn-save-revision">${__("Save revision notes")}</button>
+				<span class="notes-count revision-count text-muted"></span>
+			</div>
+			<p class="text-muted revision-help">${__("This is the content learners see at the end of the course. Edit the headings, summaries, and glossary here directly; changes are saved to Quick Revision Notes.")}</p>
+		`);
+		state.notesControl = frappe.ui.form.make_control({
+			parent: $main.find(".revision-editor-host"),
+			df: { fieldtype: "Text Editor", fieldname: "revision_html", label: __("Quick Revision Notes") },
+			only_input: true,
+			render_input: 1,
+		});
+		state.notesControl.set_value(bundle.body || "");
+		baselineNotes();
+		const updateCount = () => {
+			const html = sanitizeNotesHtml(currentNotes());
+			const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+			$main.find(".revision-count").text(
+				__(" {0} characters · {1} words").replace("{0}", html.length).replace("{1}", text ? text.split(" ").length : 0)
+			);
+			if (state.notesEdited) setStatus(__("Unsaved revision notes"), true);
+		};
+		const quill = state.notesControl && state.notesControl.quill;
+		if (quill) {
+			quill.on("text-change", function (_delta, _old, source) {
+				if (source === "user") state.notesEdited = true;
+				updateCount();
+			});
+		}
+		$main.find(".revision-editor-host").on("input change", function () {
+			state.notesEdited = true;
+			updateCount();
+		});
+		updateCount();
+	}
+
 	function renderMain() {
 		const $main = $root.find(".studio-main");
 		const bundle = state.bundle;
-		const $preview = $root.find(".btn-preview");
+		if (state.mode === "revision" && state.revisionBundle) {
+			renderRevision($main);
+			return;
+		}
 		if (!bundle) {
-			$preview.attr("hidden", true);
 			$main.html(
-				`<div class="studio-empty">${__("Pick a subject, then a chapter. Notes, MCQs, and cards for that chapter stay in this window.")}</div>`
+				`<div class="studio-empty">${__("Pick a subject, then choose a chapter or Quick Revision Notes. Edit the course content here.")}</div>`
 			);
 			return;
 		}
 
-		$preview.attr("href", bundle.preview_url).removeAttr("hidden");
 		const notesLabel = bundle.notes_status_label || __("Notes");
 		$main.html(`
 			<div class="studio-header">
@@ -702,6 +792,7 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 					</div>
 				</div>
 				<input class="form-control mcq-objective" placeholder="${__("Learning objective")}" value="${esc(question.learning_objective || "")}" style="margin-top:8px;">
+				<div class="mcq-metadata-help">${__("Chapter placement controls which quiz this question belongs to. Difficulty supports review and filtering. Source reference records the original file/chapter/question for proofreading; these fields are not shown to learners.")}</div>
 				<div class="option-host" style="margin-top:10px;">${optionHtml}</div>
 				<div class="mcq-actions">
 					<button type="button" class="btn btn-default btn-add-option">${__("Add option")}</button>
@@ -750,6 +841,8 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 			}
 			localStorage.setItem(MODULE_KEY, selectedModule() || "");
 			state.bundle = null;
+			state.revisionBundle = null;
+			state.mode = "chapter";
 			return loadTree().then(renderMain);
 		});
 	});
@@ -757,8 +850,10 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		confirmLeave().then((ok) => {
 			if (!ok) return;
 			const current = state.bundle && state.bundle.name;
+			const revisionOpen = state.mode === "revision";
 			return loadTree().then(() => {
 				if (current) return openChapter(current, { force: true });
+				if (revisionOpen) return openRevision({ force: true });
 				renderMain();
 			});
 		});
@@ -826,6 +921,9 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 		const profile = $(this).data("profile");
 		if (state.bundle && state.bundle.name === profile) return;
 		openChapter(profile);
+	});
+	$root.on("click", ".revision-btn", function () {
+		openRevision();
 	});
 	$root.on("click", ".btn-move-chapter", function (event) {
 		event.preventDefault();
@@ -983,6 +1081,28 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 					const $pane = $root.find(".pane-notes");
 					if ($pane.length && state.tab === "notes") renderNotes($pane);
 				});
+			},
+		});
+	});
+	$root.on("click", ".btn-save-revision", function () {
+		if (state.mode !== "revision" || !state.revisionBundle || !state.notesControl) return;
+		studioCall({
+			method: "aimaticlearning.lms_learning.content_studio.save_revision_notes",
+			args: {
+				learning_module: state.revisionBundle.learning_module,
+				notes_html: sanitizeNotesHtml(state.notesControl.get_value()),
+			},
+			freeze: true,
+			freeze_message: __("Saving Quick Revision Notes"),
+			callback: (r) => {
+				const result = r.message || {};
+				state.revisionBundle.body = result.body || "";
+				state.revisionBundle.exists = true;
+				state.revisionBundle.chars = state.revisionBundle.body.length;
+				state.revisionBundle.words = state.revisionBundle.body.replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+				markSaved();
+				frappe.show_alert({ message: __("Quick Revision Notes saved"), indicator: "green" });
+				loadTree().then(() => openRevision({ force: true }));
 			},
 		});
 	});
@@ -1262,6 +1382,10 @@ frappe.pages["learning-content-console"].on_page_load = function (wrapper) {
 	});
 
 	function saveActivePane() {
+		if (state.mode === "revision") {
+			$root.find(".btn-save-revision").click();
+			return;
+		}
 		if (!state.bundle) return;
 		if (document.activeElement && $(document.activeElement).hasClass("chapter-heading")) {
 			saveHeading();
