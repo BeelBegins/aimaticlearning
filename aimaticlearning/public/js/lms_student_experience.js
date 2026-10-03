@@ -255,135 +255,6 @@
 		);
 	}
 
-	function quizRefValue(value) {
-		if (value && Object.prototype.hasOwnProperty.call(value, "value")) return value.value;
-		return value;
-	}
-
-	function setQuizRef(refOrValue, next) {
-		if (refOrValue && Object.prototype.hasOwnProperty.call(refOrValue, "value")) {
-			refOrValue.value = next;
-			return true;
-		}
-		return false;
-	}
-
-	function functionSource(fn) {
-		try {
-			return Function.prototype.toString.call(fn);
-		} catch (error) {
-			return "";
-		}
-	}
-
-	function bagKeys(bag) {
-		const keys = [];
-		try {
-			keys.push.apply(keys, Object.keys(bag));
-		} catch (error) {}
-		try {
-			keys.push.apply(keys, Object.getOwnPropertyNames(bag));
-		} catch (error) {}
-		return keys.filter(function (key, index, all) {
-			return all.indexOf(key) === index;
-		});
-	}
-
-	// Production LMS mangles setup() names (activeQuestion -> n, etc). Discover
-	// the quiz API by function source / ref shapes, not by original identifiers.
-	function discoverQuizState(fromEl, currentNum) {
-		let el = fromEl;
-		while (el) {
-			let inst = el.__vueParentComponent;
-			while (inst) {
-				const bags = [
-					inst.setupState,
-					inst.devtoolsRawSetupState,
-					inst.ctx,
-					inst.proxy,
-					inst.exposed,
-				];
-				for (let b = 0; b < bags.length; b += 1) {
-					const bag = bags[b];
-					if (!bag || typeof bag !== "object") continue;
-					let switchFn = null;
-					let nextFn = null;
-					let activeRef = null;
-					let questionsRef = null;
-					const showAnswerArrays = [];
-					const keys = bagKeys(bag);
-					for (let k = 0; k < keys.length; k += 1) {
-						let val;
-						try {
-							val = bag[keys[k]];
-						} catch (error) {
-							continue;
-						}
-						if (typeof val === "function") {
-							const src = functionSource(val);
-							if (
-								!switchFn &&
-								src.indexOf("<1||") !== -1 &&
-								src.indexOf(".length") !== -1
-							) {
-								switchFn = val;
-							}
-							if (
-								!nextFn &&
-								src.indexOf("show_answers") !== -1 &&
-								src.indexOf("Open Ended") !== -1
-							) {
-								nextFn = val;
-							}
-							continue;
-						}
-						if (!val || typeof val !== "object") continue;
-						if (Object.prototype.hasOwnProperty.call(val, "value")) {
-							const inner = val.value;
-							if (
-								Array.isArray(inner) &&
-								inner.length &&
-								inner[0] &&
-								inner[0].question
-							) {
-								questionsRef = val;
-							} else if (
-								typeof inner === "number" &&
-								inner >= 1 &&
-								(!currentNum || inner === currentNum)
-							) {
-								activeRef = val;
-							}
-						} else if (Array.isArray(val)) {
-							showAnswerArrays.push(val);
-						}
-					}
-					if (bag.activeQuestion != null && bag.questions != null) {
-						return {
-							switchQuestion: bag.switchQuestion || switchFn,
-							nextQuestion: bag.nextQuestion || nextFn,
-							activeQuestion: bag.activeQuestion,
-							questions: bag.questions,
-							showAnswerArrays: showAnswerArrays,
-						};
-					}
-					if (switchFn || (activeRef && questionsRef)) {
-						return {
-							switchQuestion: switchFn,
-							nextQuestion: nextFn,
-							activeQuestion: activeRef,
-							questions: questionsRef,
-							showAnswerArrays: showAnswerArrays,
-						};
-					}
-				}
-				inst = inst.parent;
-			}
-			el = el.parentElement;
-		}
-		return null;
-	}
-
 	function liveQuestionCounter() {
 		return Array.from(document.querySelectorAll(".text-sm.text-ink-gray-5")).find(function (node) {
 			return /^Question\s+\d+\s+-/.test((node.textContent || "").trim());
@@ -414,49 +285,73 @@
 		return bodyMatch ? parseInt(bodyMatch[1], 10) : 0;
 	}
 
-	function quizTotalQuestions(card, state) {
-		if (state) {
-			const list = quizRefValue(state.questions);
-			if (list && list.length) return list.length;
+	function latestQuizRefs() {
+		const refs = window.__examicRefs || [];
+		let questions = null;
+		let questionsAt = -1;
+		for (let i = refs.length - 1; i >= 0; i -= 1) {
+			const value = refs[i] && refs[i].value;
+			if (
+				Array.isArray(value) &&
+				value.length &&
+				value[0] &&
+				typeof value[0] === "object" &&
+				value[0].question
+			) {
+				questions = refs[i];
+				questionsAt = i;
+				break;
+			}
 		}
-		return quizQuestionCount(card);
+		if (!questions) return null;
+		const current = currentQuestionNumber(liveQuestionCard());
+		let active = null;
+		let selected = null;
+		for (let i = questionsAt; i >= 0 && i >= questionsAt - 8; i -= 1) {
+			const ref = refs[i];
+			if (!ref) continue;
+			if (!active && typeof ref.value === "number" && current && ref.value === current) {
+				active = ref;
+			}
+			if (
+				!selected &&
+				Array.isArray(ref.value) &&
+				ref.value.length >= 4 &&
+				ref.value.length <= 12 &&
+				ref.value.every(function (item) { return item === 0 || item === 1; })
+			) {
+				selected = ref;
+			}
+		}
+		return {
+			activeQuestion: active,
+			questions: questions,
+			selectedOptions: selected,
+		};
 	}
 
-	function clearShowAnswers(state) {
-		if (!state || !state.showAnswerArrays) return;
-		state.showAnswerArrays.forEach(function (arr) {
-			if (arr && typeof arr.length === "number") arr.length = 0;
+	function clearCheckedAnswers() {
+		(window.__examicArrays || []).forEach(function (arr) {
+			if (!arr || arr.length < 1 || arr.length > 12) return;
+			const flagged = arr.every(function (item) {
+				return item === 0 || item === 1 || item === 2 || item == null;
+			});
+			if (flagged) arr.length = 0;
 		});
-		if (state.showAnswers && typeof state.showAnswers.length === "number") {
-			state.showAnswers.length = 0;
-		}
 	}
 
 	function goToMcq(target) {
 		const card = liveQuestionCard();
 		if (!card || target < 1) return;
-		const current = currentQuestionNumber(card);
-		if (!current || current === target) return;
-		const state =
-			discoverQuizState(card, current) ||
-			discoverQuizState(document.querySelector(".examic-quiz-toolbar") || document.body, current);
-		const total = quizTotalQuestions(card, state);
-		if (total && target > total) return;
-
-		clearShowAnswers(state);
-		if (state && typeof state.switchQuestion === "function") {
-			state.switchQuestion(target);
-			return;
+		const session = latestQuizRefs();
+		const total = (session && session.questions && session.questions.value.length) || quizQuestionCount(card);
+		if (!total || target > total) return;
+		if (!session || !session.activeQuestion) return;
+		clearCheckedAnswers();
+		if (session.selectedOptions) {
+			session.selectedOptions.value = session.selectedOptions.value.map(function () { return 0; });
 		}
-		if (state && setQuizRef(state.activeQuestion, target)) return;
-
-		// Last resort: native Next only exists after Check.
-		if (target === current + 1) {
-			const nativeNext = Array.from(card.querySelectorAll("button")).find(function (button) {
-				return (button.textContent || "").replace(/\s+/g, " ").trim() === "Next";
-			});
-			if (nativeNext) nativeNext.click();
-		}
+		session.activeQuestion.value = target;
 	}
 
 	function setNavDisabled(button, disabled) {
@@ -493,20 +388,18 @@
 			next.textContent = ">";
 			next.setAttribute("aria-label", "Next question");
 			prev.addEventListener("click", function () {
-				const live = liveQuestionCard();
-				goToMcq(currentQuestionNumber(live) - 1);
+				goToMcq(currentQuestionNumber(liveQuestionCard()) - 1);
 			});
 			next.addEventListener("click", function () {
-				const live = liveQuestionCard();
-				goToMcq(currentQuestionNumber(live) + 1);
+				goToMcq(currentQuestionNumber(liveQuestionCard()) + 1);
 			});
 			nav.append(prev, status, next);
 			header.insertAdjacentElement("afterend", nav);
 		}
 
 		const current = currentQuestionNumber(card);
-		const state = discoverQuizState(card, current);
-		const total = quizTotalQuestions(card, state);
+		const session = latestQuizRefs();
+		const total = (session && session.questions && session.questions.value.length) || quizQuestionCount(card);
 		const status = nav.querySelector(".aimatic-mcq-nav-status");
 		const prev = nav.querySelector('[aria-label="Previous question"]');
 		const next = nav.querySelector('[aria-label="Next question"]');
@@ -950,7 +843,7 @@
 	const observer = window.AimaticLmsDom && window.AimaticLmsDom.observe(polish);
 	if (document.readyState === "loading") {
 		document.addEventListener("DOMContentLoaded", function () {
-			if (observer) observer.run();
+				if (observer) observer.run();
 			else polish();
 		});
 	} else if (observer) {

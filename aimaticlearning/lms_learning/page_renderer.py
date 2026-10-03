@@ -7,10 +7,48 @@ from frappe.website.page_renderers.template_page import TemplatePage
 from aimaticlearning.lms_learning.statistics import can_view_statistics
 
 ASSET_MARKER = "examic-study-learning-assets"
+# Runs before the LMS Vue bundle. Quiz.vue's production setup() returns only a
+# render function, so activeQuestion is not on the component instance. Capture
+# Vue refs as they are created, then the chapter MCQ arrows can move that ref.
+QUIZ_NAV_BOOT = """<script>
+(function () {
+	if (window.__examicRefBoot) return;
+	window.__examicRefBoot = true;
+	window.__examicRefs = [];
+	window.__examicArrays = [];
+	Object.defineProperty(Object.prototype, "__v_isRef", {
+		configurable: true,
+		enumerable: false,
+		get: function () { return false; },
+		set: function (value) {
+			Object.defineProperty(this, "__v_isRef", {
+				value: !!value,
+				writable: true,
+				configurable: true,
+				enumerable: false
+			});
+			if (value) window.__examicRefs.push(this);
+		}
+	});
+	var OrigProxy = window.Proxy;
+	function ExamicProxy(target, handler) {
+		var obj = new OrigProxy(target, handler);
+		if (Array.isArray(target)) window.__examicArrays.push(obj);
+		return obj;
+	}
+	ExamicProxy.revocable = function (target, handler) {
+		var boxed = OrigProxy.revocable(target, handler);
+		if (Array.isArray(target)) window.__examicArrays.push(boxed.proxy);
+		return boxed;
+	};
+	window.Proxy = ExamicProxy;
+})();
+</script>
+"""
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-studentmeta2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260917-railfix1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261003-mcqnav3">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261003-mcqnav4">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20260925-dash4">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261001-calc1">
@@ -20,7 +58,7 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4"></script>
 <script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20260917-frappe8"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261003-mcqnav3"></script>
+<script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261004-mcqnav5"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20260925-dash4"></script>
 <script defer src="/assets/aimaticlearning/js/examic_sessions.js?v=20260925-flashcard1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_exam_tools.js?v=20261001-calc1"></script>
@@ -50,6 +88,8 @@ class AimaticLMSPageRenderer(TemplatePage):
 			html = mark_exam_sitting_body(html)
 		if ASSET_MARKER not in html:
 			html = html.replace("</head>", f"{ASSET_TAGS}\n</head>", 1)
+		if "__examicRefBoot" not in html:
+			html = html.replace("<script type=\"module\"", QUIZ_NAV_BOOT + "<script type=\"module\"", 1)
 		response.set_data(html)
 		return response
 
