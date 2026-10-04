@@ -60,9 +60,14 @@ code dependency.
 |---|---|
 | Courses, notes, MCQs, flashcards, revision, learner UX | `lms-learning` |
 | Word import / empty-lesson fill | `lms-course-upload` |
-| MCQ or mock quality, feedback, mapping, and learner display | `examic-lms-mcq-quality` |
+| MCQ or mock quality, feedback, mapping, and learner display | `lms-mcq-quality` |
+| Mock exam sitting UI (Pearson style, review grid, timer, calculator) | `lms-exam-mode` |
 | Site, backup, Caddy, workers, restore | shared bench `bench-ops` |
 
 Prefer this folder as the Cursor workspace for LMS work.
+
+Read `docs/priorities.md` before choosing work. Track resumable work in
+`tasks/<id>/task.md` from `tasks/template.md`; run `scripts/audit_guidance.py`
+after guidance edits.
 
 **Commit** when a task completes. Push and deploy stay separately approved.

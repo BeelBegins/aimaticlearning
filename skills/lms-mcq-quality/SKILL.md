@@ -1,5 +1,5 @@
 ---
-name: examic-lms-mcq-quality
+name: lms-mcq-quality
 description: Audit and correct Examic LMS chapter MCQs and mock questions when importing, mapping, publishing, or reviewing learner feedback. Use for learner-facing content quality, not general course copy edits.
 ---
 

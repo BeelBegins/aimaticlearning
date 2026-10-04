@@ -19,6 +19,7 @@ guidance here; do not store LMS-only procedures as personal agent memory.
 | Course, chapter, learner UX, analytics, Study Buddy | `skills/lms-learning/SKILL.md` |
 | Private Word source import and lesson coverage | `skills/lms-course-upload/SKILL.md` |
 | Chapter/mock MCQ data, explanations, mapping, and UI quality | `skills/lms-mcq-quality/SKILL.md` |
+| Mock exam sitting UI and Pearson style | `skills/lms-exam-mode/SKILL.md` |
 | Import commands and rollback requirements | `skills/lms-course-upload/pipeline.md` |
 
 ## Agent adapters
