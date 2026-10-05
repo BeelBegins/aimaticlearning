@@ -14,8 +14,10 @@ BRAND_MARK = "https://lms.aimatic.tech/assets/aimaticlearning/images/examic-stud
 LOGIN_MARK = "/assets/aimaticlearning/images/examic-study-mark.svg?v=20260902-6"
 # LMS Settings.custom_signup_content is the signup *checkbox label*, not a notice.
 STUDENT_SIGNUP_TERMS = "I agree to create a student account and receive course access by email."
+FREE_UNTIL_FIELD = "examic_free_until"
 PRODUCT_SETTINGS = {
-	"trial_days": 7,
+	"free_days": 60,
+	"free_mocks": 2,
 	"monthly_price_usd": 50,
 	"promotional_price_usd": 25,
 	"launch_discount_percent": 50,
@@ -158,7 +160,14 @@ def create_email_templates() -> None:
 		response="""
 <p>Hello {{ student_name }},</p>
 <p>Your Examic Study account is ready.</p>
+{% if course_titles %}
+<p>You have {{ free_days }} days of free access to every course and {{ free_mocks }} free mock exams (Mock 1 and Mock 2), until {{ free_until }}.</p>
+<p>You are enrolled in:</p>
+<ul>{% for title in course_titles %}<li>{{ title }}</li>{% endfor %}</ul>
+<p><a href="{{ courses_url }}">Open your courses</a></p>
+{% else %}
 <p><a href="{{ courses_url }}">Browse the available courses</a> and choose what you want to study.</p>
+{% endif %}
 """,
 	)
 
@@ -239,6 +248,84 @@ def send_course_enrollment_email(doc: frappe.Document, method: str | None = None
 	}
 	subject, message = _render_template(ENROLLMENT_TEMPLATE, context)
 	_queue_email(user.email, subject, message, "LMS Enrollment", doc.name)
+
+
+def free_until(start=None, days: int | None = None):
+	"""End of the free period. Recorded only; nothing locks access when it passes."""
+	return frappe.utils.add_days(start or frappe.utils.nowdate(), days or PRODUCT_SETTINGS["free_days"])
+
+
+def is_new_student_signup(doc: frappe.Document) -> bool:
+	"""A self-service signup, not a user staff created or invited for one course."""
+	if not is_lms_site() or doc.flags.skip_lms_welcome_email:
+		return False
+	if doc.user_type != "Website User":
+		return False
+	return "LMS Student" in {row.role for row in doc.get("roles") or []}
+
+
+def signup_courses() -> list[str]:
+	"""Published subject courses a new student is enrolled in. Hidden ACL courses stay out."""
+	return frappe.get_all(
+		"LMS Course",
+		filters={"published": 1, "disable_self_learning": 0},
+		pluck="name",
+		order_by="creation asc",
+	)
+
+
+def start_student_signup(doc: frappe.Document, method: str | None = None) -> None:
+	"""User after_insert: hand the slow work to a job so signup stays fast."""
+	if not is_new_student_signup(doc):
+		return
+	frappe.enqueue(
+		"aimaticlearning.lms_learning.enrollment.complete_student_signup",
+		user=doc.name,
+		queue="short",
+		enqueue_after_commit=True,
+	)
+
+
+def complete_student_signup(user: str) -> dict:
+	"""Enrol a new student in every published course, record the free period, welcome once.
+
+	Idempotent: enrol_member_in_course skips existing enrolments, and the welcome email is
+	sent only when this run created at least one enrolment.
+	"""
+	previous_user = frappe.session.user
+	frappe.set_user("Administrator")
+	try:
+		doc = frappe.get_doc("User", user)
+		titles = []
+		created = 0
+		for course in signup_courses():
+			already = frappe.db.exists("LMS Enrollment", {"member": user, "course": course})
+			try:
+				enroll_member_in_course(user, course, skip_email=True)
+			except Exception:
+				frappe.log_error(title="Examic signup enrolment failed", message=f"{user} / {course}")
+				continue
+			titles.append(frappe.db.get_value("LMS Course", course, "title") or course)
+			created += 0 if already else 1
+
+		end = free_until()
+		if frappe.get_meta("User").has_field(FREE_UNTIL_FIELD) and not doc.get(FREE_UNTIL_FIELD):
+			frappe.db.set_value("User", user, FREE_UNTIL_FIELD, end, update_modified=False)
+
+		if created:
+			context = {
+				"student_name": doc.full_name or doc.email,
+				"courses_url": get_url("/lms/courses"),
+				"course_titles": titles,
+				"free_until": frappe.utils.formatdate(end),
+				"free_days": PRODUCT_SETTINGS["free_days"],
+				"free_mocks": PRODUCT_SETTINGS["free_mocks"],
+			}
+			subject, message = _render_template(WELCOME_TEMPLATE, context)
+			_queue_email(doc.email, subject, message, "User", doc.name)
+		return {"user": user, "courses": len(titles), "new_enrolments": created}
+	finally:
+		frappe.set_user(previous_user)
 
 
 def send_student_welcome_email(doc: frappe.Document, method: str | None = None) -> None:

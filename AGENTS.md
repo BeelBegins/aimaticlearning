@@ -46,7 +46,9 @@ Until this site leaves the shared bench, web/queue restarts can still hit live
 deploy, or impactful restart needs explicit approval, checks, and a rollback
 path. Do not take an LMS backup unless asked.
 
-Keep Word sources private. Do not auto-enrol students. Do not put credentials
+Keep Word sources private. A self-service signup is enrolled in every published
+subject course by `complete_student_signup`; staff-invited and existing students
+are never auto-enrolled or backfilled without approval. Do not put credentials
 in code, guidance, or prompts.
 
 ## Design and copy: no AI-template decoration

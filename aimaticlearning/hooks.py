@@ -16,7 +16,7 @@ doc_events = {
 		"after_insert": "aimaticlearning.lms_learning.enrollment.send_course_enrollment_email",
 	},
 	"User": {
-		"after_insert": "aimaticlearning.lms_learning.enrollment.send_student_welcome_email",
+		"after_insert": "aimaticlearning.lms_learning.enrollment.start_student_signup",
 	},
 	"Course Lesson": {
 		"validate": "aimaticlearning.lms_learning.outline_sync.enforce_empty_quiz_content",
