@@ -50,3 +50,31 @@ class TestExamProduct(unittest.TestCase):
 
 		params = inspect.signature(enroll_member_in_course).parameters
 		self.assertIn("bypass_self_learning_gate", params)
+
+
+class TestFreeMockLock(unittest.TestCase):
+	def test_only_first_two_sittings_are_open(self):
+		from aimaticlearning.lms_learning import exam_product as ep
+
+		self.assertEqual([ep.is_sitting_locked(i) for i in (1, 2, 3, 4)], [False, False, True, True])
+
+	def test_quiz_name_maps_to_sitting(self):
+		from aimaticlearning.lms_learning import exam_product as ep
+
+		self.assertEqual(ep.quiz_sitting_number("mock-3-flk1-session-1-x"), 3)
+		self.assertIsNone(ep.quiz_sitting_number("blp-module-assessment-150-mcqs"))
+		self.assertTrue(ep.is_quiz_locked("mock-4-flk2-session-2-x"))
+		self.assertFalse(ep.is_quiz_locked("mock-4-flk2-session-2-x", unlock_all=True))
+		self.assertFalse(ep.is_quiz_locked("mock-2-flk1-session-1-x"))
+
+	def test_lobby_withholds_start_url_when_locked(self):
+		from aimaticlearning.lms_learning import exam_product as ep
+
+		rows = [
+			{"sitting_index": i, "sitting_title": f"Mock {i}", "session_title": "S", "lms_quiz": f"mock-{i}-a"}
+			for i in (1, 3)
+		]
+		mocks = ep.group_lobby_sessions(rows, free_sittings=ep.FREE_SITTINGS)
+		self.assertTrue(mocks[0]["sessions"][0]["start_url"])
+		self.assertEqual(mocks[1]["sessions"][0]["start_url"], "")
+		self.assertTrue(mocks[1]["locked"])

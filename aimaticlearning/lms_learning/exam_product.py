@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import frappe
 
 from aimaticlearning.lms_learning.sqe1_hard_mocks import (
@@ -14,10 +16,33 @@ from aimaticlearning.lms_learning.sqe1_hard_mocks import (
 )
 
 EXAM_KEY = COURSE_NAME
+# Mocks 1 and 2 are free for every student; later mocks come with the paid plan.
+FREE_SITTINGS = 2
+LOCKED_NOTE = "Included with the $25/month plan"
+STAFF_ROLES = {"Administrator", "System Manager", "LMS Administrator", "LMS Moderator", "LMS Instructor", "Course Creator", "LMS Content Reviewer"}
+_MOCK_QUIZ = re.compile(r"^mock-(\d+)-")
 FORMAT_NOTE = (
 	"January 2027 sitting: 85 questions, 153 minutes, closed book, "
 	f"{MAX_ATTEMPTS} attempts per session."
 )
+
+
+def quiz_sitting_number(quiz: str | None) -> int | None:
+	"""Mock number from a mock quiz name like `mock-3-flk1-session-1-...`, else None."""
+	match = _MOCK_QUIZ.match(quiz or "")
+	return int(match.group(1)) if match else None
+
+
+def is_sitting_locked(sitting_index: int | None, free_sittings: int | None = FREE_SITTINGS) -> bool:
+	return bool(free_sittings and sitting_index and sitting_index > free_sittings)
+
+
+def is_quiz_locked(quiz: str | None, unlock_all: bool = False) -> bool:
+	return not unlock_all and is_sitting_locked(quiz_sitting_number(quiz))
+
+
+def can_unlock_all_mocks(user: str | None = None) -> bool:
+	return bool(STAFF_ROLES & set(frappe.get_roles(user or frappe.session.user)))
 
 
 def quiz_sitting_url(quiz: str | None) -> str:
@@ -53,6 +78,7 @@ def group_lobby_sessions(
 	attempts_by_quiz: dict | None = None,
 	max_attempts: int = MAX_ATTEMPTS,
 	latest_submission_by_quiz: dict | None = None,
+	free_sittings: int | None = None,
 ) -> list:
 	attempts_by_quiz = attempts_by_quiz or {}
 	latest_submission_by_quiz = latest_submission_by_quiz or {}
@@ -69,6 +95,8 @@ def group_lobby_sessions(
 			}
 			order.append(key)
 		quiz = row.get("lms_quiz")
+		locked = is_sitting_locked(key, free_sittings)
+		sittings[key]["locked"] = locked
 		sittings[key]["sessions"].append(
 			{
 				"title": row.get("session_title") or "Session",
@@ -76,7 +104,8 @@ def group_lobby_sessions(
 				"questions": int(row.get("question_count") or 85),
 				"attempts": int(attempts_by_quiz.get(quiz, 0) or 0),
 				"max_attempts": int(max_attempts or MAX_ATTEMPTS),
-				"start_url": quiz_sitting_url(quiz),
+				"locked": locked,
+				"start_url": "" if locked else quiz_sitting_url(quiz),
 				"feedback_url": feedback_pdf_url(latest_submission_by_quiz.get(quiz)),
 			}
 		)
@@ -262,7 +291,14 @@ def student_lobby(user: str | None = None) -> dict:
 		"exam": EXAM_KEY,
 		"lobby_url": LOBBY_URL,
 		"enrolled": is_enrolled(user, EXAM_KEY),
-		"mocks": group_lobby_sessions(session_rows, attempts_by_quiz, max_attempts, latest_submission_by_quiz),
+		"locked_note": LOCKED_NOTE,
+		"mocks": group_lobby_sessions(
+			session_rows,
+			attempts_by_quiz,
+			max_attempts,
+			latest_submission_by_quiz,
+			free_sittings=None if can_unlock_all_mocks(user) else FREE_SITTINGS,
+		),
 	}
 
 

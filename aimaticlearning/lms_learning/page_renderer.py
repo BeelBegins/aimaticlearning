@@ -80,6 +80,13 @@ class AimaticLMSPageRenderer(TemplatePage):
 			frappe.flags.redirect_location = "/learning-mock-exam"
 			return RedirectPage("/learning-mock-exam", 302).render()
 
+		if path.startswith("/lms/quiz/"):
+			from aimaticlearning.lms_learning.exam_product import can_unlock_all_mocks, is_quiz_locked
+
+			if is_quiz_locked(path.rsplit("/", 1)[-1], can_unlock_all_mocks()):
+				frappe.flags.redirect_location = "/learning-mock-exam"
+				return RedirectPage("/learning-mock-exam", 302).render()
+
 		response = super().render()
 		html = response.get_data(as_text=True)
 		if _is_student_view():

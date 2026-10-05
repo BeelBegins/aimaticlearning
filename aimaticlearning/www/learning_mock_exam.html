@@ -11,6 +11,8 @@
 		.aimatic-student-dash .dash-hello { margin-bottom: 16px; }
 		.aimatic-student-dash .is-hidden { display: none !important; }
 		.mock-sitting { margin-bottom: 16px; }
+		.mock-lock-note { font-weight: 400; font-size: .9rem; color: var(--dash-muted, #5b6472); }
+		.mock-status.is-locked { background: #eef0f3; color: #3f4753; }
 		.mock-sitting h2 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
 		.mock-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 		.mock-tile { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-subtle); }
@@ -41,7 +43,7 @@
 	<section class="dash-hello">
 		<p class="dash-kicker">SQE1 · January 2027</p>
 		<h1>Mock exams</h1>
-		<p class="dash-lead" id="exam-lead">Three sittings. Each session is 85 questions in 153 minutes, closed book.</p>
+		<p class="dash-lead" id="exam-lead">Four sittings. Each session is 85 questions in 153 minutes, closed book.</p>
 		<div class="dash-meta" id="exam-chips"></div>
 	</section>
 
@@ -129,10 +131,12 @@
 		el.papers.replaceChildren();
 		mocks.forEach(function (mock) {
 			const card = node("section", "dash-card mock-sitting");
-			card.append(node("h2", "", mock.title || "Sitting"));
+			const heading = node("h2", "", mock.title || "Sitting");
+			if (mock.locked) heading.append(node("span", "mock-lock-note", " " + (data.locked_note || "Included with the paid plan")));
+			card.append(heading);
 			const grid = node("div", "mock-grid");
 			(mock.sessions || []).forEach(function (session) {
-				const status = sessionStatus(session);
+				const status = session.locked ? { cls: "is-locked", label: "Locked", locked: true } : sessionStatus(session);
 				const parts = splitTitle(session.title);
 				const tile = node("article", "mock-tile");
 				const top = node("div", "mock-tile-top");
@@ -147,7 +151,7 @@
 				}
 				tile.append(dots);
 				const actions = node("div", "mock-actions");
-				const start = node("a", "dash-btn dash-btn-primary", status.locked ? "No attempts left" : "Start session");
+				const start = node("a", "dash-btn dash-btn-primary", session.locked ? "Locked" : status.locked ? "No attempts left" : "Start session");
 				if (status.locked) {
 					start.setAttribute("aria-disabled", "true");
 					start.classList.add("is-disabled");
