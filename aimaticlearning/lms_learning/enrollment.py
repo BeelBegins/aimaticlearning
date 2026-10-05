@@ -20,9 +20,8 @@ FREE_UNTIL_FIELD = "examic_free_until"
 PRODUCT_SETTINGS = {
 	"free_days": 60,
 	"free_mocks": 2,
-	"monthly_price_usd": 50,
-	"promotional_price_usd": 25,
-	"launch_discount_percent": 50,
+	"currency": "GBP",
+	"monthly_price_gbp": 25,
 	"billing_enabled": False,
 }
 

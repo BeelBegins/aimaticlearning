@@ -10,8 +10,8 @@ locally on `main` (after `89c02ab`, not pushed). Live site NOT yet updated.
 Owner decisions:
 - 2 months free = copy plus stored end date `User.examic_free_until`
   (signup + 60 days). No access lock, no redirect, no trial screen yet.
-- Payments are out of scope. Copy only: after 2 free months $25/month = all
-  courses and all mocks. No payment code, gateway or Wise work in this task.
+- Payments are out of scope. Copy only: after 2 free months £25/month (GBP) covers FLK1 and
+  FLK2 together, all courses and all mocks, not per course. No payment code, gateway or Wise work in this task.
 - 2 free mocks = Mock 1 and Mock 2 (`FREE_SITTINGS = 2`); Mock 3 and 4 locked
   for non-staff (lobby tile + redirect in `page_renderer.py`).
 - Mock attempts 10 per session. MCQs and module assessments unlimited.
@@ -51,7 +51,7 @@ Live rollout record (2026-10-05, owner approved):
   mails (standard behaviour, not our code). The test user still exists.
 
 Remaining issues / next step:
-1. Owner reviews the draft legal text; settle currency ($25 in copy vs GBP in another agent's note).
+1. Owner reviews the draft legal text. Price settled by owner: £25/month for FLK1 and FLK2 together (copy updated).
 2. Delete the test user and the three SQL-probe users (needs approval).
 3. Confirm academic review status of dispute-resolution, legal-services, criminal-law (all 13 published live).
 4. Four SZL `aimatic` patches remain pending on the LMS site and were not run; uninstalling `aimatic` there is an owner call.

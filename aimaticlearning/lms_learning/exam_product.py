@@ -18,7 +18,7 @@ from aimaticlearning.lms_learning.sqe1_hard_mocks import (
 EXAM_KEY = COURSE_NAME
 # Mocks 1 and 2 are free for every student; later mocks come with the paid plan.
 FREE_SITTINGS = 2
-LOCKED_NOTE = "Included with the $25/month plan"
+LOCKED_NOTE = "Included with the £25/month plan"
 STAFF_ROLES = {"Administrator", "System Manager", "LMS Administrator", "LMS Moderator", "LMS Instructor", "Course Creator", "LMS Content Reviewer"}
 _MOCK_QUIZ = re.compile(r"^mock-(\d+)-")
 FORMAT_NOTE = (
