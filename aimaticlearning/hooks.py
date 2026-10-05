@@ -55,7 +55,7 @@ web_include_css = [
 ]
 web_include_js = [
 	"/assets/aimaticlearning/js/lms_learning.js?v=20260925-buddy5",
-	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-uk1",
+	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-uk2",
 ]
 
 update_website_context = [

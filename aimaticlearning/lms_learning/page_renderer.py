@@ -56,7 +56,7 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20260917-railfix2">
 <script defer src="/assets/aimaticlearning/js/lms_dom_observe.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4"></script>
-<script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-uk1"></script>
+<script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-uk2"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261004-mcqnav6"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261005-dash6"></script>

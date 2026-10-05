@@ -20,5 +20,5 @@
   also styles `.sqe-site` with `!important`. Never use black or grey for buttons or
   their hover/active states. Logo files are `examic-study-header-uk.png` and
   `examic-study-mark-uk.svg` (originals kept). The portal theme picker has a default
-  "UK Blue & Red" theme in `lms_soft_themes.js`. Live Website Settings `app_logo` still
+  "Blue & Red" theme in `lms_soft_themes.js`. Live Website Settings `app_logo` still
   points at the old mark until `configure_lms_student_access` is run (needs approval).

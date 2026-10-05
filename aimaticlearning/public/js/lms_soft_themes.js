@@ -21,7 +21,7 @@
 			}
 		},
 		uk: {
-			label: "UK Blue & Red",
+			label: "Blue & Red",
 			tokens: {
 				ink: "#0E1B3D", muted: "#4A5878", surface: "#FFFFFF", subtle: "#F5F7FB",
 				subtleStrong: "#EAEFFA", line: "#DDE3F0", primary: "#00247D",
