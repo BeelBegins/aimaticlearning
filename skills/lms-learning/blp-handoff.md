@@ -8,7 +8,7 @@
 
 UK SQE1 prep platform (Imran Sb model): UK solicitor owns content/credibility; Pakistan tech owns LMS, MCQs, analytics, AI; separate UK EdTech brand target. Positioning: all-in-one portal at a sharper price than premium SQE prep. Pilot 50–100 candidates → July 2027 SQE1 commercial launch → ~1000 subscribers.
 
-**Do not auto-enroll** students on signup. Solicitor/admin enrolls or invites.
+New self-service signups are enrolled in every published course by `complete_student_signup` (since 2026-10-05). Existing students and staff invites are not auto-enrolled or backfilled without approval.
 
 ## URLs
 
@@ -58,7 +58,7 @@ All LMS product code: `apps/aimaticlearning/aimaticlearning/lms_learning/` — *
 | `course_presentation.py` | **Chapter hub UI** — one lesson/chapter, hub tabs; `repair_course_presentation()` |
 | `lesson_macros.py` | Renders inline HTML hub (notes/MCQ/flashcards) into lesson `body` |
 | `templates/lms_learning/chapter_hub.html` | Hub markup + embedded CSS (Bricolage + Source Serif) |
-| `enrollment.py` | Signup config, Zoho helper, invite APIs, **no auto-enroll** |
+| `enrollment.py` | Signup config, Zoho helper, invite APIs, signup auto-enrolment |
 | `zoho_email.py` | Shared Zoho SMTP setup (any site) |
 | `api.py` | Protected notes, flashcards, learning map, repair API |
 | `content_generation.py` | AI export bundle, MCQ/flashcard import, module assessment blueprint |

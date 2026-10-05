@@ -26,7 +26,7 @@ Read [pipeline.md](pipeline.md) before mutating. Implementation:
 3. Render student HTML into `Course Lesson.body`. Always set `content = ""`.
 4. Record source File name, content hash, and section locator on the Learning
    Chapter Profile. Preserve lesson names and progress.
-5. Do not auto-enrol. Do not merge subjects into BLP. No broad BLP re-import
+5. An import never enrols anyone (signup enrolment is separate, see `AGENTS.md`). Do not merge subjects into BLP. No broad BLP re-import
    without a dry run.
 6. After import, run the checks in "Post-import verification" below before
    calling a subject done. A rendered lesson with a non-empty body is not
