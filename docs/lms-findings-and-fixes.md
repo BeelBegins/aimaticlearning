@@ -514,3 +514,13 @@ changing any answer key.
 **Verification:** `scripts/exam-mode-harness/run.js` (headless Chromium against a stand-in quiz DOM) passes 32 checks, including jump speed (291 ms vs about 6 s stepping), no stale selection, answers kept, End Test dialog above the review, and normal style unchanged. The owner then verified a real mock on the development site. No server record is created by Start, and Submit was not confirmed.
 
 **Remaining risk:** Calculator look, Instructions text and the End Test confirm text were not observed in the MCT player and are Examic's own. The harness only imitates `Quiz.vue`; re-check on a real sitting after any LMS upgrade. If the LMS Vue refs cannot be found the jump falls back to one-at-a-time stepping, which is slower but correct.
+
+## 2026-10-05 Launch readiness (local only, not live)
+
+- Self-service signups are enrolled in all 13 published courses by `complete_student_signup`; one welcome email; `User.examic_free_until` = signup + 60 days (no access lock). Existing students untouched.
+- Mock attempts 10 per session (`MAX_ATTEMPTS`); MCQ quizzes unlimited. Live data change is the idempotent patch `set_attempt_limits`, not yet run.
+- Mocks 3 and 4 locked for non-staff (`FREE_SITTINGS = 2`) in lobby and by redirect in `page_renderer.py`.
+- Signup email must be a plain address (`before_insert` hook); Terms, Privacy, Refund pages added as a draft.
+- Notes and glossary share one CSS typography with semantic colour; lesson text unchanged.
+- Read-only check: 13 courses published, self-learning on, none upcoming or paid; mocks reached only through the lobby.
+- Needs live rollout with approval: migrate (two patches), worker restart. Backup `20261005_163213` (git `679eab8`).

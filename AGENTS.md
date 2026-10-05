@@ -81,6 +81,7 @@ code dependency.
 | MCQ or mock quality, feedback, mapping, and learner display | `lms-mcq-quality` |
 | Mock exam sitting UI (Pearson style, review grid, timer, calculator) | `lms-exam-mode` |
 | Site, backup, Caddy, workers, restore | shared bench `bench-ops` |
+| New production server (examic.study) | `docs/production-server.md` |
 
 Prefer this folder as the Cursor workspace for LMS work.
 
