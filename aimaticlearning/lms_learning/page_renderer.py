@@ -46,7 +46,7 @@ QUIZ_NAV_BOOT = """<script>
 </script>
 """
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-studentmeta2">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20261005-notes1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260917-railfix1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261003-mcqnav4">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">

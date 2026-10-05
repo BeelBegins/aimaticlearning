@@ -466,6 +466,111 @@ body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror table {
 	font-size: 0.94rem;
 }
 
+/* Notes and glossary: one reading style for every course. Word imports carry
+ * inline colour, justify and size overrides; these rules win over them without
+ * touching any lesson text. Colour is semantic (heading, key term, table head). */
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror p[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror li[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror td[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror th[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror span[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror strong[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror em[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror div[style] {
+	color: inherit !important;
+	text-align: left !important;
+	font-family: inherit !important;
+	font-size: inherit !important;
+	line-height: inherit !important;
+	background-color: transparent !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h2[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h3[style],
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h4[style] {
+	font-family: var(--aimatic-ui-font) !important;
+	line-height: 1.22 !important;
+	text-align: left !important;
+	background-color: transparent !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h2[style] {
+	font-size: clamp(1.45rem, 2.1vw, 1.9rem) !important;
+	color: var(--aimatic-ink) !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h3[style] {
+	font-size: clamp(1.2rem, 1.7vw, 1.5rem) !important;
+	color: var(--aimatic-teal-dark) !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h4[style] {
+	font-size: 1.08rem !important;
+	color: #34445c !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h2 {
+	padding-bottom: 0.4rem;
+	border-bottom: 1px solid var(--aimatic-line);
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h3 {
+	color: var(--aimatic-teal-dark);
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h4 {
+	color: #34445c;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h2 *,
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h3 *,
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror h4 * {
+	color: inherit !important;
+	font-family: inherit !important;
+	font-size: inherit !important;
+	font-weight: inherit !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror p:empty {
+	display: none;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror strong,
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror b {
+	color: #0b4a7a;
+	font-weight: 650;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror li::marker {
+	color: var(--aimatic-teal-dark);
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror th {
+	background: var(--aimatic-mint) !important;
+	color: var(--aimatic-ink) !important;
+	font-family: var(--aimatic-ui-font) !important;
+	font-weight: 650;
+	text-align: left !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror th,
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror td {
+	padding: 0.5rem 0.7rem;
+	border: 1px solid var(--aimatic-line);
+	vertical-align: top;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror tbody tr:nth-child(even) td {
+	background: var(--aimatic-cream) !important;
+}
+
+body.aimatic-lms-learner .aimatic-lms-lesson-main .ProseMirror blockquote {
+	margin: 0 0 1rem;
+	padding: 0.2rem 1rem;
+	border-left: 3px solid var(--aimatic-mint-deep);
+	color: #34445c;
+}
+
 body.aimatic-lms-learner .aimatic-lms-chapter-rail {
 	min-width: 0;
 }
