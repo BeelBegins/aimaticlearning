@@ -4,7 +4,7 @@ app_publisher = "Aimatic"
 app_description = "Aimatic-owned LMS features"
 app_email = "sthassan41@gmail.com"
 app_license = "mit"
-app_logo_url = "/assets/aimaticlearning/images/examic-study-mark.svg"
+app_logo_url = "/assets/aimaticlearning/images/examic-study-mark-uk.svg"
 app_home = "/desk/lms-learning"
 
 required_apps = ["lms"]
@@ -55,7 +55,7 @@ web_include_css = [
 ]
 web_include_js = [
 	"/assets/aimaticlearning/js/lms_learning.js?v=20260925-buddy5",
-	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20260917-frappe8",
+	"/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-uk1",
 ]
 
 update_website_context = [

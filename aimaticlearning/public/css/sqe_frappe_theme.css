@@ -1,4 +1,6 @@
-/* Examic Study public pages use the installed Frappe Learning visual system. */
+/* Examic Study public page: one UK theme, white with royal blue and flag red.
+ * Loaded after sqe_prep.css, sqe_conversion.css and lms_soft_themes.css, so every
+ * rule is scoped with :is(html[data-examic-theme], html) body .sqe-site to win over them without hunting each property. */
 @font-face {
 	font-family: InterVar;
 	font-weight: 100 900;
@@ -7,16 +9,17 @@
 	src: url("/assets/lms/frontend/assets/Inter.var-C9xDBOS3.woff2?v=3.19") format("woff2");
 }
 
-.sqe-site {
+:is(html[data-examic-theme], html) body .sqe-site {
 	--ex-blue: #00247d;
 	--ex-blue-2: #1a3a94;
-	--ex-blue-deep: #001a5c;
 	--ex-red: #cf142b;
 	--ex-red-deep: #a80f22;
+	--ex-tint: #f5f7fb;
+	--ex-tint-2: #eaeffa;
 	--ex-navy: #00247d;
 	--ex-navy-2: #1a3a94;
 	--ex-gold: #cf142b;
-	--ex-gold-dark: #a80f22;
+	--ex-gold-dark: #cf142b;
 	--ex-cream: #ffffff;
 	--ex-mist: #f5f7fb;
 	--ex-ink: #0e1b3d;
@@ -24,114 +27,124 @@
 	--ex-line: #dde3f0;
 	--ex-font: InterVar, ui-sans-serif, system-ui, sans-serif;
 	--ex-serif: InterVar, ui-sans-serif, system-ui, sans-serif;
-	background: var(--ex-mist);
-	color: var(--ex-ink);
+	background: #fff !important;
+	color: var(--ex-ink) !important;
 	font-family: var(--ex-font);
 }
 
-.sqe-header {
-	min-height: 48px;
-	padding-block: 8px;
-	border-bottom: 1px solid var(--ex-line);
-	background: #fff;
-	box-shadow: none;
-	backdrop-filter: none;
+/* Focus is red everywhere, never a dark ring. */
+:is(html[data-examic-theme], html) body .sqe-site a:focus-visible,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn:focus-visible { outline: 3px solid rgba(207, 20, 43, 0.45); outline-offset: 3px; }
+
+/* Header and navigation */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-header { min-height: 56px; padding-block: 10px; border-bottom: 1px solid var(--ex-line); background: #fff; box-shadow: none; backdrop-filter: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-brand img { width: 200px; height: auto; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav { gap: 18px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn) { color: var(--ex-blue); font-size: 0.88rem; font-weight: 600; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn):hover,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn):active { color: var(--ex-red); }
+
+/* Buttons: blue by default, blue-2 on hover, red while pressed. Never black. */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn { min-height: 44px; padding: 9px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; letter-spacing: 0; box-shadow: none; transition: background 160ms ease, border-color 160ms ease, color 160ms ease; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn::before { display: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn:hover,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn:active { transform: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-primary { border-color: var(--ex-blue) !important; background: var(--ex-blue) !important; color: #fff !important; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-primary:hover { border-color: var(--ex-blue-2) !important; background: var(--ex-blue-2) !important; color: #fff !important; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-primary:active,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-primary:focus-visible { border-color: var(--ex-red) !important; background: var(--ex-red) !important; color: #fff !important; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-ghost { border-color: var(--ex-blue); background: #fff; color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-ghost:hover { background: var(--ex-tint-2); color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-ghost:active { border-color: var(--ex-red); color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-header { min-height: 40px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-hero { min-height: 52px; padding: 10px 20px; border-radius: 8px; gap: 12px; font-size: 1rem; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-arrow { display: inline; width: auto; height: auto; border-radius: 0; background: transparent; color: inherit; font-size: 1.15rem; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final { min-height: 52px; padding: 10px 22px; border: 1px solid var(--ex-red) !important; border-radius: 8px; background: var(--ex-red) !important; color: #fff !important; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final:hover { border-color: var(--ex-red-deep) !important; background: var(--ex-red-deep) !important; color: #fff !important; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final:active,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final:focus-visible { border-color: var(--ex-blue) !important; background: var(--ex-blue) !important; color: #fff !important; }
+
+/* Hero */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-hero { max-width: 1120px; gap: 48px; padding: 56px 24px 48px; background: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-eyebrow { display: block; margin: 0 0 12px; color: var(--ex-red); font-size: 0.85rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-eyebrow-light { color: var(--ex-red) !important; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-hero h1 { margin: 0 0 20px; color: var(--ex-ink); font-family: var(--ex-font); font-size: clamp(2.25rem, 4.2vw, 3.6rem); font-weight: 650; letter-spacing: -0.035em; line-height: 1.08; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-hero h1 em { color: var(--ex-red) !important; font-style: normal; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-lead { margin: 0 0 8px; color: var(--ex-muted); font-size: 1.05rem; line-height: 1.65; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-conversion-block { margin-top: 24px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-reassurance { color: var(--ex-muted); font-size: 0.82rem; font-weight: 500; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-reassurance > span { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-secondary-link { color: var(--ex-blue); font-weight: 600; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-secondary-link:hover,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-secondary-link:active { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-trial-note { border-left: 2px solid var(--ex-blue); }
+
+/* Path card: numbered steps are circles, not tiles */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-card { padding: 24px; border: 1px solid var(--ex-line); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(0, 36, 125, 0.08); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-head span { color: var(--ex-red); font-size: 0.82rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-head strong { color: var(--ex-blue); font-family: var(--ex-font); font-size: 1.25rem; font-weight: 650; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-list li { border-radius: 8px; color: var(--ex-muted); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-list li.is-active { background: var(--ex-tint-2); color: var(--ex-ink); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-number { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--ex-blue); color: #fff; font-size: 0.8rem; font-weight: 700; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-list li.is-active .sqe-path-number { background: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-list .is-active .sqe-path-state { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-progress > span { background: var(--ex-tint-2); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-progress i { background: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-progress small,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-path-progress small a { color: var(--ex-blue); }
+
+/* What you study with: one clean row, no boxes */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-proof { grid-template-columns: repeat(4, 1fr); max-width: 1072px; padding: 0 24px 56px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-proof div { padding: 8px 24px; border: 0; border-left: 1px solid var(--ex-line); border-radius: 0; background: none; text-align: left; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-proof div:first-child { border-left: 0; padding-left: 0; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-proof strong { color: var(--ex-blue); font-family: var(--ex-font); font-size: 1.1rem; font-weight: 650; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-proof span { color: var(--ex-muted); font-size: 0.88rem; }
+
+/* Sections and cards */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-section { padding-block: 64px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-how { border-block: 1px solid var(--ex-line); background: var(--ex-tint); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-section-heading h2 { color: var(--ex-ink); font-family: var(--ex-font); font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 650; letter-spacing: -0.03em; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-section-heading p:not(.sqe-eyebrow) { color: var(--ex-muted); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-three article,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature-large,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature-gold { padding: 24px; border: 1px solid var(--ex-line); border-radius: 10px; background: #fff; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature-large h3,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature-large p { color: inherit; opacity: 1; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature h3,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-three h3 { color: var(--ex-ink); font-size: 1rem; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature p,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-three p,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-three li,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-feature small { color: var(--ex-muted); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-three article > span { color: var(--ex-red); font-family: var(--ex-font); font-size: 1.2rem; font-weight: 700; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-icon { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--ex-blue); color: #fff; font-family: var(--ex-font); font-size: 0.95rem; box-shadow: none; }
+
+/* Closing panel: light card, readable text, one red button */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel { margin-bottom: 64px; padding: 44px 48px; border: 1px solid var(--ex-line); border-radius: 12px; background: var(--ex-tint) !important; color: var(--ex-ink) !important; box-shadow: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel h2 { color: var(--ex-blue); font-family: var(--ex-font); font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 650; letter-spacing: -0.03em; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel p,
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel-note { color: var(--ex-muted); font-size: 0.85rem; font-weight: 500; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel > div > p { font-size: 1rem; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-login { color: var(--ex-blue); font-size: 0.9rem; font-weight: 600; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-login:hover { color: var(--ex-red); }
+
+/* Footer */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-footer { border-top: 1px solid var(--ex-line); color: var(--ex-muted); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-footer img { width: 190px; }
+
+@media (max-width: 900px) {
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-proof { grid-template-columns: repeat(2, 1fr); row-gap: 16px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-proof div:nth-child(odd) { border-left: 0; padding-left: 0; }
 }
-
-.sqe-brand img { width: 182px; }
-.sqe-nav { gap: 14px; }
-.sqe-nav > a:not(.sqe-btn) { color: var(--ex-blue); font-size: 0.82rem; font-weight: 500; }
-.sqe-nav > a:not(.sqe-btn):hover, .sqe-nav > a:not(.sqe-btn):active { color: var(--ex-red); }
-
-.sqe-btn {
-	min-height: 32px;
-	padding: 7px 12px;
-	border-radius: 6px;
-	font-size: 0.82rem;
-	font-weight: 500;
-	transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.sqe-btn:hover, .sqe-btn:active { transform: none; }
-.sqe-btn-primary { border-color: var(--ex-blue); background: var(--ex-blue); color: #fff; box-shadow: none; }
-.sqe-btn-primary:hover { border-color: var(--ex-blue-2); background: var(--ex-blue-2); color: #fff; box-shadow: none; }
-.sqe-btn-primary:active, .sqe-btn-primary:focus-visible { border-color: var(--ex-red); background: var(--ex-red); color: #fff; box-shadow: none; }
-.sqe-btn-ghost { border-color: var(--ex-blue); background: #fff; color: var(--ex-blue); }
-.sqe-btn-ghost:hover { background: #eef2fb; color: var(--ex-blue); }
-.sqe-btn-ghost:active { border-color: var(--ex-red); color: var(--ex-red); }
-.sqe-btn-header { min-height: 32px; padding: 7px 12px; }
-.sqe-btn-hero { min-height: 40px; padding: 8px 10px 8px 14px; border-radius: 6px; box-shadow: none; }
-.sqe-btn-arrow { width: 25px; height: 25px; border-radius: 4px; background: rgba(255,255,255,0.18); color: #fff; font-size: 0.95rem; }
-
-.sqe-hero {
-	max-width: 1120px;
-	gap: 40px;
-	padding-top: 48px;
-	padding-bottom: 48px;
-	background: transparent;
-}
-
-.sqe-eyebrow { color: var(--ex-red); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; }
-.sqe-hero h1 { font-family: var(--ex-font); font-size: clamp(2.25rem, 4.2vw, 3.75rem); font-weight: 650; letter-spacing: -0.04em; line-height: 1.08; }
-.sqe-hero h1 em { color: var(--ex-red); }
-.sqe-lead { font-size: 0.98rem; line-height: 1.6; }
-.sqe-conversion-block { margin-top: 24px; }
-.sqe-cta-reassurance { color: var(--ex-muted); font-weight: 500; }
-.sqe-cta-reassurance > span { color: var(--ex-red); }
-.sqe-secondary-link { color: var(--ex-blue); font-weight: 500; }
-.sqe-secondary-link:hover, .sqe-secondary-link:active { color: var(--ex-red); }
-.sqe-trial-note { border-left-color: var(--ex-blue); }
-
-.sqe-path-card,
-.sqe-three article,
-.sqe-feature,
-.sqe-cta-panel {
-	border: 1px solid var(--ex-line);
-	border-radius: 8px;
-	box-shadow: none;
-}
-
-.sqe-path-card { padding: 20px; background: #fff; }
-.sqe-path-head strong { font-family: var(--ex-font); font-size: 1.18rem; font-weight: 600; }
-.sqe-path-list li { border-radius: 6px; }
-.sqe-path-list li.is-active { background: #eef2fb; }
-.sqe-path-number { border-color: var(--ex-blue); border-radius: 5px; color: var(--ex-blue); }
-.sqe-path-list strong { font-size: 0.86rem; }
-.sqe-path-progress i { background: var(--ex-red); }
-
-.sqe-proof { max-width: 1072px; }
-.sqe-proof div { border-color: var(--ex-line); background: #fff; }
-.sqe-proof strong { font-family: var(--ex-font); font-size: 1.25rem; font-weight: 600; }
-
-.sqe-section { padding-block: 72px; }
-.sqe-how { border-block: 1px solid var(--ex-line); background: #fff; }
-.sqe-section-heading h2,
-.sqe-cta-panel h2 { font-family: var(--ex-font); font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 600; letter-spacing: -0.035em; }
-.sqe-three article,
-.sqe-feature { padding: 24px; background: #fff; }
-.sqe-three article > span { font-family: var(--ex-font); font-size: 1.25rem; color: var(--ex-red); }
-.sqe-three h3, .sqe-feature h3 { font-size: 1rem; }
-.sqe-feature-large, .sqe-feature-gold { background: #fff; }
-.sqe-feature-large h3, .sqe-feature-large p { color: inherit; opacity: 1; }
-.sqe-icon { width: 36px; height: 36px; border: 1px solid var(--ex-line); border-radius: 6px; background: #eef2fb; color: var(--ex-blue); box-shadow: none; }
-
-.sqe-cta-panel { margin-bottom: 72px; background: #fff; color: var(--ex-ink); }
-.sqe-cta-panel h2, .sqe-cta-panel p, .sqe-cta-panel-note { color: inherit; }
-.sqe-cta-panel p, .sqe-cta-panel-note { color: var(--ex-muted); }
-.sqe-btn-final { min-height: 40px; border: 1px solid var(--ex-red); border-radius: 6px; background: var(--ex-red); color: #fff; box-shadow: none; }
-.sqe-btn-final:hover { border-color: var(--ex-red-deep); background: var(--ex-red-deep); color: #fff; box-shadow: none; }
-.sqe-btn-final:active, .sqe-btn-final:focus-visible { border-color: var(--ex-blue); background: var(--ex-blue); color: #fff; }
-.sqe-cta-login { color: var(--ex-blue); }
-.sqe-site a:focus-visible { outline: 2px solid var(--ex-red); outline-offset: 2px; }
-.sqe-footer { border-top-color: var(--ex-line); }
 
 @media (max-width: 620px) {
-	.sqe-header { min-height: 48px; }
-	.sqe-brand img { width: min(164px, 45vw); }
-	.sqe-btn-header { min-height: 40px; }
-	.sqe-hero { padding-top: 38px; padding-bottom: 40px; }
-	.sqe-hero h1 { font-size: clamp(2rem, 10vw, 2.65rem); }
-	.sqe-path-card { padding: 16px; }
-	.sqe-section { padding-block: 52px; }
-	.sqe-cta-panel { border-radius: 8px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-header { min-height: 52px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-brand img { width: min(168px, 45vw); }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-header { min-height: 44px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-hero { padding-top: 36px; padding-bottom: 36px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-hero h1 { font-size: clamp(2rem, 10vw, 2.6rem); }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-path-card { padding: 18px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-section { padding-block: 48px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-cta-panel { margin: 0 16px 48px; padding: 28px 22px; }
 }

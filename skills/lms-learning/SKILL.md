@@ -110,3 +110,11 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
   `supervisorctl`, which only the owner runs.
 - Terms, Privacy and Refund pages are plain drafts in `www/`.
 - Resumable launch state: `tasks/launch-oct10-20261005/task.md`.
+- Public `/sqe` theme: white, royal blue `#00247D`, flag red `#CF142B`, ink `#0E1B3D`.
+  All of it lives in `public/css/sqe_frappe_theme.css`, scoped as
+  `:is(html[data-examic-theme], html) body .sqe-site` because `lms_soft_themes.css`
+  also styles `.sqe-site` with `!important`. Never use black or grey for buttons or
+  their hover/active states. Logo files are `examic-study-header-uk.png` and
+  `examic-study-mark-uk.svg` (originals kept). The portal theme picker has a default
+  "UK Blue & Red" theme in `lms_soft_themes.js`. Live Website Settings `app_logo` still
+  points at the old mark until `configure_lms_student_access` is run (needs approval).

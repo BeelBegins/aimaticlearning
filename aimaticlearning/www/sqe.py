@@ -16,7 +16,7 @@ def get_context(context):
 	# brand and must be the one consistent canonical/OG host everywhere (matches
 	# the JSON-LD provider URL below and aimaticlearning/www/sitemap.py).
 	context.canonical_url = "https://examic.study/sqe"
-	context.og_image = "https://examic.study/assets/aimaticlearning/images/examic-study-header.png"
+	context.og_image = "https://examic.study/assets/aimaticlearning/images/examic-study-header-uk.png"
 	context.login_url = "/login"
 	context.signup_url = "/login#signup"
 	context.courses_url = "/lms/courses"

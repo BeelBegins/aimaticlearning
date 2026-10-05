@@ -20,6 +20,16 @@
 				shadow: "0 14px 40px var(--black-overlay-100, rgba(0, 0, 0, 0.08))"
 			}
 		},
+		uk: {
+			label: "UK Blue & Red",
+			tokens: {
+				ink: "#0E1B3D", muted: "#4A5878", surface: "#FFFFFF", subtle: "#F5F7FB",
+				subtleStrong: "#EAEFFA", line: "#DDE3F0", primary: "#00247D",
+				primaryHover: "#1A3A94", cardEnd: "#001A5C", secondary: "#CF142B",
+				danger: "#CF142B", dangerSoft: "#FDECEE",
+				shadow: "0 14px 40px rgba(0, 36, 125, 0.12)"
+			}
+		},
 		blue: {
 			label: "Blue",
 			tokens: {
@@ -47,7 +57,7 @@
 		});
 		document.querySelectorAll(".page-card-head .app-logo").forEach(function (logo) {
 			logo.alt = "Examic Study";
-			logo.src = "/assets/aimaticlearning/images/examic-study-mark.svg?v=20260902-6";
+			logo.src = "/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk";
 		});
 	}
 
@@ -57,12 +67,12 @@
 		if (allowedThemes.indexOf(saved) !== -1) return saved;
 		/* Never carry a custom sage/sky/lilac choice into the new palette. */
 		window.localStorage.removeItem(legacyStorageKey);
-		return "frappe";
+		return "uk";
 	}
 
 	function applyTheme(theme) {
 		if (legacyThemeAliases[theme]) theme = legacyThemeAliases[theme];
-		if (allowedThemes.indexOf(theme) === -1) theme = "frappe";
+		if (allowedThemes.indexOf(theme) === -1) theme = "uk";
 		var tokens = themeDefinitions[theme].tokens;
 		document.documentElement.setAttribute("data-theme", "light");
 		document.documentElement.setAttribute("data-examic-theme", theme);
