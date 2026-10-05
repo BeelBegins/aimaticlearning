@@ -183,7 +183,7 @@ def rank_revision_recommendations(
 		ranked.append(
 			(
 				40,
-				"This subject does not have published flashcards yet. Use the notes and chapter MCQs.",
+				"This course does not have published flashcards yet. Use the notes and chapter MCQs.",
 			)
 		)
 	if not attempted_mcqs and not hard and not weaknesses and not needs_work:
