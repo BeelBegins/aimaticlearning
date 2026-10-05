@@ -64,6 +64,17 @@
 :is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final:active,
 :is(html[data-examic-theme], html) body .sqe-site .sqe-btn-final:focus-visible { border-color: var(--ex-blue) !important; background: var(--ex-blue) !important; color: #fff !important; }
 
+/* Header: quiet text links, plain Log in, one solid call to action */
+:is(html[data-examic-theme], html) body .sqe-site .sqe-header { padding-inline: 32px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav { gap: 6px; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn) { padding: 8px 12px; border-radius: 6px; color: var(--ex-ink); font-size: 0.92rem; font-weight: 500; text-decoration: none; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn):hover { background: var(--ex-tint-2); color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav > a:not(.sqe-btn):active { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav .sqe-btn-ghost { margin-left: 10px; padding: 8px 12px; border: 0; background: none; color: var(--ex-blue); font-weight: 600; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav .sqe-btn-ghost:hover { background: var(--ex-tint-2); color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav .sqe-btn-header { min-height: 40px; padding: 8px 18px; border-radius: 8px; font-size: 0.92rem; font-weight: 600; }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-nav .sqe-btn-header span { display: none; }
+
 /* Hero */
 :is(html[data-examic-theme], html) body .sqe-site .sqe-hero { max-width: 1120px; gap: 48px; padding: 56px 24px 48px; background: none; }
 :is(html[data-examic-theme], html) body .sqe-site .sqe-eyebrow { display: block; margin: 0 0 12px; color: var(--ex-red); font-size: 0.85rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
@@ -142,6 +153,8 @@
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-header { min-height: 52px; }
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-brand img { width: min(168px, 45vw); }
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-btn-header { min-height: 44px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-header { padding-inline: 16px; }
+	:is(html[data-examic-theme], html) body .sqe-site .sqe-nav .sqe-btn-header { max-width: none; padding: 8px 12px; font-size: 0.82rem; white-space: nowrap; }
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-hero { padding-top: 36px; padding-bottom: 36px; }
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-hero h1 { font-size: clamp(2rem, 10vw, 2.6rem); }
 	:is(html[data-examic-theme], html) body .sqe-site .sqe-path-card { padding: 18px; }
