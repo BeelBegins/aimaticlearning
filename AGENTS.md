@@ -1,7 +1,9 @@
 # Examic Study (aimaticlearning)
 
-This repository is the Examic Study product. Sites: `lms.aimatic.tech`,
-`examic.study`, `www.examic.study`. It is not SZL retail. Do not load POS,
+This repository is the Examic Study product. Development runs on
+`lms.aimatic.tech` (shared bench). `examic.study` and `www.examic.study` will
+serve production from a separate server once development is complete; a 503
+there is expected until then, not a defect. It is not SZL retail. Do not load POS,
 FBR, purchase, Foodpanda, or other SZL skills.
 
 Identify this product, then load only `lms-learning` (and `lms-course-upload`
