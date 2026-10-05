@@ -32,7 +32,7 @@ app. This shared bench still has `aimatic` installed on the LMS site; leave it
 until the server move rather than uninstalling here. A new LMS-only bench
 should not install it.
 
-New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval.
+New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Code is committed locally but NOT live until the patches and worker restart in `tasks/launch-oct10-20261005/task.md` are done.
 
 ## Unpublished on `/sqe`
 
