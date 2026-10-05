@@ -6,4 +6,5 @@ aimaticlearning.patches.expand_course_lesson_content_field
 aimaticlearning.patches.configure_lms_student_access
 aimaticlearning.patches.sync_learning_mock_exam
 aimaticlearning.patches.add_user_free_until
+aimaticlearning.patches.set_attempt_limits
 
