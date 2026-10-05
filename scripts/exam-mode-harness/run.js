@@ -37,26 +37,45 @@ const res=[];const ok=(n,c,d='')=>{res.push((c?'PASS ':'FAIL ')+n+(d?' | '+d:'')
  await p.click('[data-pearson=next]'); await p.waitForTimeout(500);
  ok('Next moves to 2', await cur()===2, 'cur='+await cur());
  ok('Previous visible on Q2', await p.locator('[data-pearson=prev]').isVisible());
- // go to last
- for(let i=0;i<48;i++){await p.click('[data-pearson=next]'); await p.waitForTimeout(60);}
+ // Review Screen button is available mid-test
+ await p.click('[data-pearson=review]'); await p.waitForTimeout(300);
+ ok('Review Screen button opens review mid-test', await p.locator('.aimatic-pearson-review-screen').isVisible());
+ await p.locator('.aimatic-pearson-row').nth(1).click(); await p.waitForTimeout(600);
+ ok('row click from review returns to Q2', await cur()===2, 'cur='+await cur());
+ // go to Q49, answer it, then Q50
+ for(let i=0;i<47;i++){await p.click('[data-pearson=next]'); await p.waitForTimeout(190);}
+ await p.waitForTimeout(400);
+ ok('reached Q49', await cur()===49, 'cur='+await cur());
+ await p.click('label:has-text("Procedural impropriety")');
+ await p.click('[data-pearson=next]'); await p.waitForTimeout(500);
  ok('reached Q50', await cur()===50, 'cur='+await cur());
  await shot('05-q50');
  await p.click('[data-pearson=next]'); await p.waitForTimeout(500);
  ok('last Next opens review', await p.locator('.aimatic-pearson-review-screen').isVisible());
  ok('review rows = 50', await p.locator('.aimatic-pearson-row').count()===50, ''+await p.locator('.aimatic-pearson-row').count());
  ok('Q1 Answered', (await p.locator('.aimatic-pearson-row').nth(0).innerText()).includes('Answered'));
+ ok('Q49 Answered', (await p.locator('.aimatic-pearson-row').nth(48).innerText()).includes('Answered'));
  ok('Q3 Incomplete', (await p.locator('.aimatic-pearson-row').nth(2).innerText()).includes('Incomplete'));
  await shot('06-review');
  await p.click('[data-filter=flagged]'); await p.waitForTimeout(200);
  ok('flagged filter shows Q1 only', await p.locator('.aimatic-pearson-row').count()===1);
- await p.click('[data-filter=all]');
- // jump far: row Question 3
- await p.locator('.aimatic-pearson-row').nth(2).click(); await p.waitForTimeout(1500);
- ok('row click jumps from 50 to 3', await cur()===3, 'cur='+await cur());
+ await p.click('[data-filter=all]'); await p.waitForTimeout(200);
+ // far jump must be fast and must not leak Q49's answer onto Q3
+ let t0=Date.now();
+ await p.locator('.aimatic-pearson-row').nth(2).click(); await p.waitForFunction(()=>{const e=[...document.querySelectorAll('.text-sm.text-ink-gray-5')].find(n=>/^Question\s+\d+/.test(n.textContent));return e&&/Question 3 /.test(e.textContent);},null,{timeout:8000}).catch(()=>{});
+ const jumpMs=Date.now()-t0; await p.waitForTimeout(500);
+ ok('row click jumps 50 to 3', await cur()===3, 'cur='+await cur());
+ ok('far jump is fast (<2500ms, stepping would be ~6000ms)', jumpMs<2500, jumpMs+'ms');
  ok('review closed after jump', !(await p.locator('.aimatic-pearson-review-screen').isVisible()));
+ ok('Q3 shows no stale selection', (await p.locator('input[type=radio]:checked').count())===0);
+ await p.click('[data-pearson=review]'); await p.waitForTimeout(200);
+ await p.locator('.aimatic-pearson-row').nth(48).click(); await p.waitForTimeout(1500);
+ ok('jump to Q49 keeps its answer', await cur()===49 && (await p.locator('label:has-text("Procedural impropriety") input').isChecked()), 'cur='+await cur());
+ await p.click('[data-pearson=review]'); await p.waitForTimeout(200);
+ await p.locator('.aimatic-pearson-row').nth(0).click(); await p.waitForTimeout(1500);
+ ok('jump to Q1 keeps its answer', await cur()===1 && (await p.locator('label:has-text("Irrationality") input').isChecked()), 'cur='+await cur());
  // End Test dialog
- for(let i=0;i<47;i++){await p.click('[data-pearson=next]'); await p.waitForTimeout(50);}
- await p.click('[data-pearson=next]'); await p.waitForTimeout(400);
+ await p.click('[data-pearson=review]'); await p.waitForTimeout(300);
  await p.click('[data-pearson=end]'); await p.waitForTimeout(600);
  const top=await p.evaluate(()=>{const d=document.querySelector('#dlgwrap [role=dialog]');if(!d)return 'nodialog';const r=d.getBoundingClientRect();const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return d.contains(e)?'dialog-on-top':'covered:'+e.className;});
  ok('End Test confirm dialog above review', top==='dialog-on-top', top);

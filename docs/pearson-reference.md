@@ -79,3 +79,13 @@ Check each against `lms_exam_tools.js` / `.css` before declaring done:
 - Calculator window look, Instructions text, End Test confirmation, the
   Immediate Feedback format, and mobile layout. Capture them before building
   those parts.
+
+## Deliberate differences from the MCT player
+
+Added after learner testing on 2026-10-05; keep them:
+
+- **Review Screen** button at the left of the footer, so the review list can be opened
+  from any question (MCT only reaches it from the last Next).
+- **Exit to Mock Exams** link in the top bar (MCT has no exit).
+- A review row jumps straight to its question (one native step to save the answer being
+  left, then a direct set of the active question), never one question at a time.

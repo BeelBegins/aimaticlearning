@@ -331,23 +331,59 @@
 		return new Promise(function (resolve) { window.setTimeout(resolve, ms); });
 	}
 
-	// Always go through the native Previous/Next/pager buttons so LMS saves the answer
-	// it is leaving (switchQuestion). The pager only shows a 5-number window, so a far
-	// jump walks one question at a time until the counter reaches the target.
+	async function waitForNumber(match, ms) {
+		for (let tick = 0; tick < ms / 40; tick += 1) {
+			if (match(currentNumber())) return true;
+			await wait(40);
+		}
+		return match(currentNumber());
+	}
+
+	// Native Previous/Next/pager buttons run LMS switchQuestion, which saves the answer being
+	// left. A far jump takes one native step so that save happens, then sets the active
+	// question directly (one render instead of one per question). Selection is zeroed first
+	// so the question we stepped through cannot leak its answer onto the target. If the LMS
+	// refs cannot be found it falls back to stepping one question at a time.
 	async function goToQuestion(target) {
 		const total = questionTotal();
 		if (target < 1 || (total && target > total)) return;
 		const token = ++navToken;
+		const nativeToward = function (from) {
+			return pagerButton(target) || buttonByLabel(target > from ? /^Next question$/i : /^Previous question$/i);
+		};
+		const first = currentNumber();
+		if (!first || first === target) return;
+		const near = pagerButton(target) || (Math.abs(target - first) === 1 ? nativeToward(first) : null);
+		if (near) {
+			near.click();
+			return;
+		}
+		let session = quizSession();
+		if (session && session.activeQuestion && session.selectedOptions) {
+			const step = nativeToward(first);
+			if (step) {
+				step.click();
+				await waitForNumber(function (n) { return n !== first; }, 1000);
+			}
+			if (token !== navToken) return;
+			if (currentNumber() !== target) {
+				session = quizSession();
+				if (session && session.activeQuestion && session.selectedOptions) {
+					session.selectedOptions.value = session.selectedOptions.value.map(function () { return 0; });
+					session.activeQuestion.value = target;
+					if (await waitForNumber(function (n) { return n === target; }, 1500)) return;
+				}
+			} else {
+				return;
+			}
+		}
 		for (let guard = 0; guard < 120 && token === navToken; guard += 1) {
 			const current = currentNumber();
 			if (!current || current === target) return;
-			const pager = pagerButton(target);
-			const native = buttonByLabel(target > current ? /^Next question$/i : /^Previous question$/i);
-			const click = pager || native;
+			const click = nativeToward(current);
 			if (!click) return;
 			click.click();
-			for (let tick = 0; tick < 25 && currentNumber() === current; tick += 1) await wait(40);
-			if (currentNumber() === current) return;
+			if (!(await waitForNumber(function (n) { return n !== current; }, 1000))) return;
 		}
 	}
 
@@ -414,6 +450,7 @@
 			"<span><u>F</u>lag for Review</span></button>",
 			"</div></header>",
 			'<footer class="aimatic-pearson-footer">',
+			'<button type="button" class="aimatic-pearson-open-review" data-pearson="review"><u>R</u>eview Screen</button>',
 			'<button type="button" data-pearson="prev">&larr; <u>P</u>revious</button>',
 			'<button type="button" data-pearson="next"><u>N</u>ext &rarr;</button>',
 			"</footer>",
@@ -459,6 +496,7 @@
 			if (total && currentNumber() >= total) openReview("all");
 			else goToQuestion(currentNumber() + 1);
 		});
+		shell.querySelector('[data-pearson="review"]').addEventListener("click", function () { openReview("all"); });
 		shell.querySelector('[data-pearson="end"]').addEventListener("click", endTest);
 		shell.querySelectorAll("[data-filter]").forEach(function (button) {
 			button.addEventListener("click", function () { paintReview(button.dataset.filter); });

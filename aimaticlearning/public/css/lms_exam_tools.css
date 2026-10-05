@@ -297,6 +297,11 @@ body.aimatic-pearson-sitting label.flex.items-center.bg-surface-gray-3.rounded-m
 	color: #d7e03a;
 }
 
+.aimatic-pearson-footer .aimatic-pearson-open-review {
+	margin-right: auto;
+	border-left: 0;
+}
+
 .aimatic-pearson-footer button[hidden] {
 	display: none;
 }
