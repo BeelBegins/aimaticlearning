@@ -37,23 +37,22 @@ Skills used: `lms-learning`, `lms-exam-mode`.
 
 Verification: `../../env/bin/python -m unittest aimaticlearning.lms_learning.test_signup_enrolment aimaticlearning.lms_learning.test_exam_product` (13 pass); typography checked on BLP, Contract, Public Law bodies at 1280 and 390 px.
 
-Status: review (code done and committed; live rollout pending).
+Status: review (live rollout done 2026-10-05; owner checks remain).
+
+Live rollout record (2026-10-05, owner approved):
+- `run-patch` add_user_free_until and set_attempt_limits on the LMS site: done
+  (16 mock quizzes and the exam 3 -> 10; BLP and Tort module assessments -> 0).
+- `szl` migrated (backup `20261005_204841`); owner restarted web and workers.
+- Verified after restart: hooks loaded, lobby locks mocks 3 and 4, guest redirect
+  works, `/terms` `/privacy` `/refund-policy` 200, signup page links them.
+- Throwaway signup `nabeelmehmood448+examictest1@gmail.com` through the real
+  `sign_up` endpoint: 13 enrolments, `examic_free_until` 2026-12-04, welcome email
+  sent. Frappe also queued its own "Set your password" and "password changed"
+  mails (standard behaviour, not our code). The test user still exists.
 
 Remaining issues / next step:
-1. Live: run `add_user_free_until` then `set_attempt_limits` on the LMS site.
-   `bench migrate` on this site fails first on the leftover `aimatic` app
-   (`add_item_principal_controls`: no `Item` doctype; three more SZL patches
-   are pending behind it). Do not run SZL patches here; use `run-patch` for the
-   two aimaticlearning patches, or uninstall `aimatic` from the LMS site (owner call).
-2. Worker restart (shared with live `szl`) is needed for the hook, lock and
-   `?v` asset bumps. Not done.
-3. `szl` was migrated 2026-10-05 20:50 for shelf-price commit `943d548`
-   (backup `20261005_204841-szl-database.sql.gz`); it also still needs a restart.
-4. Terms, Privacy, Refund text is a draft: owner review before launch.
-5. Three SQL-probe users (28 Sep) await owner approval to delete.
-6. Open question: currency. Site copy says $25; another agent report mentions
-   GBP and Wise. Owner must settle currency before any payment work.
-7. `docs/current-state.md` lists dispute-resolution, legal-services,
-   criminal-law as unpublished; live read-only check on 2026-10-05 shows all 13
-   published. Confirm with owner whether the academic review is done.
-8. Unpushed commits need push approval.
+1. Owner reviews the draft legal text; settle currency ($25 in copy vs GBP in another agent's note).
+2. Delete the test user and the three SQL-probe users (needs approval).
+3. Confirm academic review status of dispute-resolution, legal-services, criminal-law (all 13 published live).
+4. Four SZL `aimatic` patches remain pending on the LMS site and were not run; uninstalling `aimatic` there is an owner call.
+5. Unpushed commits need push approval.
