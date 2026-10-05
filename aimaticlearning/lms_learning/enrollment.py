@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import frappe
 from frappe import _
 from frappe.utils import get_url, validate_email_address
@@ -253,6 +255,23 @@ def send_course_enrollment_email(doc: frappe.Document, method: str | None = None
 def free_until(start=None, days: int | None = None):
 	"""End of the free period. Recorded only; nothing locks access when it passes."""
 	return frappe.utils.add_days(start or frappe.utils.nowdate(), days or PRODUCT_SETTINGS["free_days"])
+
+
+_SAFE_EMAIL = re.compile(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}$")
+
+
+def is_plausible_email(email: str | None) -> bool:
+	"""Plain address only: no spaces, quotes, brackets or SQL-looking text."""
+	email = (email or "").strip()
+	return len(email) <= 140 and bool(_SAFE_EMAIL.match(email))
+
+
+def validate_signup_email(doc, method=None):
+	"""Reject junk addresses on self-service signups (probe strings were seen on 28 Sep)."""
+	if not is_lms_site() or doc.user_type != "Website User" or frappe.flags.in_import:
+		return
+	if not is_plausible_email(doc.email):
+		frappe.throw(_("Please enter a valid email address."), title=_("Invalid email"))
 
 
 def is_new_student_signup(doc: frappe.Document) -> bool:

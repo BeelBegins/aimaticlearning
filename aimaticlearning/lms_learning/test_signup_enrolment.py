@@ -94,3 +94,13 @@ class TestSignupEnrolment(unittest.TestCase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+class TestSignupEmail(unittest.TestCase):
+	def test_plain_addresses_pass_and_probes_fail(self):
+		from aimaticlearning.lms_learning.enrollment import is_plausible_email
+
+		for good in ("a.b+c@example.com", "student@mail.co.uk"):
+			self.assertTrue(is_plausible_email(good), good)
+		for bad in ("", "x@y", "sample@email.tst' and 2*3*8=6*8", "a b@x.com", 'a"b@x.com', "a@x.com;drop", "<a@x.com>"):
+			self.assertFalse(is_plausible_email(bad), bad)
