@@ -47,6 +47,20 @@ path. Do not take an LMS backup unless asked.
 Keep Word sources private. Do not auto-enrol students. Do not put credentials
 in code, guidance, or prompts.
 
+## Design and copy: no AI-template decoration
+
+Every element must carry information or an action. Do not add:
+
+- decorative bars, dashes or dots before headings and kickers (`::before`
+  lines), glowing pulse dots, gradient blobs or orbs;
+- em dashes or double hyphens in UI copy; use a comma, a colon or a new sentence;
+- filler taglines, emoji bullets, or stat chips with numbers not read from data;
+- tiny uppercase letter-spaced labels as a default heading style.
+
+Reuse the dashboard tokens (`lms_student_dashboard.css`) instead of inventing a
+new look. Use real course, exam and learner data only. A reviewer rejects a page
+that looks generated.
+
 ## Apps on a new server
 
 Install frappe, payments, lms, and this app. Do not install `aimatic` (SZL ERP).
