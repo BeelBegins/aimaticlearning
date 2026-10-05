@@ -502,3 +502,15 @@ confirmed their answer letters match the live DB; it did not check the
 explanations, or whether the notes contradict the solicitor's answer the way
 Ch3 Q16 did. Do that check next, one question at a time, and ask before
 changing any answer key.
+
+## 2026-10-05 — Pearson-style mock sitting completed and verified
+
+**Scope:** Mock sittings on `lms.aimatic.tech` (`/lms/quiz/mock-*`) and the `/learning-mock-exam` lobby. Development site only; `examic.study` is not yet serving.
+
+**Finding:** The first Pearson-style attempt was built from a web search, not from the real player, so it mixed old and new styles, kept a Skip button, highlighted answer rows, and showed a number grid. After the real MCT player was walked in a browser (`docs/pearson-reference.md`) and learners tested it, three defects remained: review rows re-rendered forever (the DOM observer re-ran on every repaint) so they could not be clicked, a stale saved style closed the Start modal at once so the style was never asked again, and a review jump walked every question one at a time.
+
+**Correction:** `lms_exam_tools.js/.css` now follow the observed player (radio-only options, no Skip, yellow flag, row-list Item Review Screen, footer Previous/Next). Deliberate additions: a footer Review Screen button, an Exit to Mock Exams link. Painting is idempotent. Start clears the saved style so the choice is asked on every attempt. A far jump takes one native step (so LMS saves the answer being left), clears the selection, then sets the active question directly. The lobby was rebuilt on the dashboard tokens, primary-button text colour fixed, decorative kicker bars and em dashes removed from learner copy.
+
+**Verification:** `scripts/exam-mode-harness/run.js` (headless Chromium against a stand-in quiz DOM) passes 32 checks, including jump speed (291 ms vs about 6 s stepping), no stale selection, answers kept, End Test dialog above the review, and normal style unchanged. The owner then verified a real mock on the development site. No server record is created by Start, and Submit was not confirmed.
+
+**Remaining risk:** Calculator look, Instructions text and the End Test confirm text were not observed in the MCT player and are Examic's own. The harness only imitates `Quiz.vue`; re-check on a real sitting after any LMS upgrade. If the LMS Vue refs cannot be found the jump falls back to one-at-a-time stepping, which is slower but correct.
