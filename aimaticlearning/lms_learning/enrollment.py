@@ -71,7 +71,8 @@ def configure_lms_student_access() -> dict:
 	frappe.db.set_single_value("LMS Settings", "contact_us_email", "")
 	frappe.db.set_single_value("System Settings", "default_app", "lms")
 	frappe.db.set_single_value("System Settings", "app_name", BRAND_NAME)
-	frappe.db.set_value("Role", "LMS Student", "home_page", "/lms/courses")
+	# Empty on purpose: "/" shows the public site (/sqe) to everyone; login still lands in /lms via default_app.
+	frappe.db.set_value("Role", "LMS Student", "home_page", "")
 
 	create_email_templates()
 	_configure_course_quiz_feedback()

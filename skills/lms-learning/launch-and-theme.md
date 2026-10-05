@@ -22,3 +22,8 @@
   `examic-study-mark-uk.svg` (originals kept). The portal theme picker has a default
   "Blue & Red" theme in `lms_soft_themes.js`. Live Website Settings `app_logo` still
   points at the old mark until `configure_lms_student_access` is run (needs approval).
+- Routing: `/` shows the public site (`/sqe`) to everyone. `Role LMS Student.home_page`
+  is empty on purpose (was `/lms/courses`; restore it to roll back, and keep
+  `configure_lms_student_access` in step). Login still lands in `/lms` through
+  `System Settings.default_app`. Logged-in users see "Open my portal" on `/sqe`, and the
+  portal sidebar has an "Examic website" link.

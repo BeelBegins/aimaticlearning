@@ -99,6 +99,11 @@
 		var select = picker.querySelector("select");
 		select.value = selectedTheme();
 		select.addEventListener("change", function () { applyTheme(select.value); });
+		var siteLink = document.createElement("a");
+		siteLink.className = "aimatic-site-link";
+		siteLink.href = "/sqe";
+		siteLink.textContent = "Examic website";
+		picker.appendChild(siteLink);
 		if (rail) {
 			rail.querySelector("[class~='bg-surface-gray-1']")?.appendChild(picker) || rail.prepend(picker);
 		} else {

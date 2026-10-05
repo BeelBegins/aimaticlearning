@@ -360,6 +360,19 @@ html[data-examic-theme] body[data-path="login"] .form-control {
 	font-size: 0.7rem;
 }
 
+.aimatic-theme-picker { flex-wrap: wrap; }
+
+.aimatic-site-link {
+	flex-basis: 100%;
+	padding: 4px 0;
+	color: var(--examic-theme-primary);
+	font-size: 0.78rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.aimatic-site-link:hover { color: var(--examic-theme-danger); text-decoration: underline; }
+
 .aimatic-theme-picker select {
 	min-height: 32px;
 	min-width: 0;

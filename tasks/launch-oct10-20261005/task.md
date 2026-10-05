@@ -56,3 +56,4 @@ Remaining issues / next step:
 3. Confirm academic review status of dispute-resolution, legal-services, criminal-law (all 13 published live).
 4. Four SZL `aimatic` patches remain pending on the LMS site and were not run; uninstalling `aimatic` there is an owner call.
 5. Unpushed commits need push approval.
+6. Live change 2026-10-05 (owner approved): `Role LMS Student.home_page` set to empty (was `/lms/courses`) so `/` shows the website to everyone. Rollback: set it back to `/lms/courses`.
