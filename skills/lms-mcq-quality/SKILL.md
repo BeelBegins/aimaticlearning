@@ -53,10 +53,11 @@ For each affected chapter MCQ or mock item, verify:
    identifier, or internal metadata is visible to learners. If one general
    explanation has been copied to every choice, retain it only under the
    correct answer. Preserve genuinely distinct, option-specific explanations.
-4. **Learner UI:** mock and chapter MCQs use the same answer-label treatment:
-   uppercase A-E in a letter circle, the selected answer row highlighted, and
-   the native radio/checkbox visual hidden. Check keyboard focus and a narrow
-   mobile layout.
+4. **Learner UI:** chapter MCQs and normal-style mocks use the same answer-label
+   treatment: uppercase A-E in a letter circle, the selected answer row
+   highlighted, and the native radio/checkbox visual hidden. Pearson-style mocks
+   are the one exception: plain radio circles, no letters, no highlight
+   (`docs/pearson-reference.md`). Check keyboard focus and a narrow mobile layout.
 5. **Completeness, not just integrity of what exists:** every question has a
    non-empty explanation — an MCQ with a correct option but no explanation is
    a defect, not an acceptable minimum. Separately, count published questions
