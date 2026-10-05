@@ -142,7 +142,7 @@
 		const notice = document.createElement("div");
 		notice.className = "examic-quiz-toolbar examic-quiz-saved-notice";
 		notice.setAttribute("role", "status");
-		notice.innerHTML = "<span>Progress saved on this device. Leave this lesson when you want — resume later from Start.</span>";
+		notice.innerHTML = "<span>Progress saved on this device. Leave this lesson when you want. Resume later from Start.</span>";
 		const existing = document.querySelector(".examic-quiz-toolbar");
 		if (existing && existing.parentElement) {
 			existing.replaceWith(notice);
@@ -167,7 +167,7 @@
 		const host = questionCard && questionCard.parentElement;
 		if (!host) return;
 
-		// One toolbar for the whole quiz host — never re-insert on each question mutation.
+		// One toolbar for the whole quiz host, never re-insert on each question mutation.
 		if (
 			host.dataset.examicQuizToolbar === "1" ||
 			host.querySelector(".examic-quiz-toolbar") ||

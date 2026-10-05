@@ -2,7 +2,7 @@
 
 {% block footer %}{% endblock %}
 
-{% block title %}Flashcards — {{ chapter_title }}{% endblock %}
+{% block title %}Flashcards: {{ chapter_title }}{% endblock %}
 
 {% block page_content %}
 <div class="aimatic-flashcards" id="aimatic-flashcards">
@@ -52,7 +52,6 @@
 			letter-spacing: 0.08em;
 			text-transform: uppercase;
 		}
-		.fc-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--fc-accent); content: ""; }
 		.fc-header { margin-bottom: 22px; }
 		.aimatic-flashcards h1 {
 			margin: 0;
@@ -158,7 +157,7 @@
 	<div class="fc-header">
 		<p class="fc-kicker">Revision</p>
 		<h1>Flashcards</h1>
-		<p class="fc-lead">{{ chapter_title }} — tap the card to flip, rate your recall, then continue.</p>
+		<p class="fc-lead">{{ chapter_title }}. Tap the card to flip, rate your recall, then continue.</p>
 	</div>
 
 	<div id="fc-loading" class="fc-loading">Loading deck…</div>

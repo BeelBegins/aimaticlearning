@@ -64,7 +64,6 @@
 }
 
 .sqe-eyebrow { color: #7c7c7c; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; }
-.sqe-eyebrow span { width: 18px; background: #a8a8a8; }
 .sqe-hero h1 { font-family: var(--ex-font); font-size: clamp(2.25rem, 4.2vw, 3.75rem); font-weight: 650; letter-spacing: -0.04em; line-height: 1.08; }
 .sqe-hero h1 em { color: #525252; }
 .sqe-lead { font-size: 0.98rem; line-height: 1.6; }

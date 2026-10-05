@@ -30,7 +30,6 @@
 		.aimatic-revision a { color: var(--rev-accent); }
 		.aimatic-revision .is-hidden { display: none !important; }
 		.rev-kicker { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--rev-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-		.rev-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--rev-accent); content: ""; }
 		.aimatic-revision h1 { margin: 0; color: var(--rev-ink); font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 		.rev-lead { margin: 11px 0 0; max-width: 42rem; color: var(--rev-muted); font-size: 0.95rem; line-height: 1.55; }
 		.rev-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 22px 0 24px; }
@@ -149,7 +148,7 @@
 			const item = document.createElement("li");
 			const title = document.createElement("strong");
 			text(title, gap.title || "Coverage note");
-			item.append(title, document.createTextNode(" — " + (gap.detail || "")));
+			item.append(title, document.createTextNode(": " + (gap.detail || "")));
 			el.gaps.append(item);
 		});
 		if (!(data.gaps || []).length) {

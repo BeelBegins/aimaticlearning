@@ -30,6 +30,7 @@ real player's layout and flow. Do not add controls (e.g. Skip) it does not show.
 
 ## Verify
 
+0. Run `scripts/exam-mode-harness/run.js` (see its README); it checks style prompt, review jump and End Test.
 1. `ruff check .` for Python.
 2. Check both styles, desktop and phone width, on a test mock.
 3. Chapter MCQ page and normal-style mock still look and behave as before.

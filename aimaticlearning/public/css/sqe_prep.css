@@ -85,7 +85,6 @@
 	text-transform: uppercase;
 }
 
-.sqe-eyebrow span { width: 28px; height: 2px; background: var(--ex-gold); }
 .sqe-hero h1 {
 	margin: 0 0 24px;
 	color: var(--ex-navy);

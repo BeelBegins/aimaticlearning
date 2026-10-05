@@ -49,19 +49,19 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20260917-studentmeta2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260917-railfix1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261003-mcqnav4">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20260925-dash4">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261001-calc1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261005-pearson5">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lesson_audio.css?v=20260907-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20260917-railfix2">
 <script defer src="/assets/aimaticlearning/js/lms_dom_observe.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4"></script>
 <script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20260917-frappe8"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261004-mcqnav5"></script>
-<script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20260925-dash4"></script>
+<script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261004-mcqnav6"></script>
+<script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261005-dash6"></script>
 <script defer src="/assets/aimaticlearning/js/examic_sessions.js?v=20260925-flashcard1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_exam_tools.js?v=20261001-calc1"></script>
+<script defer src="/assets/aimaticlearning/js/lms_exam_tools.js?v=20261005-pearson5"></script>
 <script defer src="/assets/aimaticlearning/js/lesson_audio.js?v=20260909-1"></script>'''
 
 

@@ -33,7 +33,6 @@
 		.aimatic-revision .is-hidden { display: none !important; }
 		.rev-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); gap: 24px; align-items: end; margin-bottom: 24px; }
 		.rev-kicker { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 10px; color: var(--rev-muted); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-		.rev-kicker::before { width: 16px; height: 2px; border-radius: 2px; background: var(--rev-accent); content: ""; }
 		.aimatic-revision h1 { margin: 0; color: var(--rev-ink); font-size: clamp(1.7rem, 3.4vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 		.rev-lead { margin: 11px 0 0; max-width: 40rem; color: var(--rev-muted); font-size: 0.95rem; line-height: 1.55; }
 		.rev-course-control { display: grid; gap: 7px; }
@@ -406,7 +405,7 @@
 			text(
 				empty,
 				mastered
-					? "Nothing left to revise in this course — remaining chapters are already at strong mastery."
+					? "Nothing left to revise in this course. Remaining chapters are already at strong mastery."
 					: "No chapter data yet for this course."
 			);
 			el.chapters.append(empty);

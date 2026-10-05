@@ -410,6 +410,13 @@
 
 	function hideLessonNav() {
 		Array.from(document.querySelectorAll("button")).forEach(function (button) {
+			if (
+				button.closest(".aimatic-pearson")
+				|| button.closest(".aimatic-style-choice")
+				|| button.closest(".aimatic-mcq-nav")
+			) {
+				return;
+			}
 			const label = (button.textContent || "").replace(/\s+/g, " ").trim();
 			if (
 				label === "Previous" ||

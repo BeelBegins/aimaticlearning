@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Harness</title>
+<style>body{margin:0;font-family:Inter,Arial,sans-serif;background:#fff;color:#111}
+.bg-surface-sidebar{width:240px;background:#f3f3f3;padding:16px;float:left;height:100vh}
+main{overflow:auto;height:100vh}.md\:w-7\/12{width:58%}.md\:mx-auto{margin:0 auto}
+.border{border:1px solid #ddd}.rounded-lg{border-radius:10px;padding:16px;margin-top:12px}
+label.flex{display:flex;align-items:center;gap:8px;padding:10px;margin:8px 0;border-radius:6px;background:#f3f3f3;cursor:pointer}
+.rounded-full{border-radius:99px}.pager button{width:24px;height:24px;border:0;margin:0 2px}
+.hdr{padding:10px;border-bottom:1px solid #ddd}.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50}
+[role=dialog]{position:fixed;z-index:50;left:50%;top:40%;transform:translateX(-50%);background:#fff;padding:20px;border-radius:8px}
+.flex-col{display:flex;flex-direction:column}.inline-flex{display:inline-flex}.flex-wrap{display:flex;gap:8px;align-items:center;margin-top:12px}
+</style>
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css">
+</head><body>
+<script>
+window.__examicRefs=[]; var N=50;
+var Q=[];for(var i=1;i<=N;i++)Q.push({question:'q'+i});
+var qref={__v_isRef:true,value:Q}; window.__examicRefs.push(qref);
+var state={active:0,sel:{},flag:{},secs:5100};
+var TITLE='FLK1 Mock 1 Session 1';
+function save(){var rows=[];for(var n in state.sel)rows.push({question_name:'q'+n,answer:['opt'+state.sel[n]]});localStorage.setItem(TITLE,JSON.stringify(rows));}
+function sw(n){ if(n<1||n>N)return; state.active=n; render(); }
+function render(){
+ var h='<div class="flex h-dvh w-screen isolate"><aside class="bg-surface-sidebar">Sidebar<br>Courses</aside><main class="flex-1"><div class="hdr header-frame">LMS / Mock Exams / Session</div><div class="md:w-7/12 md:mx-auto"><h1>'+TITLE+'</h1>'+
+ '<div class="flex flex-col"><span>Time</span><span class="font-semibold">'+Math.floor(state.secs/60)+':'+String(state.secs%60).padStart(2,'0')+'</span></div>';
+ if(!state.active){h+='<p>This mock exam consists of '+N+' questions</p><button id="startbtn">Start</button>';}
+ else{var n=state.active;h+='<div class="border rounded-lg"><div class="text-sm text-ink-gray-5">Question '+n+' - 1 Mark</div><p>Stem of question '+n+'. Which ground of review applies here?</p>';
+  ['Illegality','Irrationality','Procedural impropriety','Legitimate expectation','Not reviewable'].forEach(function(t,i){
+    h+='<label class="flex items-center bg-surface-gray-3 rounded-md"><input type="radio" name="o" data-i="'+(i+1)+'" '+(state.sel[n]==i+1?'checked':'')+'><span class="aimatic-mcq-option-letter">'+'ABCDE'[i]+'</span><span>'+t+'</span></label>';});
+  h+='<div class="inline-flex flex-col"><label><input type="checkbox" id="mfr" '+(state.flag[n]?'checked':'')+'> Mark for review</label></div><div class="flex flex-wrap pager">'+
+  '<button aria-label="Previous question" class="rounded-full" '+(n==1?'disabled':'')+' id="pv"></button>';
+  var s=Math.floor((n-1)/5)*5+1;for(var k=s;k<Math.min(s+5,N+1);k++)h+='<button class="w-6 h-6 rounded-full" data-p="'+k+'">'+k+'</button>';
+  h+='<button aria-label="Next question" class="rounded-full" '+(n==N?'disabled':'')+' id="nx"></button><button id="submitbtn" class="ms-auto">Submit</button></div></div>';}
+ h+='</div></main></div>';
+ document.getElementById('root').innerHTML=h;
+ var r=document.getElementById('root');
+ var sb=r.querySelector('#startbtn'); if(sb)sb.onclick=function(){state.active=1;localStorage.removeItem(TITLE);render();};
+ r.querySelectorAll('input[type=radio]').forEach(function(i){i.onchange=function(){state.sel[state.active]=+i.dataset.i;save();};});
+ var m=r.querySelector('#mfr'); if(m)m.onchange=function(){state.flag[state.active]=m.checked;};
+ var pv=r.querySelector('#pv'); if(pv)pv.onclick=function(){sw(state.active-1)};
+ var nx=r.querySelector('#nx'); if(nx)nx.onclick=function(){sw(state.active+1)};
+ r.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){sw(+b.dataset.p)}});
+ var su=r.querySelector('#submitbtn'); if(su)su.onclick=function(){var d=document.createElement('div');d.id='dlgwrap';d.innerHTML='<div class="dialog-overlay"></div><div role="dialog"><p>Are you sure you want to submit the quiz?</p><button id="dlgcancel">Cancel</button> <button id="dlgsubmit">Submit</button></div>';document.body.append(d);d.querySelector('#dlgcancel').onclick=function(){d.remove()};d.querySelector('#dlgsubmit').onclick=function(){window.__SUBMITTED=true;d.remove()};};
+}
+document.addEventListener('DOMContentLoaded',function(){var r=document.createElement('div');r.id='root';document.body.append(r);render();setInterval(function(){state.secs--;var t=document.querySelector('.font-semibold');if(t)t.textContent=Math.floor(state.secs/60)+':'+String(state.secs%60).padStart(2,'0');},1000);});
+</script>
+<script defer src="/assets/aimaticlearning/js/lms_dom_observe.js"></script>
+<script defer src="/assets/aimaticlearning/js/lms_exam_tools.js"></script>
+</body></html>

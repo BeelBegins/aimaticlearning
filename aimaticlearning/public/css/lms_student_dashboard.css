@@ -95,21 +95,12 @@
 .dash-kicker {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
 	margin: 0 0 8px;
 	color: var(--dash-muted);
 	font-size: 0.68rem;
 	font-weight: 750;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
-}
-
-.dash-kicker::before {
-	width: 16px;
-	height: 2px;
-	border-radius: 2px;
-	background: var(--dash-accent);
-	content: "";
 }
 
 .aimatic-student-dash h1 {
@@ -449,11 +440,14 @@
 	font-size: 0.82rem;
 }
 
-.dash-btn-primary {
+.dash-btn-primary,
+.aimatic-student-dash a.dash-btn-primary {
 	border-color: var(--dash-accent);
 	background: var(--dash-accent);
 	color: #fff;
 }
+
+.aimatic-student-dash a.dash-btn-primary:hover { background: var(--dash-accent-2); color: #fff; }
 
 .dash-loading,
 .dash-empty,

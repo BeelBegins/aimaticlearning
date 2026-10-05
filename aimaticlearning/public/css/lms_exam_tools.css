@@ -105,3 +105,329 @@
 		bottom: 8px;
 	}
 }
+
+/* Pearson-style sitting. Layout, colours and labels follow docs/pearson-reference.md. */
+body.aimatic-pearson-sitting {
+	background: #fff;
+	overflow: hidden;
+	padding-top: 80px;
+	padding-bottom: 42px;
+}
+
+body.aimatic-pearson-sitting .bg-surface-sidebar,
+body.aimatic-pearson-sitting header.header-frame,
+body.aimatic-pearson-sitting .aimatic-lms-chapter-rail,
+body.aimatic-pearson-sitting .aimatic-study-buddy-dock,
+body.aimatic-pearson-sitting .aimatic-study-buddy-fab,
+body.aimatic-pearson-sitting .aimatic-revision-entry,
+body.aimatic-pearson-sitting .aimatic-mock-report-entry,
+body.aimatic-pearson-sitting .bg-surface-blue-2,
+body.aimatic-pearson-sitting .aimatic-exam-lobby-link,
+body.aimatic-pearson-sitting .aimatic-pearson-native-time,
+body.aimatic-pearson-sitting .aimatic-pearson-past-attempts,
+body.aimatic-pearson-sitting .aimatic-pearson-native-review,
+body.aimatic-pearson-sitting .aimatic-pearson-native-actions,
+body.aimatic-pearson-sitting .aimatic-pearson-native-counter,
+body.aimatic-pearson-sitting main h1,
+.aimatic-pearson-past-attempts {
+	display: none !important;
+}
+
+body.aimatic-pearson-sitting .flex.h-dvh.w-screen.isolate > main,
+body.aimatic-pearson-sitting main.flex-1 {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+}
+
+body.aimatic-pearson-sitting main .md\:w-7\/12,
+body.aimatic-pearson-sitting main .md\:mx-auto {
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 12px 15px !important;
+}
+
+body.aimatic-pearson-sitting main .border.rounded-lg {
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+}
+
+/* Options are a plain radio circle and text: no row highlight, no A-E letter chip. */
+body.aimatic-pearson-sitting .aimatic-mcq-option-letter {
+	display: none !important;
+}
+
+body.aimatic-pearson-sitting label.flex.items-center.bg-surface-gray-3.rounded-md,
+body.aimatic-pearson-sitting label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:checked) {
+	border: 1px solid transparent !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+body.aimatic-pearson-sitting label.flex.items-center.bg-surface-gray-3.rounded-md input[type="radio"],
+body.aimatic-pearson-sitting label.flex.items-center.bg-surface-gray-3.rounded-md input[type="checkbox"] {
+	position: static !important;
+	width: 1rem !important;
+	height: 1rem !important;
+	margin: 0 0.75rem 0 0 !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+	accent-color: #00111d;
+}
+
+.aimatic-pearson-bar,
+.aimatic-pearson-footer {
+	position: fixed;
+	left: 0;
+	right: 0;
+	z-index: 30;
+	background: #565656;
+	color: #fafafa;
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
+}
+
+.aimatic-pearson-bar {
+	top: 0;
+	height: 80px;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	padding: 8px 10px;
+	box-sizing: border-box;
+}
+
+.aimatic-pearson-footer {
+	bottom: 0;
+	height: 42px;
+	display: flex;
+	justify-content: flex-end;
+	align-items: stretch;
+}
+
+.aimatic-pearson-left {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.aimatic-pearson-title {
+	font-size: 22px;
+	line-height: 1.2;
+	font-weight: 500;
+}
+
+.aimatic-pearson-tools {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 2px;
+	font-size: 16px;
+	white-space: nowrap;
+}
+
+.aimatic-pearson-time,
+.aimatic-pearson-progress {
+	font-variant-numeric: tabular-nums;
+}
+
+.aimatic-pearson button {
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.aimatic-pearson-review {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 !important;
+	color: #fff;
+}
+
+.aimatic-pearson-review.is-on,
+.aimatic-pearson-review.is-on .aimatic-pearson-flag-icon {
+	color: #ffff00;
+}
+
+.aimatic-pearson-links {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+}
+
+.aimatic-pearson-exit {
+	color: #fff;
+	font-size: 16px;
+	text-decoration: underline;
+}
+
+.aimatic-pearson-exit:hover { color: #d7e03a; }
+
+.aimatic-pearson-calc-slot .aimatic-calc-toggle {
+	position: static;
+	right: auto;
+	bottom: auto;
+	box-shadow: none;
+	min-height: 0;
+	padding: 0;
+	background: transparent;
+	color: #fff;
+	border: 0;
+	font-size: 16px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.aimatic-pearson-footer button {
+	padding: 0 16px;
+	font-size: 18px;
+	font-weight: 500;
+	color: #fff;
+	border-left: 1px solid #a0a0a0;
+}
+
+.aimatic-pearson-footer button:hover:not(:disabled),
+.aimatic-pearson-footer button.is-active {
+	color: #d7e03a;
+}
+
+.aimatic-pearson-footer button[hidden] {
+	display: none;
+}
+
+.aimatic-pearson-review-screen {
+	position: fixed;
+	inset: 0;
+	z-index: 40;
+	background: #fff;
+	color: #00111d;
+	font-family: Tahoma, Arial, Helvetica, sans-serif;
+}
+
+.aimatic-pearson-review-screen[hidden] { display: none; }
+
+.aimatic-pearson-review-body {
+	position: absolute;
+	top: 80px;
+	bottom: 42px;
+	left: 0;
+	right: 0;
+	overflow-y: auto;
+}
+
+.aimatic-pearson-review-body h2 {
+	margin: 0;
+	padding: 6px 0;
+	text-align: center;
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.aimatic-pearson-section {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 14px;
+	padding: 6px 8px;
+	background: #565656;
+	color: #fff;
+	font-size: 18px;
+}
+
+.aimatic-pearson-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 2px 8px;
+	border: 0;
+	border-bottom: 1px solid #00111d;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: 16px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.aimatic-pearson-row .aimatic-pearson-flag-icon { color: #3a8fd0; opacity: 0.55; }
+.aimatic-pearson-row.is-flagged .aimatic-pearson-flag-icon { opacity: 1; }
+.aimatic-pearson-qname { flex: 0 0 280px; }
+.aimatic-pearson-status.is-answered { color: #008000; }
+.aimatic-pearson-status.is-incomplete { color: #e00000; }
+.aimatic-pearson-row:hover { background: #f2f2f2; }
+
+.aimatic-pearson-review-footer { justify-content: space-between; }
+.aimatic-pearson-review-footer .aimatic-pearson-filters { display: flex; }
+.aimatic-pearson-review-footer > button { border-left: 0; }
+
+/* LMS confirmation dialogs (End Test -> Submit) must sit above the full-screen review. */
+body.aimatic-pearson-sitting .dialog-overlay,
+body.aimatic-pearson-sitting .dialog-scroll-container,
+body.aimatic-pearson-sitting [role="dialog"]:not(.aimatic-calc):not(.aimatic-style-choice-card) {
+	z-index: 1100 !important;
+}
+
+.aimatic-pearson-empty { margin: 12px 8px; color: #4b5563; }
+
+.aimatic-style-choice {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(15, 23, 32, 0.55);
+}
+
+.aimatic-style-choice-card {
+	width: min(420px, 100%);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 20px;
+	border-radius: 8px;
+	background: #fff;
+	color: #1f2a37;
+	box-shadow: 0 12px 40px rgba(15, 23, 32, 0.25);
+}
+
+.aimatic-style-choice-card p {
+	flex-basis: 100%;
+	margin: 0 0 4px;
+	font-weight: 650;
+	font-size: 16px;
+}
+
+.aimatic-style-choice-card button {
+	min-height: 44px;
+	flex: 1 1 140px;
+	padding: 8px 14px;
+	border: 1px solid #1f2a37;
+	border-radius: 4px;
+	background: #fff;
+	color: #1f2a37;
+	font-weight: 650;
+	cursor: pointer;
+}
+
+.aimatic-style-choice-card button[data-style="pearson"] {
+	background: #1f2a37;
+	color: #fff;
+}
+
+@media (max-width: 720px) {
+	.aimatic-pearson-title { font-size: 16px; }
+	.aimatic-pearson-tools { font-size: 14px; }
+	.aimatic-pearson-exit,
+	.aimatic-pearson-calc-slot .aimatic-calc-toggle { font-size: 14px; white-space: nowrap; }
+	.aimatic-pearson-links { gap: 12px; }
+	.aimatic-pearson-footer button { font-size: 14px; padding: 0 10px; white-space: nowrap; }
+	.aimatic-pearson-qname { flex-basis: 120px; }
+}

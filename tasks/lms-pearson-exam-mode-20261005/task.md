@@ -39,3 +39,18 @@ each acceptance line. Live checks are read-only until deploy is approved.
 Remaining issues / next step: close the gaps in the reference's table (radio-only
 options, no Skip, yellow flag, row-list review screen), then finish the open items, test on a real
 mock sitting (desktop + phone), then commit and ask for deploy approval.
+
+2026-10-05 update: JS/CSS rewritten to the reference (no Skip, radio-only
+options, yellow flag, last Next opens a row-list Item Review Screen, footer
+Previous/Next only). Assets bumped to `20261005-pearson1`. JS syntax and CSS
+brace balance checked only; NOT yet seen in a browser. Next: `bench build --app
+aimaticlearning` + cache clear on a test sitting (needs approval), compare
+side by side with the MCT screenshots, then commit.
+
+2026-10-05 fix after user report (review screen could not open a question or end the test): goToQuestion now steps native Previous/Next (pager only shows 5 numbers); LMS confirm Dialog z-index raised above the review overlay. Assets `20261005-pearson2`. Still unverified in a browser.
+
+2026-10-05: added "Exit to Mock Exams" link (/learning-mock-exam) in the Pearson top bar and review bar; user could not leave a sitting. Assets `20261005-pearson3`.
+
+2026-10-05: mock exam style is now asked on every Start click (no early return on stored choice); lobby redesigned with dashboard tokens (nav pills, hero chips, session tiles, attempt dots, disabled when attempts used up). Assets `20261005-pearson4`. Browser check pending.
+
+2026-10-05 harness run: all 24 checks pass in headless Chromium against a stand-in DOM (`scripts/exam-mode-harness`). Fixed three real bugs it found: review rows re-rendered forever (observer loop) so they could not be clicked, stale saved style closed the Start modal immediately, far jumps needed stepping. Remaining: confirm once on a real mock sitting at lms.aimatic.tech (Start creates no server record; never confirm Submit). Not observed in MCT: Calculator look, Instructions text, End Test confirm text.
