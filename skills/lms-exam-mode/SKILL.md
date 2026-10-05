@@ -9,6 +9,11 @@ Code: `aimaticlearning/public/js/lms_exam_tools.js`,
 `public/css/lms_exam_tools.css`, assets wired in
 `lms_learning/page_renderer.py` (`ASSET_TAGS`).
 
+## Reference
+
+Before touching Pearson style, read `docs/pearson-reference.md`: it records the
+real player's layout and flow. Do not add controls (e.g. Skip) it does not show.
+
 ## Rules
 
 - The sitting UI is a DOM overlay on the stock `apps/lms` quiz page. Never edit
