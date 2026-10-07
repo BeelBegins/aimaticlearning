@@ -11,6 +11,12 @@ required_apps = ["lms"]
 
 after_install = "aimaticlearning.setup.after_install"
 
+before_request = ["aimaticlearning.lms_learning.billing.enforce_access"]
+
+scheduler_events = {
+	"daily": ["aimaticlearning.lms_learning.billing.daily_billing_job"],
+}
+
 doc_events = {
 	"LMS Enrollment": {
 		"after_insert": "aimaticlearning.lms_learning.enrollment.send_course_enrollment_email",

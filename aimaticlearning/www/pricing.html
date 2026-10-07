@@ -1,0 +1,112 @@
+{% extends "templates/web.html" %}
+
+{% block meta_block %}
+<meta name="description" content="{{ meta_description }}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://examic.study/pricing">
+{% endblock %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block head_include %}
+<link rel="preload" href="/assets/lms/frontend/assets/Inter.var-C9xDBOS3.woff2?v=3.19" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261007-price1">
+{% endblock %}
+
+{% block page_content %}
+<div class="sqe-site">
+	<header class="sqe-header">
+		<a class="sqe-brand" href="/sqe" aria-label="Examic Study home">
+			<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study, Examination Preparation Portal" width="320" height="92">
+		</a>
+		<nav class="sqe-nav" aria-label="Primary navigation">
+			<a href="/sqe">Home</a>
+			<a href="/pricing">Pricing</a>
+{% if frappe.session.user == "Guest" %}
+			<a class="sqe-btn sqe-btn-ghost" href="/login">Log in</a>
+			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/login#signup">Start free trial</a>
+{% else %}
+			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/lms">Open my portal</a>
+{% endif %}
+		</nav>
+	</header>
+	<main>
+		<section class="sx-pricing">
+			<div class="sqe-section-heading">
+				<p class="sqe-eyebrow">Pricing</p>
+				<h2>Try first, then unlock full access</h2>
+				<p>Your first month is free. No payment is needed to start.</p>
+			</div>
+			<div class="sx-plans">
+				<article class="sx-plan">
+					<h3>Monthly plan</h3>
+					<p class="sx-plan-sub">Try first, then unlock full access</p>
+					<div class="sx-phase">
+						<p class="sx-phase-label">Month 1</p>
+						<p class="sx-price"><strong>Free</strong></p>
+						<p class="sx-price-note">£0 for the first month</p>
+						<ul>
+							<li>4 FLK1 sessions + 4 FLK2 sessions</li>
+							<li>Experience the platform</li>
+							<li>Limited mock access</li>
+							<li>No payment required to start</li>
+							<li>Cancel anytime</li>
+						</ul>
+					</div>
+					<div class="sx-phase">
+						<p class="sx-phase-label">After month 1</p>
+						<p class="sx-price"><strong>£49</strong> <span>per month</span></p>
+						<ul>
+							<li>Access to all mock exams</li>
+							<li>Full preparation resources</li>
+							<li>Detailed performance analytics</li>
+							<li>Upgrade anytime</li>
+						</ul>
+					</div>
+					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/login#signup">Start free trial</a>
+				</article>
+				<article class="sx-plan sx-plan-best">
+					<p class="sx-badge">Best value</p>
+					<h3>3-Month plan</h3>
+					<p class="sx-plan-sub">More time. Better value. Full preparation.</p>
+					<div class="sx-phase">
+						<p class="sx-phase-label">Month 1</p>
+						<p class="sx-price"><strong>Free</strong></p>
+						<p class="sx-price-note">£0 for the first month</p>
+						<ul>
+							<li>4 FLK1 sessions + 4 FLK2 sessions</li>
+							<li>Experience the platform</li>
+							<li>Limited mock access</li>
+							<li>No payment required to start</li>
+							<li>Cancel anytime</li>
+						</ul>
+					</div>
+					<div class="sx-phase">
+						<p class="sx-phase-label">Months 2 to 4</p>
+						<p class="sx-price"><strong>£99</strong> <span>for 3 months</span></p>
+						<p class="sx-price-note">£33 per month</p>
+						<ul>
+							<li>Access to all mock exams</li>
+							<li>Full preparation resources</li>
+							<li>Detailed performance analytics</li>
+							<li>Better-value package</li>
+						</ul>
+					</div>
+					<a class="sqe-btn sqe-btn-final" href="/login#signup">Start free trial</a>
+				</article>
+			</div>
+			<p class="sx-fine">Pay by bank transfer or Pay with Wise in pounds sterling. We confirm your payment and open your plan, usually within one working day. See the <a href="/refund-policy">refund policy</a>.</p>
+		</section>
+	</main>
+	<footer class="sqe-footer">
+		<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study" width="320" height="92">
+		<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
+		<span>© {{ frappe.utils.now_datetime().year }} Examic Study</span>
+	</footer>
+</div>
+{% endblock %}

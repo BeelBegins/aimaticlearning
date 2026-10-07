@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2026-10-07 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": [
+  "trial_days",
+  "monthly_price",
+  "three_month_price",
+  "section_wise",
+  "account_holder",
+  "sort_code",
+  "account_number",
+  "payment_instructions",
+  "support_email"
+ ],
+ "fields": [
+  {
+   "fieldname": "trial_days",
+   "fieldtype": "Int",
+   "label": "Free Month (days)",
+   "default": "30"
+  },
+  {
+   "fieldname": "monthly_price",
+   "fieldtype": "Currency",
+   "label": "Monthly Price (GBP)",
+   "default": "49",
+   "options": "GBP"
+  },
+  {
+   "fieldname": "three_month_price",
+   "fieldtype": "Currency",
+   "label": "3-Month Price (GBP)",
+   "default": "99",
+   "options": "GBP"
+  },
+  {
+   "fieldname": "section_wise",
+   "fieldtype": "Section Break",
+   "label": "Where students pay (Wise)"
+  },
+  {
+   "fieldname": "account_holder",
+   "fieldtype": "Data",
+   "label": "Account Holder"
+  },
+  {
+   "fieldname": "sort_code",
+   "fieldtype": "Data",
+   "label": "Sort Code"
+  },
+  {
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "fieldname": "payment_instructions",
+   "fieldtype": "Small Text",
+   "label": "Extra Instructions",
+   "description": "Shown on the billing page below the account details."
+  },
+  {
+   "fieldname": "support_email",
+   "fieldtype": "Data",
+   "label": "Support Email",
+   "default": "hello@aimatic.tech"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-07 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Examic Billing Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

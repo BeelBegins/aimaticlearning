@@ -18,10 +18,11 @@ LOGIN_MARK = "/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005
 STUDENT_SIGNUP_TERMS = "I agree to create a student account and receive course access by email."
 FREE_UNTIL_FIELD = "examic_free_until"
 PRODUCT_SETTINGS = {
-	"free_days": 60,
+	"free_days": 30,
 	"free_mocks": 2,
 	"currency": "GBP",
-	"monthly_price_gbp": 25,
+	"monthly_price_gbp": 49,
+	"three_month_price_gbp": 99,
 	"billing_enabled": False,
 }
 
@@ -163,13 +164,40 @@ def create_email_templates() -> None:
 <p>Hello {{ student_name }},</p>
 <p>Your Examic Study account is ready.</p>
 {% if course_titles %}
-<p>You have {{ free_days }} days of free access to every course and {{ free_mocks }} free mock exams (Mock 1 and Mock 2), until {{ free_until }}.</p>
+<p>Your first month is free, until {{ free_until }}. It includes every course and {{ free_mocks }} mock exams (Mock 1 and Mock 2). No payment is needed to start.</p>
+<p>After that, choose a plan to keep going: £49 per month, or £99 for 3 months. Both include all mock exams and detailed performance analytics. See <a href="{{ pricing_url }}">pricing</a>.</p>
 <p>You are enrolled in:</p>
 <ul>{% for title in course_titles %}<li>{{ title }}</li>{% endfor %}</ul>
 <p><a href="{{ courses_url }}">Open your courses</a></p>
 {% else %}
 <p><a href="{{ courses_url }}">Browse the available courses</a> and choose what you want to study.</p>
 {% endif %}
+""",
+	)
+
+
+	_upsert_email_template(
+		"Examic Study Payment Reminder",
+		subject="Your Examic Study {{ ending }} ends {{ end_date }}",
+		response="""
+<p>Hello {{ student_name }},</p>
+{% if days_left|int == 0 %}
+<p>Your {{ ending }} ends today. Choose a plan to keep your access.</p>
+{% else %}
+<p>Your {{ ending }} ends in {{ days_left }} days, on {{ end_date }}. Choose a plan to keep your access.</p>
+{% endif %}
+<p>Monthly is £49 per month. The 3-month plan is £99 once. Both include all mock exams and performance analytics.</p>
+<p><a href="{{ billing_url }}">Choose a plan and pay</a></p>
+""",
+	)
+	_upsert_email_template(
+		"Examic Study Payment Receipt",
+		subject="Payment received: Examic Study {{ plan }} plan",
+		response="""
+<p>Hello {{ student_name }},</p>
+<p>Thank you. We have confirmed your payment of {{ amount }} for the {{ plan }} plan.</p>
+<p>Your access is paid until <strong>{{ paid_until }}</strong>, with every course and all mock exams open.</p>
+<p><a href="{{ portal_url }}">Open your portal</a></p>
 """,
 	)
 
@@ -327,7 +355,13 @@ def complete_student_signup(user: str) -> dict:
 			titles.append(frappe.db.get_value("LMS Course", course, "title") or course)
 			created += 0 if already else 1
 
-		end = free_until()
+		from aimaticlearning.lms_learning import billing
+
+		end = free_until(days=billing.settings()["trial_days"])
+		try:
+			billing.create_subscription(user)
+		except Exception:
+			frappe.log_error(title="Examic subscription not created", message=user)
 		if frappe.get_meta("User").has_field(FREE_UNTIL_FIELD) and not doc.get(FREE_UNTIL_FIELD):
 			frappe.db.set_value("User", user, FREE_UNTIL_FIELD, end, update_modified=False)
 
@@ -337,6 +371,7 @@ def complete_student_signup(user: str) -> dict:
 				"courses_url": get_url("/lms/courses"),
 				"course_titles": titles,
 				"free_until": frappe.utils.formatdate(end),
+				"pricing_url": get_url("/pricing"),
 				"free_days": PRODUCT_SETTINGS["free_days"],
 				"free_mocks": PRODUCT_SETTINGS["free_mocks"],
 			}

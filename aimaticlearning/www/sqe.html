@@ -23,7 +23,7 @@
 <link rel="icon" href="/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261005-uk5">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261007-price1">
 {% endblock %}
 
 {% block page_content %}
@@ -37,9 +37,10 @@
 			<a href="#flk2-pathway">FLK2 pathway</a>
 			<a href="#how-it-works">How it works</a>
 			<a href="#inside">What you get</a>
+			<a href="/pricing">Pricing</a>
 {% if viewer.mode == "visitor" %}
 			<a class="sqe-btn sqe-btn-ghost" href="{{ login_url }}">Log in</a>
-			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="{{ signup_url }}">Start 2 months free <span aria-hidden="true">→</span></a>
+			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="{{ signup_url }}">Start free trial <span aria-hidden="true">→</span></a>
 {% else %}
 			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/lms">Open my portal</a>
 {% endif %}
@@ -54,8 +55,8 @@
 				<p class="sqe-lead">Clear study notes, targeted questions, flashcards and realistic mocks, organised into one calm learning path that shows you what to do next.</p>
 				<div class="sqe-conversion-block">
 {% if viewer.mode == "visitor" %}
-					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="{{ signup_url }}"><span>Start my 2 months free</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
-					<p class="sqe-cta-reassurance">No card required <span>·</span> 2 free mock exams <span>·</span> Then £25/month for FLK1 and FLK2</p>
+					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="{{ signup_url }}"><span>Start free trial</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
+					<p class="sqe-cta-reassurance">First month free <span>·</span> No payment to start <span>·</span> Then £49/month or £99 for 3 months</p>
 {% else %}
 					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/lms"><span>Open my portal</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
 {% endif %}
@@ -179,8 +180,8 @@
 			<div><p class="sqe-eyebrow sqe-eyebrow-light">Start where you are</p><h2>A clearer path to exam day.</h2><p>Create your account, choose an available course and begin when you are ready.</p></div>
 			<div class="sqe-cta-actions">
 {% if viewer.mode == "visitor" %}
-				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="{{ signup_url }}">Start my 2 months free <span aria-hidden="true">→</span></a>
-				<span class="sqe-cta-panel-note">No card required · 2 free mock exams · Then £25/month for FLK1 and FLK2</span>
+				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="{{ signup_url }}">Start free trial <span aria-hidden="true">→</span></a>
+				<span class="sqe-cta-panel-note">First month free · No payment to start · Then £49/month or £99 for 3 months</span>
 				<a class="sqe-cta-login" href="{{ login_url }}">Already studying? Log in</a>
 {% else %}
 				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="/lms">Open my portal <span aria-hidden="true">→</span></a>

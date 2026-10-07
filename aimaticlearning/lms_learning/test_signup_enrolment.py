@@ -2,7 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from aimaticlearning.lms_learning import enrollment
+from aimaticlearning.lms_learning import billing, enrollment
 
 
 def _user(roles=("LMS Student",), user_type="Website User", skip_welcome=False):
@@ -15,10 +15,10 @@ def _user(roles=("LMS Student",), user_type="Website User", skip_welcome=False):
 
 
 class TestSignupEnrolment(unittest.TestCase):
-	def test_free_period_is_sixty_days_and_two_mocks(self):
-		self.assertEqual(enrollment.PRODUCT_SETTINGS["free_days"], 60)
+	def test_free_period_is_one_month_and_two_mocks(self):
+		self.assertEqual(enrollment.PRODUCT_SETTINGS["free_days"], 30)
 		self.assertEqual(enrollment.PRODUCT_SETTINGS["free_mocks"], 2)
-		self.assertEqual(str(enrollment.free_until("2026-10-10")), "2026-12-09")
+		self.assertEqual(str(enrollment.free_until("2026-10-10")), "2026-11-09")
 
 	@mock.patch.object(enrollment, "is_lms_site", return_value=True)
 	def test_only_self_service_student_signups_are_enrolled(self, _site):
@@ -55,7 +55,9 @@ class TestSignupEnrolment(unittest.TestCase):
 			mock.patch.object(enrollment.frappe, "log_error"),
 			mock.patch.object(enrollment, "_render_template", return_value=("subject", "body")),
 			mock.patch.object(enrollment, "_queue_email"),
-			mock.patch.object(enrollment, "free_until", return_value="2026-12-09"),
+			mock.patch.object(enrollment, "free_until", return_value="2026-11-09"),
+			mock.patch.object(billing, "settings", return_value={"trial_days": 30}),
+			mock.patch.object(billing, "create_subscription"),
 			mock.patch.object(enrollment, "get_url", side_effect=lambda path: "https://lms.example" + path),
 			mock.patch.object(enrollment.frappe.utils, "formatdate", side_effect=lambda d: str(d)),
 		]
@@ -76,7 +78,8 @@ class TestSignupEnrolment(unittest.TestCase):
 		self.assertEqual(enrollment._queue_email.call_count, 1)
 		context = enrollment._render_template.call_args.args[1]
 		self.assertEqual(context["course_titles"], ["Tort", "Land", "Wills"])
-		self.assertEqual(context["free_days"], 60)
+		self.assertEqual(context["free_days"], 30)
+		billing.create_subscription.assert_called_once_with("new@example.com")
 		db.set_value.assert_called_once()
 		self.assertEqual(db.set_value.call_args.args[:3], ("User", "new@example.com", "examic_free_until"))
 
@@ -92,10 +95,6 @@ class TestSignupEnrolment(unittest.TestCase):
 		enrollment.frappe.log_error.assert_called_once()
 
 
-if __name__ == "__main__":
-	unittest.main()
-
-
 class TestSignupEmail(unittest.TestCase):
 	def test_plain_addresses_pass_and_probes_fail(self):
 		from aimaticlearning.lms_learning.enrollment import is_plausible_email
@@ -104,3 +103,7 @@ class TestSignupEmail(unittest.TestCase):
 			self.assertTrue(is_plausible_email(good), good)
 		for bad in ("", "x@y", "sample@email.tst' and 2*3*8=6*8", "a b@x.com", 'a"b@x.com', "a@x.com;drop", "<a@x.com>"):
 			self.assertFalse(is_plausible_email(bad), bad)
+
+
+if __name__ == "__main__":
+	unittest.main()

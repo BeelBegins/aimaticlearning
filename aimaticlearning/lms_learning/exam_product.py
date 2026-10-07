@@ -18,7 +18,7 @@ from aimaticlearning.lms_learning.sqe1_hard_mocks import (
 EXAM_KEY = COURSE_NAME
 # Mocks 1 and 2 are free for every student; later mocks come with the paid plan.
 FREE_SITTINGS = 2
-LOCKED_NOTE = "Included with the £25/month plan"
+LOCKED_NOTE = "Included with a paid plan"
 STAFF_ROLES = {"Administrator", "System Manager", "LMS Administrator", "LMS Moderator", "LMS Instructor", "Course Creator", "LMS Content Reviewer"}
 _MOCK_QUIZ = re.compile(r"^mock-(\d+)-")
 FORMAT_NOTE = (
@@ -42,7 +42,10 @@ def is_quiz_locked(quiz: str | None, unlock_all: bool = False) -> bool:
 
 
 def can_unlock_all_mocks(user: str | None = None) -> bool:
-	return bool(STAFF_ROLES & set(frappe.get_roles(user or frappe.session.user)))
+	"""Staff and students on a paid plan open every mock; everyone else gets mocks 1 and 2."""
+	from aimaticlearning.lms_learning import billing
+
+	return billing.can_open_mock(user)
 
 
 def quiz_sitting_url(quiz: str | None) -> str:
