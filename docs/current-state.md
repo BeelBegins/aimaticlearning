@@ -41,7 +41,10 @@ New signups only get an `Examic Subscription`; after the free month an unpaid st
 locked to `/billing`. The 28 existing students are unaffected. Provider is set in Examic
 Billing Settings (`Manual` default, `Stripe` built and tested with sandbox keys). Live on
 `lms.aimatic.tech`: DocTypes loaded, web and workers restarted. Not done: Stripe live
-approval, Wise GBP details entered, legal wording review. Details: `skills/lms-billing/SKILL.md`.
+approval, Wise GBP details entered, legal wording review. 2026-10-07 sandbox rollout:
+Stripe test products, prices, webhook and portal config created and stored in settings;
+provider left on `Manual`. Throwaway-student lifecycle passed (lock, signed webhooks for
+monthly, 3-month, failure, duplicate, unknown user; test Checkout URLs for both plans). Details: `skills/lms-billing/SKILL.md`.
 
 ## Unpublished on `/sqe`
 

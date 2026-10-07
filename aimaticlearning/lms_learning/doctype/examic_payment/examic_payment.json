@@ -42,7 +42,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Method",
-   "options": "Wise bank transfer\nPay with Wise\nOther",
+   "options": "Wise bank transfer\nPay with Wise\nStripe card\nOther",
    "default": "Wise bank transfer"
   },
   {

@@ -45,3 +45,9 @@ configuration interface, Stripe Checkout, portal and signed webhook, event log, 
 `skills/lms-billing/` and `docs/payment-providers.md`. Open: Stripe live approval for
 Examic Learning Ltd (non-resident directors), written confirmation of GBP payouts to Wise,
 Wise GBP details in Desk, legal wording, rotate the sandbox keys shared in chat.
+
+Sandbox rollout 2026-10-07 (done): Stripe test Products/Prices, webhook endpoint and portal
+configuration created through the API; ids and secrets stored in Examic Billing Settings
+only. Lifecycle test on a throwaway student passed and its data was removed. Two bugs
+found and fixed: `frappe.local.__dict__` in `access_state` (use an attribute) and the
+payment Method select lacking "Stripe card". Provider stays `Manual` until the owner goes live.

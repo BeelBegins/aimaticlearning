@@ -142,7 +142,9 @@ def _is_staff(user: str) -> bool:
 
 def access_state(user: str | None = None) -> dict:
 	user = user or frappe.session.user
-	cache = frappe.local.__dict__.setdefault("_examic_access", {})
+	cache = getattr(frappe.local, "examic_access", None)
+	if cache is None:
+		cache = frappe.local.examic_access = {}
 	if user in cache:
 		return cache[user]
 	if user == "Guest":
