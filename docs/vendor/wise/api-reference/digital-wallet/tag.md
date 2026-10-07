@@ -1,0 +1,1 @@
+These APIs provide encrypted cardholder information needed to implement push provisioning (Apple Pay, Google Pay) in your own mobile app.

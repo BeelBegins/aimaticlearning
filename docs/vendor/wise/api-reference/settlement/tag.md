@@ -1,0 +1,1 @@
+Settlement APIs enable the allocation of settled funds across multiple recipients. A settlement allocation request specifies how a received amount should be distributed. Wise processes each allocation as an individual payment intent that can be tracked through completion.

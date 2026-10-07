@@ -1,0 +1,1 @@
+Securely upload supporting documentation to Wise. Each upload returns a file ID, which you then pass to any endpoint that documents support for it. Files currently work with the Cases API only.

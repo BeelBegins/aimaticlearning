@@ -1,0 +1,1 @@
+Look up SWIFT gpi tracking data by UETR or Wise transfer ID. Each match returns the payment's current status and status reason, the timeline of gpi events reported by the banks in the chain, the agent BICs that handled each leg, the amounts and exchange rate applied at each step, and any charges those banks deducted.

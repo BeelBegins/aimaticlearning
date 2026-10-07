@@ -1,0 +1,1 @@
+Retrieve the list of currencies supported for transfers, including currency codes and display names.

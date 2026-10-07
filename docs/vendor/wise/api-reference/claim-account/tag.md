@@ -1,0 +1,1 @@
+Allow a customer to take ownership of an account [created on their behalf](/api-reference/user/usercreate). Generate a short-lived `claim_account_code` and use it when [redirecting the customer to Wise](/guides/product/kyc/wise-kyc/redirect-to-wise/claim-account) to finalize their account setup.

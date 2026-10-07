@@ -1,0 +1,3 @@
+PIN (Personal Identification Number) is a knowledge-based SCA challenge factor. Users create a 4-digit PIN that can be used to verify their identity when accessing SCA-protected endpoints.
+
+All PIN creation and verification requests use JOSE (JWE) encryption to ensure the PIN is never transmitted in plain text. See the [SCA over API guide](/guides/developer/auth-and-security/sca-and-2fa) for encryption details.

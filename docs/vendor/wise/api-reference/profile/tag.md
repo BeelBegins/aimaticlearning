@@ -1,0 +1,1 @@
+A profile represents an identity that can send and receive money through Wise — either a personal profile (an individual) or a business profile (a company). Most API endpoints require a `profileId` parameter, which is the ID of either profile type.

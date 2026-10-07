@@ -1,0 +1,3 @@
+Bulk settlement allows partners to settle multiple transfers in a single bank transfer at the end of a settlement period. This model splits transfer creation/funding from final settlement, allowing Wise to process transfers before receiving funds based on a partner's guarantee.
+
+Use the settlement journal endpoint to submit a list of transfers to be settled, along with the settlement reference that matches your bank transfer payment.

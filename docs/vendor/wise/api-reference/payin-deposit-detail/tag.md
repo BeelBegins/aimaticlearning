@@ -1,0 +1,3 @@
+The payin deposit details API allows you to get the bank details for the account that the customer should send funds to when paying for a Wise transfer via a bank transfer.
+
+These details will be provided in the local format for that currency and usually contain bank account information — like IBAN, SWIFT code etc. It also includes the name and address of the receiving bank and the name and address of the Wise entity that owns the bank account, as sometimes these are required to make a payment.

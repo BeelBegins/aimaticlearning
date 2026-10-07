@@ -1,0 +1,1 @@
+Get the estimated delivery time for a transfer, showing when funds are expected to arrive in the recipient's bank account.

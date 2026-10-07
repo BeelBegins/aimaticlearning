@@ -1,0 +1,1 @@
+Activity represents a snapshot of a performed action for a profile.

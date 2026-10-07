@@ -1,0 +1,1 @@
+Register and retrieve external bank accounts used to fund batch transfers via ACH (USD) or EFT (CAD) direct debit.

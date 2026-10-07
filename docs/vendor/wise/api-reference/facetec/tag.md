@@ -1,0 +1,1 @@
+Wise leverages [FaceTec's](https://www.facetec.com/) facial biometric technology for authentication. Use this endpoint to retrieve the public key needed for exporting 3D FaceMaps.
