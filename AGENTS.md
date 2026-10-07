@@ -44,7 +44,7 @@ GitHub: `BeelBegins/aimaticlearning`, branch `main`. The Frappe app name stays
 Until this site leaves the shared bench, web/queue restarts can still hit live
 `szl`. Read-only diagnosis is allowed. Any live mutation, import, migrate,
 deploy, or impactful restart needs explicit approval, checks, and a rollback
-path. Do not take an LMS backup unless asked.
+path. No LMS backup unless asked.
 
 Keep Word sources private. A self-service signup is enrolled in every published
 subject course by `complete_student_signup`; staff-invited and existing students
@@ -80,10 +80,11 @@ code dependency.
 | Word import / empty-lesson fill | `lms-course-upload` |
 | MCQ or mock quality, feedback, mapping, and learner display | `lms-mcq-quality` |
 | Mock exam sitting UI (Pearson style, review grid, timer, calculator) | `lms-exam-mode` |
+| Pricing, free month, payments, Stripe/Wise, access lock | `lms-billing` |
 | Site, backup, Caddy, workers, restore | shared bench `bench-ops` |
-| New production server (examic.study) | `docs/production-server.md` |
+| New production server | `docs/production-server.md` |
 
-Prefer this folder as the Cursor workspace for LMS work.
+Keep `lms-billing` and `docs/current-state.md` current when pricing or payment facts change.
 
 Read `docs/priorities.md` before choosing work. Track resumable work in
 `tasks/<id>/task.md` from `tasks/template.md`; run `scripts/audit_guidance.py`

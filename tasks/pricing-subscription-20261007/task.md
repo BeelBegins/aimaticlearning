@@ -33,7 +33,15 @@ Skills used: `lms-learning`, `lms-exam-mode`.
 Verification: unit tests for state, date maths, allow-list; throwaway signup then
 time-shift (set `trial_ends_on` in the past) to test lock, Confirm payment, both plans.
 
-Status: working.
+Status: review (Stripe sandbox test pending live check; see below).
 
 Remaining issues / next step: build and test locally; owner supplies Wise GBP
 account details (enter in Desk); optional later: Wise statement CSV import.
+
+Update 2026-10-07 (supersedes the Wise-only decision above): owner dropped Dodo and chose
+Stripe for cards and automatic renewals, Wise as payout bank and manual fallback.
+Built: provider framework (`billing_providers/`), `Examic Billing Settings` as the
+configuration interface, Stripe Checkout, portal and signed webhook, event log, docs in
+`skills/lms-billing/` and `docs/payment-providers.md`. Open: Stripe live approval for
+Examic Learning Ltd (non-resident directors), written confirmation of GBP payouts to Wise,
+Wise GBP details in Desk, legal wording, rotate the sandbox keys shared in chat.

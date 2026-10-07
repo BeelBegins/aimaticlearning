@@ -20,6 +20,7 @@ guidance here; do not store LMS-only procedures as personal agent memory.
 | Private Word source import and lesson coverage | `skills/lms-course-upload/SKILL.md` |
 | Chapter/mock MCQ data, explanations, mapping, and UI quality | `skills/lms-mcq-quality/SKILL.md` |
 | Mock exam sitting UI and Pearson style | `skills/lms-exam-mode/SKILL.md` |
+| Pricing, free month, payments, Stripe and Wise, access lock | `skills/lms-billing/SKILL.md` |
 | Import commands and rollback requirements | `skills/lms-course-upload/pipeline.md` |
 
 ## Agent adapters

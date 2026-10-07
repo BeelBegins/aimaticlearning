@@ -524,3 +524,9 @@ changing any answer key.
 - Notes and glossary share one CSS typography with semantic colour; lesson text unchanged.
 - Read-only check: 13 courses published, self-learning on, none upcoming or paid; mocks reached only through the lobby.
 - Needs live rollout with approval: migrate (two patches), worker restart. Backup `20261005_163213` (git `679eab8`).
+
+## 2026-10-07 Pricing, subscription and Stripe (local commits, live on the LMS site)
+
+- Free month, 49 monthly or 99 three-month plans, access lock, `/pricing`, `/billing`, daily reminders (`billing.py`).
+- Wise cannot confirm payments for a UK account (docs saved in `docs/vendor/wise/`); Stripe provider added behind settings (`billing_providers/stripe.py`, webhook `billing.stripe_webhook`), manual confirmation kept as fallback. Dodo dropped.
+- Stripe sandbox keys stored in Examic Billing Settings only. Stripe docs saved in `docs/vendor/stripe/`.

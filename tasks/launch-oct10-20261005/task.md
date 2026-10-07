@@ -1,5 +1,7 @@
 # Task: launch-oct10-20261005
 
+Superseded 2026-10-07 for pricing, free period and payments: see `tasks/pricing-subscription-20261007/task.md` and `skills/lms-billing/`. The $25 and 2-month text below is history.
+
 Goal: Student launch on 2026-10-10. Self-service signup enrols every published
 course; 2 months free and 2 free mock exams; mock attempts 10; unified notes
 typography. Owner decisions below are binding for any agent.

@@ -3,9 +3,8 @@
 - Self-service signup (`/login#signup`, Website User) runs `validate_signup_email`
   (plain addresses only) then `start_student_signup`, which queues
   `complete_student_signup`: enrols every published course with
-  `disable_self_learning = 0`, sets `User.examic_free_until` (+60 days, no access
-  lock) and sends one welcome email. Existing and staff-invited users are never
-  backfilled. Payments are out of scope; copy only says £25/month (GBP, FLK1 and FLK2 together) after the free period.
+  `disable_self_learning = 0`, sets `User.examic_free_until` (free month, from `Examic Billing Settings`) and creates an `Examic Subscription` and sends one welcome email. Existing and staff-invited users are never
+  backfilled. Pricing, plans and payments: see `skills/lms-billing/SKILL.md`.
 - Mocks 1 and 2 are free (`FREE_SITTINGS` in `exam_product.py`); 3 and 4 are locked
   for non-staff in the lobby and by a redirect in `page_renderer.py`. Mock attempts
   per session are `MAX_ATTEMPTS` (10); MCQ quizzes are unlimited.

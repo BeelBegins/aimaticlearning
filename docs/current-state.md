@@ -1,6 +1,6 @@
 # Examic Study — current state
 
-Last updated: 2026-09-13. Verify read-only before any site mutation.
+Last updated: 2026-10-07. Verify read-only before any site mutation.
 
 ## Product
 
@@ -33,6 +33,15 @@ until the server move rather than uninstalling here. A new LMS-only bench
 should not install it.
 
 New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Code is committed locally but NOT live until the patches and worker restart in `tasks/launch-oct10-20261005/task.md` are done.
+
+## Billing (2026-10-07)
+
+Final pricing: month 1 free (Mock 1 and 2), then 49 GBP monthly or 99 GBP for 3 months.
+New signups only get an `Examic Subscription`; after the free month an unpaid student is
+locked to `/billing`. The 28 existing students are unaffected. Provider is set in Examic
+Billing Settings (`Manual` default, `Stripe` built and tested with sandbox keys). Live on
+`lms.aimatic.tech`: DocTypes loaded, web and workers restarted. Not done: Stripe live
+approval, Wise GBP details entered, legal wording review. Details: `skills/lms-billing/SKILL.md`.
 
 ## Unpublished on `/sqe`
 
