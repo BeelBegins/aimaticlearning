@@ -37,8 +37,18 @@ def is_sitting_locked(sitting_index: int | None, free_sittings: int | None = FRE
 	return bool(free_sittings and sitting_index and sitting_index > free_sittings)
 
 
+def free_sitting_count() -> int:
+	"""Free mocks come from Examic Billing Settings; fall back to the default if unavailable."""
+	try:
+		from aimaticlearning.lms_learning import billing
+
+		return int(billing.settings()["free_mock_count"])
+	except Exception:
+		return FREE_SITTINGS
+
+
 def is_quiz_locked(quiz: str | None, unlock_all: bool = False) -> bool:
-	return not unlock_all and is_sitting_locked(quiz_sitting_number(quiz))
+	return not unlock_all and is_sitting_locked(quiz_sitting_number(quiz), free_sitting_count())
 
 
 def can_unlock_all_mocks(user: str | None = None) -> bool:
@@ -300,7 +310,7 @@ def student_lobby(user: str | None = None) -> dict:
 			attempts_by_quiz,
 			max_attempts,
 			latest_submission_by_quiz,
-			free_sittings=None if can_unlock_all_mocks(user) else FREE_SITTINGS,
+			free_sittings=None if can_unlock_all_mocks(user) else free_sitting_count(),
 		),
 	}
 

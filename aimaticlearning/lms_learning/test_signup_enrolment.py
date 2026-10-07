@@ -56,7 +56,7 @@ class TestSignupEnrolment(unittest.TestCase):
 			mock.patch.object(enrollment, "_render_template", return_value=("subject", "body")),
 			mock.patch.object(enrollment, "_queue_email"),
 			mock.patch.object(enrollment, "free_until", return_value="2026-11-09"),
-			mock.patch.object(billing, "settings", return_value={"trial_days": 30}),
+			mock.patch.object(billing, "settings", return_value={"trial_days": 30, "monthly_price": 49.0, "three_month_price": 99.0}),
 			mock.patch.object(billing, "create_subscription"),
 			mock.patch.object(enrollment, "get_url", side_effect=lambda path: "https://lms.example" + path),
 			mock.patch.object(enrollment.frappe.utils, "formatdate", side_effect=lambda d: str(d)),

@@ -83,12 +83,30 @@
 					var card = node("article", "sx-plan");
 					card.append(node("h3", "", p.name + " plan"), node("p", "sx-price", ""));
 					card.lastChild.append(node("strong", "", gbp(p.price)), document.createTextNode(" " + p.detail));
-					var b = node("button", "sqe-btn sqe-btn-primary", "Pay " + gbp(p.price));
-					b.type = "button"; b.addEventListener("click", function () { showPay(s, p); });
+					var card_btn = s.provider === "Stripe";
+					var b = node("button", "sqe-btn sqe-btn-primary", (card_btn ? "Pay by card " : "Pay ") + gbp(p.price));
+					b.type = "button";
+					b.addEventListener("click", function () { if (card_btn) { checkout(b, p); } else { showPay(s, p); } });
 					card.append(b); plans.append(card);
 				});
+				if (s.payment_problem) document.getElementById("bill-msg").textContent = s.payment_problem;
+				if (s.can_manage) {
+					var manage = node("button", "sqe-btn sqe-btn-ghost", "Manage card and cancel"); manage.type = "button";
+					manage.addEventListener("click", function () {
+						manage.disabled = true;
+						api("open_portal", {}).then(function (r) { if (r.message && r.message.url) window.location = r.message.url; else manage.disabled = false; });
+					});
+					pay.append(manage); pay.classList.remove("is-hidden");
+				}
 				plans.classList.remove("is-hidden");
-				if (s.pending_plan) showPay(s, s.plans.filter(function (p) { return p.name === s.pending_plan; })[0] || s.plans[0], true);
+				if (s.provider !== "Stripe" && s.pending_plan) showPay(s, s.plans.filter(function (p) { return p.name === s.pending_plan; })[0] || s.plans[0], true);
+			}
+			function checkout(button, plan) {
+				button.disabled = true;
+				api("start_checkout", { plan: plan.name }).then(function (r) {
+					if (r.message && r.message.url) { window.location = r.message.url; return; }
+					throw new Error("none");
+				}).catch(function () { button.disabled = false; document.getElementById("bill-msg").textContent = "We could not open the card page. Try again or email hello@aimatic.tech."; });
 			}
 			function row(label, value) { var r = node("div", "sx-pay-row"); r.append(node("span", "", label), node("strong", "", value)); return r; }
 			function showPay(s, plan, already) {
@@ -113,6 +131,9 @@
 					pay.append(done);
 				}
 				pay.classList.remove("is-hidden");
+			}
+			if (/[?&]paid=1/.test(window.location.search)) {
+				document.getElementById("bill-msg").textContent = "Thank you. Your payment is being confirmed, this usually takes under a minute. Refresh this page to see your plan.";
 			}
 			api("get_billing_state").then(function (r) { render(r.message); }).catch(function () {
 				document.getElementById("bill-title").textContent = "We could not load your plan";

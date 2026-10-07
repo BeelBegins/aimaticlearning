@@ -17,6 +17,11 @@
   "pending_reference",
   "column_break_b",
   "pending_requested_on",
+  "section_stripe",
+  "stripe_customer",
+  "stripe_subscription",
+  "column_break_c",
+  "last_payment_error",
   "section_payments",
   "payments"
  ],
@@ -104,11 +109,38 @@
    "label": "Payments",
    "options": "Examic Payment",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_stripe",
+   "fieldtype": "Section Break",
+   "label": "Card billing (Stripe)"
+  },
+  {
+   "fieldname": "stripe_customer",
+   "fieldtype": "Data",
+   "label": "Stripe Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stripe_subscription",
+   "fieldtype": "Data",
+   "label": "Stripe Subscription",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_c",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_payment_error",
+   "fieldtype": "Small Text",
+   "label": "Last Payment Problem",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-07 00:00:00.000000",
+ "modified": "2026-10-07 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "Examic Subscription",

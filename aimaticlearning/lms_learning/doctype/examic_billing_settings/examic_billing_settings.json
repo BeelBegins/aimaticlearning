@@ -5,17 +5,72 @@
  "engine": "InnoDB",
  "issingle": 1,
  "field_order": [
+  "enabled",
+  "active_provider",
+  "support_email",
+  "cb1",
+  "currency",
+  "sec_plans",
   "trial_days",
+  "free_mock_count",
+  "reminder_days",
+  "cb2",
   "monthly_price",
   "three_month_price",
-  "section_wise",
+  "sec_stripe",
+  "stripe_mode",
+  "stripe_publishable_key",
+  "stripe_secret_key",
+  "stripe_webhook_secret",
+  "cb3",
+  "stripe_monthly_price_id",
+  "stripe_three_month_price_id",
+  "stripe_automatic_tax",
+  "stripe_last_event",
+  "sec_manual",
   "account_holder",
   "sort_code",
   "account_number",
-  "payment_instructions",
-  "support_email"
+  "payment_instructions"
  ],
  "fields": [
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Billing enabled",
+   "default": "1",
+   "description": "When off, nobody is locked and the billing page shows no payment options."
+  },
+  {
+   "fieldname": "active_provider",
+   "fieldtype": "Select",
+   "label": "Payment Provider",
+   "options": "Manual\nStripe",
+   "default": "Manual",
+   "description": "Manual: bank details and staff confirmation. Stripe: card checkout, automatic renewals and automatic confirmation."
+  },
+  {
+   "fieldname": "support_email",
+   "fieldtype": "Data",
+   "label": "Support Email",
+   "default": "hello@aimatic.tech"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency",
+   "default": "GBP",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_plans",
+   "fieldtype": "Section Break",
+   "label": "Plans and free month"
+  },
   {
    "fieldname": "trial_days",
    "fieldtype": "Int",
@@ -23,23 +78,95 @@
    "default": "30"
   },
   {
+   "fieldname": "free_mock_count",
+   "fieldtype": "Int",
+   "label": "Free Mocks (first N sittings)",
+   "default": "2"
+  },
+  {
+   "fieldname": "reminder_days",
+   "fieldtype": "Int",
+   "label": "Reminder (days before end)",
+   "default": "3"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "monthly_price",
    "fieldtype": "Currency",
-   "label": "Monthly Price (GBP)",
+   "label": "Monthly Price (per month)",
    "default": "49",
    "options": "GBP"
   },
   {
    "fieldname": "three_month_price",
    "fieldtype": "Currency",
-   "label": "3-Month Price (GBP)",
+   "label": "3-Month Price (paid once)",
    "default": "99",
    "options": "GBP"
   },
   {
-   "fieldname": "section_wise",
+   "fieldname": "sec_stripe",
    "fieldtype": "Section Break",
-   "label": "Where students pay (Wise)"
+   "label": "Stripe (cards and automatic renewals)",
+   "depends_on": "eval:doc.active_provider=='Stripe'"
+  },
+  {
+   "fieldname": "stripe_mode",
+   "fieldtype": "Select",
+   "label": "Mode",
+   "options": "Test\nLive",
+   "default": "Test"
+  },
+  {
+   "fieldname": "stripe_publishable_key",
+   "fieldtype": "Data",
+   "label": "Publishable Key"
+  },
+  {
+   "fieldname": "stripe_secret_key",
+   "fieldtype": "Password",
+   "label": "Secret Key"
+  },
+  {
+   "fieldname": "stripe_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Signing Secret",
+   "description": "Webhook URL to add in Stripe: https://<site>/api/method/aimaticlearning.lms_learning.billing.stripe_webhook"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stripe_monthly_price_id",
+   "fieldtype": "Data",
+   "label": "Stripe Price ID: Monthly (recurring)"
+  },
+  {
+   "fieldname": "stripe_three_month_price_id",
+   "fieldtype": "Data",
+   "label": "Stripe Price ID: 3-Month (one-off)"
+  },
+  {
+   "fieldname": "stripe_automatic_tax",
+   "fieldtype": "Check",
+   "label": "Use Stripe Tax (automatic VAT)",
+   "default": "0",
+   "description": "Turn on only after tax registrations are set up in Stripe and prices have a tax behaviour. Collects the billing address at checkout."
+  },
+  {
+   "fieldname": "stripe_last_event",
+   "fieldtype": "Datetime",
+   "label": "Last Webhook Received",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sec_manual",
+   "fieldtype": "Section Break",
+   "label": "Manual payments (Wise bank transfer)"
   },
   {
    "fieldname": "account_holder",
@@ -59,19 +186,12 @@
   {
    "fieldname": "payment_instructions",
    "fieldtype": "Small Text",
-   "label": "Extra Instructions",
-   "description": "Shown on the billing page below the account details."
-  },
-  {
-   "fieldname": "support_email",
-   "fieldtype": "Data",
-   "label": "Support Email",
-   "default": "hello@aimatic.tech"
+   "label": "Extra Instructions"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-07 00:00:00.000000",
+ "modified": "2026-10-07 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "Examic Billing Settings",

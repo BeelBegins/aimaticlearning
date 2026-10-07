@@ -31,6 +31,7 @@ FREE_MOCKS = 2
 REMIND_DAYS_BEFORE = 3
 PAYMENT_REMINDER_TEMPLATE = "Examic Study Payment Reminder"
 PAYMENT_RECEIPT_TEMPLATE = "Examic Study Payment Receipt"
+PAYMENT_PROBLEM_TEMPLATE = "Examic Study Payment Problem"
 STAFF_ROLES = {
 	"Administrator", "System Manager", "LMS Administrator", "LMS Moderator",
 	"LMS Instructor", "Course Creator", "LMS Content Reviewer",
@@ -84,26 +85,55 @@ def mocks_unlocked(state: str) -> bool:
 
 
 def settings() -> dict:
-	doc = frappe.get_cached_doc(SETTINGS) if frappe.db.exists("DocType", SETTINGS) else None
-	get = (lambda key, default=None: doc.get(key) if doc and doc.get(key) not in (None, "") else default)
-	return {
-		"trial_days": int(get("trial_days", DEFAULT_TRIAL_DAYS)),
-		"monthly_price": float(get("monthly_price", PLANS["Monthly"]["default_price"])),
-		"three_month_price": float(get("three_month_price", PLANS["3-Month"]["default_price"])),
-		"account_holder": get("account_holder", ""),
-		"sort_code": get("sort_code", ""),
-		"account_number": get("account_number", ""),
-		"payment_instructions": get("payment_instructions", ""),
-		"support_email": get("support_email", "hello@aimatic.tech"),
+	"""Billing settings with safe defaults. Secrets are decrypted here and never logged."""
+	defaults = {
+		"enabled": 1, "active_provider": "Manual", "support_email": "hello@aimatic.tech",
+		"trial_days": DEFAULT_TRIAL_DAYS, "free_mock_count": FREE_MOCKS, "reminder_days": REMIND_DAYS_BEFORE,
+		"monthly_price": PLANS["Monthly"]["default_price"], "three_month_price": PLANS["3-Month"]["default_price"],
+		"account_holder": "", "sort_code": "", "account_number": "", "payment_instructions": "",
+		"stripe_mode": "Test", "stripe_publishable_key": "", "stripe_monthly_price_id": "",
+		"stripe_three_month_price_id": "", "stripe_secret_key": "", "stripe_webhook_secret": "",
+		"stripe_automatic_tax": 0,
 	}
+	if not frappe.db.exists("DocType", SETTINGS):
+		return defaults
+	doc = frappe.get_cached_doc(SETTINGS)
+	cfg = dict(defaults)
+	for key, default in defaults.items():
+		if key in ("stripe_secret_key", "stripe_webhook_secret"):
+			cfg[key] = doc.get_password(key, raise_exception=False) or ""
+		elif doc.get(key) not in (None, ""):
+			cfg[key] = doc.get(key)
+	for key in ("trial_days", "free_mock_count", "reminder_days"):
+		cfg[key] = int(cfg[key])
+	for key in ("monthly_price", "three_month_price"):
+		cfg[key] = float(cfg[key])
+	return cfg
 
 
 def plan_price(plan: str) -> float:
 	return settings()[PLANS[plan]["price_field"]]
 
 
+def price_text(value: float) -> str:
+	return f"\u00a3{value:g}"
+
+
 def trial_end(start=None):
 	return add_days(start or nowdate(), settings()["trial_days"])
+
+
+def provider():
+	"""The active provider. Stripe only counts as active once its keys are filled in."""
+	from aimaticlearning.lms_learning.billing_providers.manual import ManualProvider
+	from aimaticlearning.lms_learning.billing_providers.stripe import StripeProvider
+
+	cfg = settings()
+	if cfg["active_provider"] == "Stripe":
+		stripe = StripeProvider()
+		if stripe.is_ready(cfg):
+			return stripe
+	return ManualProvider()
 
 
 def _is_staff(user: str) -> bool:
@@ -119,7 +149,7 @@ def access_state(user: str | None = None) -> dict:
 		result = {"state": "guest"}
 	elif _is_staff(user):
 		result = {"state": "staff"}
-	elif not frappe.db.exists("DocType", SUBSCRIPTION):
+	elif not frappe.db.exists("DocType", SUBSCRIPTION) or not settings()["enabled"]:
 		result = {"state": "full"}
 	else:
 		row = frappe.db.get_value(
@@ -212,10 +242,15 @@ def get_billing_state() -> dict:
 	if user == "Guest":
 		frappe.throw(_("Please sign in."), frappe.PermissionError)
 	cfg = settings()
+	prov = provider()
 	info = dict(access_state(user))
+	sub = frappe.db.get_value(SUBSCRIPTION, user, ["stripe_customer", "last_payment_error"], as_dict=True) or {}
 	info.update(
 		{
+			"provider": prov.name,
 			"reference": _reference(user),
+			"can_manage": bool(sub.get("stripe_customer")) and prov.name == "Stripe",
+			"payment_problem": sub.get("last_payment_error") or "",
 			"plans": [
 				{"name": "Monthly", "price": cfg["monthly_price"], "detail": "per month after your free month"},
 				{"name": "3-Month", "price": cfg["three_month_price"], "detail": "for 3 months, paid once (months 2 to 4)"},
@@ -231,8 +266,35 @@ def get_billing_state() -> dict:
 
 
 @frappe.whitelist()
+def start_checkout(plan: str) -> dict:
+	"""Stripe: create a hosted Checkout page for this student and plan."""
+	user = frappe.session.user
+	if user == "Guest" or plan not in PLANS:
+		frappe.throw(_("Choose a plan."), frappe.ValidationError)
+	prov = provider()
+	if prov.name != "Stripe":
+		frappe.throw(_("Card payment is not available yet."), frappe.ValidationError)
+	sub = frappe.db.get_value(SUBSCRIPTION, user, ["trial_ends_on", "stripe_customer"], as_dict=True)
+	if not sub:
+		frappe.throw(_("No subscription found for this account."), frappe.ValidationError)
+	email = frappe.db.get_value("User", user, "email") or user
+	return prov.start_payment(user, email, plan, settings(), dict(sub))
+
+
+@frappe.whitelist()
+def open_portal() -> dict:
+	"""Stripe customer portal: update card, see invoices, cancel."""
+	user = frappe.session.user
+	customer = frappe.db.get_value(SUBSCRIPTION, user, "stripe_customer") if user != "Guest" else None
+	prov = provider()
+	if prov.name != "Stripe" or not customer:
+		frappe.throw(_("No card billing found for this account."), frappe.ValidationError)
+	return {"url": prov.portal_url(customer, settings())}
+
+
+@frappe.whitelist()
 def request_payment(plan: str) -> dict:
-	"""Student says they paid. Access stays as it is until staff confirm."""
+	"""Manual provider: the student says they paid. Access stays as it is until staff confirm."""
 	user = frappe.session.user
 	if user == "Guest" or plan not in PLANS:
 		frappe.throw(_("Choose a plan."), frappe.ValidationError)
@@ -249,8 +311,8 @@ def request_payment(plan: str) -> dict:
 		subject=f"Payment to confirm: {user} ({plan})",
 		message=(
 			f"<p>{frappe.utils.escape_html(user)} says they paid for the {plan} plan "
-			f"(£{plan_price(plan):g}). Reference: <strong>{reference}</strong>.</p>"
-			f"<p>Check the Wise balance, then open the subscription and choose Confirm payment.</p>"
+			f"({price_text(plan_price(plan))}). Reference: <strong>{reference}</strong>.</p>"
+			f"<p>Check the bank balance, then open the subscription and choose Confirm payment.</p>"
 			f"<p><a href=\"{get_url('/desk/examic-subscription/' + user)}\">Open subscription</a></p>"
 		),
 		now=False,
@@ -259,41 +321,134 @@ def request_payment(plan: str) -> dict:
 	return {"ok": True, "reference": reference}
 
 
-@frappe.whitelist()
-def confirm_payment(subscription: str, plan: str, amount: float | None = None, payment_date=None,
-		reference: str | None = None, method: str = "Wise bank transfer", note: str | None = None) -> dict:
-	"""Staff only: record a payment and open the paid period."""
-	if not (STAFF_ROLES - {"Course Creator", "LMS Content Reviewer", "LMS Instructor"}) & set(frappe.get_roles()):
-		frappe.throw(_("Not permitted."), frappe.PermissionError)
-	if plan not in PLANS:
-		frappe.throw(_("Unknown plan."), frappe.ValidationError)
-	doc = frappe.get_doc(SUBSCRIPTION, subscription)
-	paid_on = getdate(payment_date or nowdate())
+def apply_payment(doc, plan: str, amount: float | None, paid_on, reference: str | None,
+		method: str, note: str | None = None, confirmed_by: str | None = None) -> dict:
+	"""The one place that opens a paid period. Manual confirmation and Stripe both end here."""
+	paid_on = getdate(paid_on or nowdate())
 	doc.paid_until = extend_paid_until(plan, doc.trial_ends_on, doc.paid_until, paid_on)
 	doc.plan = plan
 	doc.last_payment_on = paid_on
+	doc.last_payment_error = None
+	reference = reference or doc.pending_reference or _reference(doc.user)
 	doc.pending_plan = None
 	doc.pending_reference = None
 	doc.pending_requested_on = None
+	value = float(amount) if amount not in (None, "") else plan_price(plan)
 	doc.append(
 		"payments",
-		{
-			"payment_date": paid_on,
-			"plan": plan,
-			"amount": amount if amount not in (None, "") else plan_price(plan),
-			"method": method,
-			"reference": reference or doc.pending_reference or _reference(doc.user),
-			"confirmed_by": frappe.session.user,
-			"note": note,
-		},
+		{"payment_date": paid_on, "plan": plan, "amount": value, "method": method,
+		 "reference": reference, "confirmed_by": confirmed_by, "note": note},
 	)
 	doc.save(ignore_permissions=True)
 	_send_template(
 		PAYMENT_RECEIPT_TEMPLATE, doc.user,
-		{"plan": plan, "amount": f"£{float(amount or plan_price(plan)):g}",
+		{"plan": plan, "amount": price_text(value),
 		 "paid_until": frappe.utils.formatdate(doc.paid_until), "portal_url": get_url("/lms")},
 	)
 	return {"status": doc.status, "paid_until": str(doc.paid_until)}
+
+
+@frappe.whitelist()
+def confirm_payment(subscription: str, plan: str, amount: float | None = None, payment_date=None,
+		reference: str | None = None, method: str = "Wise bank transfer", note: str | None = None) -> dict:
+	"""Staff only (manual provider): record a payment and open the paid period."""
+	if not ({"System Manager", "LMS Administrator", "Administrator"} & set(frappe.get_roles())):
+		frappe.throw(_("Not permitted."), frappe.PermissionError)
+	if plan not in PLANS:
+		frappe.throw(_("Unknown plan."), frappe.ValidationError)
+	doc = frappe.get_doc(SUBSCRIPTION, subscription)
+	return apply_payment(doc, plan, amount, payment_date, reference, method, note, frappe.session.user)
+
+
+def _log_event(event_id: str, provider_name: str, event_type: str, status: str, **fields) -> None:
+	if frappe.db.exists("Examic Payment Event", event_id):
+		return
+	frappe.get_doc(
+		{"doctype": "Examic Payment Event", "event_id": event_id, "provider": provider_name,
+		 "event_type": event_type, "status": status, **fields}
+	).insert(ignore_permissions=True)
+
+
+def _find_subscription(action: dict) -> str | None:
+	"""Match by the user we put in Stripe metadata, else by the saved Stripe customer."""
+	user = action.get("user")
+	if user and frappe.db.exists(SUBSCRIPTION, user):
+		return user
+	for field in ("stripe_customer", "stripe_subscription"):
+		key = "customer" if field == "stripe_customer" else "subscription"
+		if action.get(key):
+			found = frappe.db.get_value(SUBSCRIPTION, {field: action[key]}, "name")
+			if found:
+				return found
+	return None
+
+
+def process_stripe_event(event: dict) -> str:
+	"""Apply one verified Stripe event. Idempotent by event id. Returns the log status."""
+	from aimaticlearning.lms_learning.billing_providers import stripe as stripe_mod
+
+	event_id, event_type = event.get("id") or "", event.get("type") or ""
+	if not event_id or frappe.db.exists("Examic Payment Event", event_id):
+		return "Ignored"
+	action = stripe_mod.interpret_event(event)
+	if action["action"] == "ignore":
+		_log_event(event_id, "Stripe", event_type, "Ignored")
+		return "Ignored"
+	name = _find_subscription(action)
+	if not name:
+		_log_event(event_id, "Stripe", event_type, "Needs review", reference=action.get("reference"),
+			amount=action.get("amount"), error="No matching student for this payment event.")
+		return "Needs review"
+	doc = frappe.get_doc(SUBSCRIPTION, name)
+	if action.get("customer") and not doc.stripe_customer:
+		doc.stripe_customer = action["customer"]
+	if action.get("subscription"):
+		doc.stripe_subscription = action["subscription"]
+	kind = action["action"]
+	if kind == "pay":
+		plan = action.get("plan")
+		if plan not in PLANS:
+			doc.save(ignore_permissions=True)
+			_log_event(event_id, "Stripe", event_type, "Needs review", user=name, reference=action.get("reference"),
+				amount=action.get("amount"), error="Plan missing on the payment.")
+			return "Needs review"
+		apply_payment(doc, plan, action.get("amount"), nowdate(), action.get("reference"), "Stripe card", None, None)
+	elif kind == "failed":
+		doc.last_payment_error = action["message"]
+		doc.save(ignore_permissions=True)
+		_send_template(PAYMENT_PROBLEM_TEMPLATE, name, {})
+	elif kind == "cancelled":
+		doc.stripe_subscription = None
+		doc.save(ignore_permissions=True)
+	else:  # link
+		doc.save(ignore_permissions=True)
+	_log_event(event_id, "Stripe", event_type, "Matched", user=name, plan=action.get("plan"),
+		amount=action.get("amount"), reference=action.get("reference"))
+	return "Matched"
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def stripe_webhook():
+	"""Stripe calls this. The signature, not a login, proves the request is genuine."""
+	from aimaticlearning.lms_learning.billing_providers import stripe as stripe_mod
+
+	cfg = settings()
+	payload = frappe.request.get_data()
+	header = frappe.get_request_header("Stripe-Signature") or ""
+	if not stripe_mod.verify_signature(payload, header, cfg["stripe_webhook_secret"]):
+		frappe.local.response["http_status_code"] = 400
+		return {"error": "invalid signature"}
+	try:
+		event = json.loads(payload.decode("utf-8"))
+		status = process_stripe_event(event)
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(title="Stripe webhook failed", message=frappe.get_traceback())
+		frappe.local.response["http_status_code"] = 500
+		return {"error": "processing failed"}
+	frappe.db.set_single_value(SETTINGS, "stripe_last_event", frappe.utils.now_datetime())
+	frappe.db.commit()
+	return {"status": status}
 
 
 def _send_template(template: str, user: str, extra: dict) -> None:
@@ -301,8 +456,11 @@ def _send_template(template: str, user: str, extra: dict) -> None:
 
 	if not frappe.db.exists("Email Template", template):
 		return
+	cfg = settings()
 	name = frappe.db.get_value("User", user, "full_name") or user
-	subject, message = _render_template(template, {"student_name": name, "billing_url": get_url("/billing"), **extra})
+	context = {"student_name": name, "billing_url": get_url("/billing"),
+		"monthly_price": price_text(cfg["monthly_price"]), "three_month_price": price_text(cfg["three_month_price"]), **extra}
+	subject, message = _render_template(template, context)
 	_queue_email(user, subject, message, SUBSCRIPTION, user)
 
 
@@ -320,7 +478,7 @@ def daily_billing_job() -> dict:
 			counts["updated"] += 1
 		if end and new_status in ("Trial", "Active"):
 			days_left = (getdate(end) - today).days
-			if days_left in (REMIND_DAYS_BEFORE, 0):
+			if days_left in (settings()["reminder_days"], 0):
 				_send_template(
 					PAYMENT_REMINDER_TEMPLATE, row.name,
 					{"days_left": days_left, "end_date": frappe.utils.formatdate(end),

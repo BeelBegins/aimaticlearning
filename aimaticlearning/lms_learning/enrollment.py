@@ -165,7 +165,7 @@ def create_email_templates() -> None:
 <p>Your Examic Study account is ready.</p>
 {% if course_titles %}
 <p>Your first month is free, until {{ free_until }}. It includes every course and {{ free_mocks }} mock exams (Mock 1 and Mock 2). No payment is needed to start.</p>
-<p>After that, choose a plan to keep going: £49 per month, or £99 for 3 months. Both include all mock exams and detailed performance analytics. See <a href="{{ pricing_url }}">pricing</a>.</p>
+<p>After that, choose a plan to keep going: {{ monthly_price }} per month, or {{ three_month_price }} for 3 months. Both include all mock exams and detailed performance analytics. See <a href="{{ pricing_url }}">pricing</a>.</p>
 <p>You are enrolled in:</p>
 <ul>{% for title in course_titles %}<li>{{ title }}</li>{% endfor %}</ul>
 <p><a href="{{ courses_url }}">Open your courses</a></p>
@@ -186,8 +186,17 @@ def create_email_templates() -> None:
 {% else %}
 <p>Your {{ ending }} ends in {{ days_left }} days, on {{ end_date }}. Choose a plan to keep your access.</p>
 {% endif %}
-<p>Monthly is £49 per month. The 3-month plan is £99 once. Both include all mock exams and performance analytics.</p>
+<p>Monthly is {{ monthly_price }} per month. The 3-month plan is {{ three_month_price }} once. Both include all mock exams and performance analytics.</p>
 <p><a href="{{ billing_url }}">Choose a plan and pay</a></p>
+""",
+	)
+	_upsert_email_template(
+		"Examic Study Payment Problem",
+		subject="Your Examic Study card payment did not go through",
+		response="""
+<p>Hello {{ student_name }},</p>
+<p>We could not take your latest payment. Please update your card to keep your access.</p>
+<p><a href="{{ billing_url }}">Update your card</a></p>
 """,
 	)
 	_upsert_email_template(
@@ -372,6 +381,8 @@ def complete_student_signup(user: str) -> dict:
 				"course_titles": titles,
 				"free_until": frappe.utils.formatdate(end),
 				"pricing_url": get_url("/pricing"),
+				"monthly_price": billing.price_text(billing.settings()["monthly_price"]),
+				"three_month_price": billing.price_text(billing.settings()["three_month_price"]),
 				"free_days": PRODUCT_SETTINGS["free_days"],
 				"free_mocks": PRODUCT_SETTINGS["free_mocks"],
 			}
