@@ -18,5 +18,6 @@ Rollback: Database/files/config in `/home/ubuntu/restore-rollback-20261008`.
 
 Status: done (restore).
 
-Next step: Separately authorize public launch; verify learner pages in browser.
-Maintenance mode remains enabled. Old server unchanged.
+Follow-up: Owner approved disabling maintenance; mode is now off and local/public
+`/sqe` return HTTP 200. Verify authenticated learner pages in browser.
+Old server unchanged.

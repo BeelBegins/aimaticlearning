@@ -546,3 +546,10 @@ changing any answer key.
 - Verification report: `/home/ubuntu/restore-rollback-20261008/verification.json`.
 - Site remains in maintenance mode; public launch and learner browser checks are pending.
   No changes were made to the old server.
+
+## 2026-10-08 Maintenance mode disabled
+
+Owner approved taking `examic.study` out of maintenance. Ran site-scoped
+`set-maintenance-mode off` and `clear-cache`; config reads maintenance_mode=0.
+Local gunicorn on port 8001 and public HTTPS `/sqe` both return HTTP 200.
+Authenticated learner flows remain unverified.

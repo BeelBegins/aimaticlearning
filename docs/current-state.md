@@ -23,8 +23,9 @@ The separate `/home/ubuntu/frappe-bench` on `vps-6bdd605a` now has site
 `examic.study` restored from the old site's `20261008_172510` database and
 public/private files. Migration and source-count/file verification passed.
 Only frappe, payments, lms and aimaticlearning are registered on this target.
-It remains in maintenance mode; public launch and learner browser verification
-are pending. The shared old server was not changed. See the 2026-10-08 entry
+Maintenance mode was disabled with owner approval on 8 October; local backend
+and public HTTPS `/sqe` return HTTP 200. Authenticated learner browser verification
+is pending. The shared old server was not changed. See the 2026-10-08 entry
 in `docs/lms-findings-and-fixes.md` for rollback and verification locations.
 
 ## Hosting (until the move)
