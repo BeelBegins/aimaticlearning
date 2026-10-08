@@ -530,3 +530,19 @@ changing any answer key.
 - Free month, 49 monthly or 99 three-month plans, access lock, `/pricing`, `/billing`, daily reminders (`billing.py`).
 - Wise cannot confirm payments for a UK account (docs saved in `docs/vendor/wise/`); Stripe provider added behind settings (`billing_providers/stripe.py`, webhook `billing.stripe_webhook`), manual confirmation kept as fallback. Dodo dropped.
 - Stripe sandbox keys stored in Examic Billing Settings only. Stripe docs saved in `docs/vendor/stripe/`.
+
+## 2026-10-08 New-server restore verified
+
+- Target: `/home/ubuntu/frappe-bench`, site `examic.study` on `vps-6bdd605a`.
+- Owner approved replacing the target database/files after the restore plan was presented.
+- Restored the four `20261008_172510-lms_aimatic_tech-*` files from `/home/ubuntu/lms-backup`.
+- Verified rollback database/files/config stored in `/home/ubuntu/restore-rollback-20261008`.
+- Preserved target database credentials and `https://examic.study`; source encryption key matches.
+- Removed the missing shared-server `aimatic` app registration from restored app metadata,
+  without installing SZL code. Ran `bench --site examic.study migrate` successfully.
+- Source and restored counts match: 14 courses, 138 chapters, 408 lessons, 175 quizzes,
+  3168 questions, 10588 flashcards, 124 enrolments, 83 quiz submissions, 22 users,
+  30 File records and 1 subscription. All 48 archived file/link entries match.
+- Verification report: `/home/ubuntu/restore-rollback-20261008/verification.json`.
+- Site remains in maintenance mode; public launch and learner browser checks are pending.
+  No changes were made to the old server.

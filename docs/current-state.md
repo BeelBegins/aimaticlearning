@@ -1,6 +1,6 @@
 # Examic Study — current state
 
-Last updated: 2026-10-07. Verify read-only before any site mutation.
+Last updated: 2026-10-08. Verify read-only before any site mutation.
 
 ## Product
 
@@ -16,6 +16,16 @@ Last updated: 2026-10-07. Verify read-only before any site mutation.
 This site still runs on the shared `/home/nabeel/frappe-bench` workers with live
 SZL (`szl`). There is no LMS staging site. A new server is planned; it is not
 ready.
+
+## New-server restore (2026-10-08)
+
+The separate `/home/ubuntu/frappe-bench` on `vps-6bdd605a` now has site
+`examic.study` restored from the old site's `20261008_172510` database and
+public/private files. Migration and source-count/file verification passed.
+Only frappe, payments, lms and aimaticlearning are registered on this target.
+It remains in maintenance mode; public launch and learner browser verification
+are pending. The shared old server was not changed. See the 2026-10-08 entry
+in `docs/lms-findings-and-fixes.md` for rollback and verification locations.
 
 ## Hosting (until the move)
 
