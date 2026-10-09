@@ -267,3 +267,10 @@ Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4
 linked `LMS Quiz`/`Course Lesson` records; Mocks 1–3 and their submissions are
 untouched by that rollback. Expires when: a 5th sitting is added, the criminal
 bank changes materially, or the staff coverage report is regenerated.
+## 2026-10-09 Password-reset branding
+
+The /update-password page now uses local Examic assets for its header logo
+and favicon. The retired lms.aimatic.tech references were removed from live
+Website Settings and from the branding constants used by
+configure_lms_student_access; the header PNG and mark SVG both return HTTP
+200 on examic.study.

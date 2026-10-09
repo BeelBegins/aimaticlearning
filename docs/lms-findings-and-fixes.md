@@ -553,3 +553,14 @@ Owner approved taking `examic.study` out of maintenance. Ran site-scoped
 `set-maintenance-mode off` and `clear-cache`; config reads maintenance_mode=0.
 Local gunicorn on port 8001 and public HTTPS `/sqe` both return HTTP 200.
 Authenticated learner flows remain unverified.
+## 2026-10-09 Password-reset branding asset restored
+
+The Examic /update-password page was loading its header logo and favicon
+from the retired lms.aimatic.tech domain, producing a broken-image icon.
+The correct public assets were already present in aimaticlearning:
+ /assets/aimaticlearning/images/examic-study-header-uk.png and
+ /assets/aimaticlearning/images/examic-study-mark-uk.svg. Updated the live
+Website Settings app_logo and favicon to those local paths, cleared the
+site cache, and updated enrollment.py so a future branding configuration does
+not restore the retired URLs. Verified the page contains the local paths and
+both assets return HTTP 200. No service restart was required.
