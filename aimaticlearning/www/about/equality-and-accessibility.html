@@ -1,0 +1,22 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Equality and Accessibility | Examic" -%}
+{%- set ex_description = "How Examic treats learners fairly and how to report an accessibility barrier or ask for an adjustment." -%}
+{%- set ex_path = "/about/equality-and-accessibility" -%}
+{%- set ex_active = "about" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow"><a href="/about">About Us</a></p>
+				<h1>Equality and Accessibility</h1>
+			</header>
+			<div class="ex-prose">
+				<p>We aim to provide an accessible learning experience and treat learners fairly. Use the <a href="/contact">Contact page</a> and choose "Accessibility" to report an accessibility barrier or request an adjustment. We will consider reasonable adjustments and explain available support.</p>
+				<p>Examic platform support does not arrange adjustments for official SQE assessments. Candidates must use the official assessment provider's process.</p>
+				<p>Read our <a href="/accessibility">accessibility statement</a> for how the website is built and what we know needs work.</p>
+			</div>
+		</div>
+{% endblock %}

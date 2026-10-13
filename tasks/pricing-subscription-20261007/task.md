@@ -43,7 +43,7 @@ Stripe for cards and automatic renewals, Wise as payout bank and manual fallback
 Built: provider framework (`billing_providers/`), `Examic Billing Settings` as the
 configuration interface, Stripe Checkout, portal and signed webhook, event log, docs in
 `skills/lms-billing/` and `docs/payment-providers.md`. Open: Stripe live approval for
-Examic Learning Ltd (non-resident directors), written confirmation of GBP payouts to Wise,
+EXAMIC LTD (non-resident directors), written confirmation of GBP payouts to Wise,
 Wise GBP details in Desk, legal wording, rotate the sandbox keys shared in chat.
 
 Sandbox rollout 2026-10-07 (done): Stripe test Products/Prices, webhook endpoint and portal

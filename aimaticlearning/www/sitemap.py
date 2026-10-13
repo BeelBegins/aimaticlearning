@@ -7,7 +7,12 @@ no_cache = 1
 base_template_path = "www/sitemap.xml"
 
 SITE_URL = "https://examic.study"
-STATIC_ROUTES = ["", "about", "contact", "sqe", "lms/courses"]
+STATIC_ROUTES = [
+	"", "sqe1", "pricing", "how-it-works", "resources", "about", "about/our-story",
+	"about/vision-and-mission", "about/preparation-approach", "about/equality-and-accessibility",
+	"contact", "introductory-offer", "terms", "privacy", "cookies", "refund-policy", "complaints",
+	"accessibility", "educational-disclaimer", "lms/courses",
+]
 
 
 def get_context(context):

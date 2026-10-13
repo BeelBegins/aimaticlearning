@@ -1,29 +1,56 @@
-{% extends "templates/web.html" %}
-{% block title %}Privacy Policy | Examic Study{% endblock %}
-{% block page_content %}
-<style>
-.examic-legal { max-width: 720px; margin: 40px auto 72px; padding: 0 16px; color: #1d2433; line-height: 1.7; font-size: 1.02rem; }
-.examic-legal h1 { font-size: 1.8rem; margin: 0 0 6px; }
-.examic-legal h2 { font-size: 1.15rem; margin: 28px 0 8px; }
-.examic-legal .updated { color: #5b6472; margin: 0 0 24px; }
-.examic-legal a { color: #1a5fb4; text-decoration: underline; }
-</style>
-<article class="examic-legal">
-<h1>Privacy Policy</h1>
-<p class="updated">Last updated: 5 October 2026</p>
-<p>This page explains what Examic Study collects and why.</p>
-<h2>What we collect</h2>
-<p>Your name and email address, your study activity (lessons opened, quiz and mock answers and scores, flashcard progress) and basic technical data such as browser type needed to run the site securely.</p>
-<h2>How we use it</h2>
-<p>To run your account, show your progress, send account and course emails, and improve the questions and notes. We do not sell your data.</p>
-<h2>Who processes it</h2>
-<p>Our hosting provider stores the data. Email is sent through our email provider. The Study Buddy assistant sends the text of your question to an AI provider to produce an answer.</p>
-<h2>Your choices</h2>
-<p>You can ask us to export or delete your account and study data by emailing the address below. We keep only what the law requires after deletion.</p>
-<h2>Cookies</h2>
-<p>We use cookies needed to keep you signed in and to protect the site. We do not use advertising cookies.</p>
-<h2>Contact</h2>
-<p>Questions about this page: <a href="mailto:hello@examic.study">hello@examic.study</a>.</p>
-<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
-</article>
+---
+no_cache: 1
+---
+{%- set ex_title = "Privacy Notice | Examic" -%}
+{%- set ex_description = "How EXAMIC LTD uses learner information on Examic.study and how to exercise your rights." -%}
+{%- set ex_path = "/privacy" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Legal</p>
+				<h1>Privacy Notice</h1>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+
+				<h2>Who controls your information</h2>
+				<p>EXAMIC LTD operates Examic.study and is the controller for the learner information used to provide and administer the platform. For privacy questions or rights requests, email <a href="mailto:hello@examic.study">hello@examic.study</a> or use the <a href="/contact">Contact page</a> and choose "Privacy".</p>
+
+				<h2>Information we use and why</h2>
+				<ul>
+					<li><strong>Account details</strong> (name, email address, password, sign-in records) to create and administer your access.</li>
+					<li><strong>Learning activity</strong> (lessons opened, practice and mock answers and scores, flashcard ratings) to show your progress, mock feedback and revision suggestions.</li>
+					<li><strong>Study Buddy</strong>: the question you type, with the text of the lesson you have open, is sent to an AI provider to produce an answer. Your questions and answers are kept so you can reload your own conversation for that chapter.</li>
+					<li><strong>Messages</strong> you send through the contact form, live chat or email, to provide support.</li>
+					<li><strong>Payment records</strong>: card payments are taken by Stripe. We receive the plan, amount, date and payment status, not your full card number.</li>
+					<li><strong>Technical records</strong> needed to protect the platform and investigate faults.</li>
+				</ul>
+				<p>Required account information enables us to provide access. Without it, we may be unable to create or administer your account. We do not sell your data.</p>
+
+				<h2>Lawful bases</h2>
+				<p>Contract, and steps you ask for before a contract, support account and learning delivery. Legal obligations support records we are legally required to keep. Legitimate interests support platform security and replying to general enquiries, balanced against your interests and rights. Optional marketing would need your separate opt-in; we do not ask for one at sign up, and account emails about your access are not marketing.</p>
+				<p>Cookies and similar technologies are covered by the <a href="/cookies">Cookie Notice</a>.</p>
+
+				<h2>Service providers, locations and transfers</h2>
+				<p>Information may be accessed by authorised personnel and by providers where necessary to deliver hosting, email, support, AI study assistance or payments. Processor access is governed by written arrangements.</p>
+				<p class="ex-note">The list of these providers, where they process information, and the safeguards for any transfer outside the UK is being prepared and is not published yet. Until it is, you can ask us for it at <a href="mailto:hello@examic.study">hello@examic.study</a>.</p>
+
+				<h2>How long we keep information</h2>
+				<p>We keep information for the purpose for which it was collected and for applicable legal obligations. Relevant records may be preserved for an actual legal dispute or obligation.</p>
+				<p class="ex-note">Specific retention periods for account records, learning activity, support messages, payments, security logs and backups are being prepared and are not published yet. You can ask us about them at any time.</p>
+
+				<h2>Your rights</h2>
+				<p>Depending on the circumstances, you can request access, correction, deletion, restriction or portability of your information, or object to processing. You may withdraw consent without affecting earlier lawful processing.</p>
+				<p>We handle requests within the applicable legal timeframe, normally one month, subject to lawful adjustments or extensions. Proportionate identity checks may be needed. You can complain directly to the Information Commissioner's Office at <a href="https://ico.org.uk/make-a-complaint/" rel="noopener">ico.org.uk/make-a-complaint</a>; contacting us first is not compulsory.</p>
+
+				<h2>Information you should not send us</h2>
+				<p>Do not upload or type client files, confidential case details, identity documents or sensitive health information into Study Buddy, live chat or the contact form unless we ask for it through an appropriate support process.</p>
+
+				<h2>Updates</h2>
+				<p>We update this notice when our practices change and communicate material changes appropriately.</p>
+			</article>
+		</div>
 {% endblock %}

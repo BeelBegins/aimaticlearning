@@ -33,7 +33,7 @@ registrations exist and prices have a tax behaviour.
 
 - UK fees (checked 2026-10-07): UK cards 1.5% + 20p, EEA 2.5% + 20p, international 3.25% + 20p,
   Billing +0.7%; about 1.3 to 2.1 GBP on 49.
-- Examic Learning Ltd has non-resident directors, so live approval is not guaranteed
+- EXAMIC LTD has non-resident directors, so live approval is not guaranteed
   (UK entity, tax ID, UK address, phone, website, ID, bank account). Payouts go to the Wise
   Business GBP account if Stripe accepts it. Fallback provider: Airwallex (not built).
 - Sandbox keys (sk_test, pk_test) were shared in chat on 2026-10-07; rotate them when going live.

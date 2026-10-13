@@ -11,7 +11,16 @@
 - Check currently installed apps and available patch commands before
   migrating. The previous server's migration failure is historical and does
   not describe this Examic site. Restart only the required services.
-- Terms, Privacy and Refund pages are plain drafts in `www/`.
+- Public website (2026-10-13): Home (`sqe`), SQE1, Pricing, How It Works, Resources, About
+  (+4 subpages), Contact and the legal pages all extend `templates/examic_site/base.html`
+  (one header, footer, cookie banner; `examic_site.css`/`.js`). Set `ex_title`,
+  `ex_description`, `ex_path`, `ex_active` before `extends`. Static pages carry
+  `no_cache: 1` front matter because Frappe's page cache is shared by guests and students.
+  Facts come from `lms_learning/public_site.py` (settings, published courses, mock count);
+  never hard-code volume figures or "expert reviewed" claims. The contact form posts to
+  `contact.submit_enquiry` (guest, rate limited, emails the support mailbox). Legal copy is
+  EXAMIC LTD's handover text and still needs owner or legal review; the privacy provider list
+  and retention periods are deliberately marked as not yet published.
 - Resumable launch state: `tasks/launch-oct10-20261005/task.md`.
 - Public `/sqe` theme: white, royal blue `#00247D`, flag red `#CF142B`, ink `#0E1B3D`.
   All of it lives in `public/css/sqe_frappe_theme.css`, scoped as

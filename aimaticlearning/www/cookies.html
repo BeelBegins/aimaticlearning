@@ -1,0 +1,63 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Cookie Notice | Examic" -%}
+{%- set ex_description = "The cookies and browser storage Examic.study uses, and how to change your cookie choice." -%}
+{%- set ex_path = "/cookies" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Legal</p>
+				<h1>Cookie Notice</h1>
+				<p>We use essential cookies and similar technologies to support account access, security and your saved privacy choices. We do not use advertising or analytics cookies, and no optional cookies are in use today.</p>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+
+				<h2 id="cookie-settings">Cookie Settings</h2>
+				<p>Your choice: <strong data-ex-cookie-current>No choice saved yet</strong>.</p>
+				<div class="ex-cookie-actions">
+					<button class="sqe-btn ex-choice" type="button" data-ex-cookie="optional">Accept Optional</button>
+					<button class="sqe-btn ex-choice" type="button" data-ex-cookie="essential">Reject Optional</button>
+					<button class="sqe-btn ex-choice" type="button" data-ex-cookie-settings>Manage Preferences</button>
+				</div>
+				<p>If we add an optional technology in future, such as analytics, we will list it here first and it will stay off unless you allow it. You can change your choice at any time from Cookie Settings in the footer.</p>
+
+				<h2>Cookies set by Examic.study</h2>
+				<div class="ex-table-wrap">
+					<table class="ex-table">
+						<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Duration</th><th scope="col">Category</th></tr></thead>
+						<tbody>
+							<tr><td>sid</td><td>Keeps you signed in and protects your session. Visitors who are not signed in get a guest value.</td><td>Until you log out or the session expires</td><td>Essential</td></tr>
+							<tr><td>system_user, full_name, user_id, user_image</td><td>Tell the pages which account is signed in, so the right menu and name are shown.</td><td>Browser session</td><td>Essential</td></tr>
+							<tr><td>examic_cookie_choice</td><td>Remembers whether you accepted or rejected optional cookies.</td><td>180 days</td><td>Essential</td></tr>
+						</tbody>
+					</table>
+				</div>
+				<p>All of these are set by Examic.study itself, operated by EXAMIC LTD. The platform runs on the Frappe framework, which sets the sign-in cookies.</p>
+
+				<h2>Storage in your browser</h2>
+				<p>Some study tools save your place in your own browser's storage. This stays on your device and is not used to track you.</p>
+				<div class="ex-table-wrap">
+					<table class="ex-table">
+						<thead><tr><th scope="col">What</th><th scope="col">Purpose</th><th scope="col">Duration</th><th scope="col">Category</th></tr></thead>
+						<tbody>
+							<tr><td>Practice session answers</td><td>Lets you resume a practice question session you started.</td><td>Until you finish or restart the session, or clear browser data</td><td>Essential</td></tr>
+							<tr><td>Flashcard session progress</td><td>Lets you pause a flashcard deck and continue later.</td><td>Until you finish or reset the deck, or clear browser data</td><td>Essential</td></tr>
+							<tr><td>Study Buddy conversation reference</td><td>Reloads your own Study Buddy conversation for a chapter.</td><td>Until you start a new conversation or clear browser data</td><td>Essential</td></tr>
+							<tr><td>Mock review flags and display style</td><td>Keeps your flagged questions and chosen layout during a mock sitting.</td><td>Until you close the browser tab</td><td>Essential</td></tr>
+						</tbody>
+					</table>
+				</div>
+
+				<h2>Payments</h2>
+				<p>When you pay for a plan you are sent to Stripe's checkout page. Stripe sets its own cookies on its own site to process the payment and prevent fraud; see Stripe's privacy and cookie information there. Stripe is not loaded on Examic.study pages before you choose to pay.</p>
+
+				<h2>Questions</h2>
+				<p>Email <a href="mailto:hello@examic.study">hello@examic.study</a> or read the <a href="/privacy">Privacy Notice</a>.</p>
+			</article>
+		</div>
+{% endblock %}

@@ -31,8 +31,10 @@ site on the shared bench. Nothing below is done yet unless marked.
 ## Site config
 - `openrouter_api_key` in site config for Study Buddy when Examic Study Settings has no key (not in code).
 - Signup enabled, role `LMS Student`, home page `sqe`.
-- Terms, Privacy and Refund pages (`/terms`, `/privacy`, `/refund-policy`) are a
-  plain draft: the owner or a solicitor must review them before launch.
+- Public legal pages (`/terms`, `/privacy`, `/cookies`, `/refund-policy`,
+  `/introductory-offer`, `/complaints`, `/accessibility`, `/educational-disclaimer`)
+  come from EXAMIC LTD's 2026-10-13 content handover and still need owner or solicitor
+  review. The privacy notice's provider, transfer and retention sections are open gaps.
 
 ## Data
 - Courses, lessons, quizzes and mock exam data move by restoring a database

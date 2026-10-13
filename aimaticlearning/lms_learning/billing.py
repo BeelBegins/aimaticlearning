@@ -41,7 +41,8 @@ ALLOWED_PREFIXES = (
 	"/billing", "/pricing", "/sqe", "/terms", "/privacy", "/refund-policy", "/login",
 	"/logout", "/assets", "/files", "/api/method/ping", "/api/method/logout",
 	"/api/method/login", "/api/method/frappe.auth", "/api/method/frappe.core.doctype.user.user",
-	"/api/method/aimaticlearning.lms_learning.billing.", "/api/method/frappe.client.get_value",
+	"/api/method/aimaticlearning.lms_learning.billing.", "/api/method/aimaticlearning.lms_learning.contact.",
+	"/api/method/frappe.client.get_value",
 	"/api/method/frappe.desk.form.", "/favicon", "/robots.txt", "/sitemap.xml", "/sw.js",
 )
 # App surfaces that are locked when the free month is over.

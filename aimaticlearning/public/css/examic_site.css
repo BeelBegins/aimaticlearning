@@ -1,0 +1,177 @@
+/* Shared public website chrome: header menu, footer, cookie banner, page prose and the
+ * contact form. Loaded after sqe_frappe_theme.css and uses its --ex-* tokens. Scoped the
+ * same way so lms_soft_themes.css (.sqe-site !important rules) does not win. */
+:is(html[data-examic-theme], html) body .ex-site { --ex-max: 1120px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-sr,
+:is(html[data-examic-theme], html) body .ex-site .ex-skip:not(:focus) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:is(html[data-examic-theme], html) body .ex-site .ex-skip:focus { position: fixed; top: 8px; left: 8px; z-index: 100; padding: 8px 14px; border-radius: 6px; background: var(--ex-blue); color: #fff; }
+
+/* Header */
+:is(html[data-examic-theme], html) body .ex-site .ex-header { gap: 16px; padding-inline: max(24px, calc((100vw - 1240px) / 2)); }
+:is(html[data-examic-theme], html) body .ex-site .ex-header .sqe-brand img { width: 176px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-nav { display: flex; flex: 1; align-items: center; justify-content: flex-end; }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu { display: flex; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu > li { position: relative; display: flex; align-items: center; }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu a { display: block; padding: 8px 10px; border-radius: 6px; color: var(--ex-ink); font-size: 0.9rem; font-weight: 500; text-decoration: none; white-space: nowrap; }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu a:hover { background: var(--ex-tint-2); color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu a[aria-current="page"] { color: var(--ex-blue); font-weight: 650; box-shadow: inset 0 -2px 0 var(--ex-red); border-radius: 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-sub-toggle { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 32px; margin-left: -6px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--ex-ink); cursor: pointer; }
+:is(html[data-examic-theme], html) body .ex-site .ex-sub-toggle:hover { background: var(--ex-tint-2); color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-sub-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+:is(html[data-examic-theme], html) body .ex-site .ex-sub { position: absolute; top: 100%; left: 0; z-index: 60; display: none; min-width: 250px; margin: 0; padding: 6px; border: 1px solid var(--ex-line); border-radius: 10px; background: #fff; box-shadow: 0 12px 28px rgba(0, 36, 125, 0.12); list-style: none; }
+:is(html[data-examic-theme], html) body .ex-site .ex-has-sub:hover > .ex-sub,
+:is(html[data-examic-theme], html) body .ex-site .ex-has-sub:focus-within > .ex-sub,
+:is(html[data-examic-theme], html) body .ex-site .ex-has-sub.is-open > .ex-sub { display: block; }
+:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions { display: none; }
+:is(html[data-examic-theme], html) body .ex-site .ex-actions { display: flex; align-items: center; gap: 6px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-login { padding: 8px 12px; border-radius: 6px; color: var(--ex-blue); font-size: 0.9rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+:is(html[data-examic-theme], html) body .ex-site .ex-login:hover { background: var(--ex-tint-2); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cta { min-height: 40px; padding: 8px 16px; white-space: nowrap; }
+:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle { display: none; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ex-line); border-radius: 8px; background: #fff; color: var(--ex-blue); font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+
+@media (max-width: 1180px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-header { position: sticky; flex-wrap: wrap; padding-inline: 16px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle { display: inline-flex; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-nav { display: none; order: 3; flex: 1 0 100%; flex-direction: column; align-items: stretch; padding: 8px 0 12px; border-top: 1px solid var(--ex-line); }
+	:is(html[data-examic-theme], html) body .ex-site .ex-header.is-menu-open .ex-nav { display: flex; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu { flex-direction: column; align-items: stretch; gap: 0; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu > li { flex-wrap: wrap; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu > li > a { flex: 1; min-height: 44px; padding: 12px 8px; font-size: 1rem; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu a[aria-current="page"] { box-shadow: inset 3px 0 0 var(--ex-red); border-radius: 0; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-sub-toggle { width: 44px; height: 44px; margin: 0; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-sub { position: static; flex: 1 0 100%; min-width: 0; padding: 0 0 4px 16px; border: 0; box-shadow: none; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-has-sub:hover > .ex-sub,
+	:is(html[data-examic-theme], html) body .ex-site .ex-has-sub:focus-within > .ex-sub { display: none; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-has-sub.is-open > .ex-sub { display: block; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-sub a { min-height: 44px; padding: 12px 8px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions .sqe-btn { min-height: 44px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions .sqe-btn-ghost { border: 1px solid var(--ex-blue); }
+}
+@media (max-width: 560px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-header .sqe-brand img { width: min(140px, 36vw); }
+	:is(html[data-examic-theme], html) body .ex-site .ex-login { display: none; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-cta { padding: 8px 12px; font-size: 0.85rem; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle span { display: none; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle { min-width: 44px; justify-content: center; padding: 8px; }
+}
+
+/* Footer */
+:is(html[data-examic-theme], html) body .ex-site .ex-footer { max-width: var(--ex-max); margin: 0 auto; padding: 32px 24px 40px; border-top: 1px solid var(--ex-line); color: var(--ex-muted); font-size: 0.85rem; }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-id { display: flex; align-items: flex-start; gap: 24px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-id img { width: 160px; height: auto; flex-shrink: 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-id p { margin: 0; line-height: 1.6; }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer a { color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--ex-line); }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-links a { padding: 6px 0; font-weight: 500; text-decoration: none; }
+:is(html[data-examic-theme], html) body .ex-site .ex-footer-links a:hover { color: var(--ex-red); text-decoration: underline; }
+@media (max-width: 620px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-footer { padding: 28px 16px 32px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-footer-id { flex-direction: column; gap: 14px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-footer-links { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+/* Inner pages: one heading block, then readable prose or cards */
+:is(html[data-examic-theme], html) body .ex-site .ex-page { max-width: var(--ex-max); margin: 0 auto; padding: 56px 24px 72px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-page-head { max-width: 760px; margin-bottom: 32px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-page-head h1 { margin: 0 0 12px; color: var(--ex-ink); font-size: clamp(2rem, 3.6vw, 2.8rem); font-weight: 650; letter-spacing: -0.03em; line-height: 1.12; }
+:is(html[data-examic-theme], html) body .ex-site .ex-page-head p { margin: 0; color: var(--ex-muted); font-size: 1.08rem; line-height: 1.65; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose { max-width: 760px; color: var(--ex-ink); font-size: 1.02rem; line-height: 1.7; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose h2 { margin: 36px 0 10px; color: var(--ex-blue); font-size: 1.3rem; font-weight: 650; letter-spacing: -0.01em; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose h3 { margin: 24px 0 6px; color: var(--ex-ink); font-size: 1.05rem; font-weight: 650; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose p,
+:is(html[data-examic-theme], html) body .ex-site .ex-prose ul,
+:is(html[data-examic-theme], html) body .ex-site .ex-prose ol { margin: 0 0 14px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose li { margin: 4px 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose li::marker { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .ex-site .ex-prose a { color: var(--ex-blue); text-decoration: underline; }
+:is(html[data-examic-theme], html) body .ex-site .ex-updated { margin: 0 0 24px; color: var(--ex-muted); font-size: 0.92rem; }
+:is(html[data-examic-theme], html) body .ex-site .ex-note { max-width: 760px; margin: 20px 0; padding: 16px 18px; border: 1px solid var(--ex-line); border-radius: 8px; background: var(--ex-tint); color: var(--ex-ink); line-height: 1.6; }
+:is(html[data-examic-theme], html) body .ex-site .ex-table { width: 100%; margin: 8px 0 20px; border-collapse: collapse; font-size: 0.94rem; }
+:is(html[data-examic-theme], html) body .ex-site .ex-table th,
+:is(html[data-examic-theme], html) body .ex-site .ex-table td { padding: 10px 12px; border: 1px solid var(--ex-line); text-align: left; vertical-align: top; }
+:is(html[data-examic-theme], html) body .ex-site .ex-table th { background: var(--ex-tint); color: var(--ex-blue); font-weight: 650; }
+:is(html[data-examic-theme], html) body .ex-site .ex-table-wrap { overflow-x: auto; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin: 8px 0 32px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-card { padding: 24px; border: 1px solid var(--ex-line); border-radius: 10px; background: #fff; }
+:is(html[data-examic-theme], html) body .ex-site .ex-card h2,
+:is(html[data-examic-theme], html) body .ex-site .ex-card h3 { margin: 0 0 8px; color: var(--ex-blue); font-size: 1.1rem; font-weight: 650; }
+:is(html[data-examic-theme], html) body .ex-site .ex-card p { margin: 0 0 8px; color: var(--ex-muted); line-height: 1.6; }
+:is(html[data-examic-theme], html) body .ex-site .ex-card a { color: var(--ex-blue); font-weight: 600; }
+:is(html[data-examic-theme], html) body .ex-site .ex-card-meta { color: var(--ex-ink) !important; font-size: 0.88rem; font-weight: 500; }
+:is(html[data-examic-theme], html) body .ex-site .ex-steps { max-width: 760px; margin: 0 0 32px; padding: 0; list-style: none; counter-reset: ex-step; }
+:is(html[data-examic-theme], html) body .ex-site .ex-steps li { position: relative; margin: 0 0 14px; padding: 18px 20px 18px 68px; border: 1px solid var(--ex-line); border-radius: 10px; counter-increment: ex-step; line-height: 1.6; }
+:is(html[data-examic-theme], html) body .ex-site .ex-steps li::before { content: counter(ex-step); position: absolute; top: 16px; left: 18px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ex-blue); color: #fff; font-weight: 700; }
+:is(html[data-examic-theme], html) body .ex-site .ex-steps strong { display: block; color: var(--ex-ink); }
+:is(html[data-examic-theme], html) body .ex-site .ex-actions-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin: 24px 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-actions-row a:not(.sqe-btn) { color: var(--ex-blue); font-weight: 600; }
+:is(html[data-examic-theme], html) body .ex-site .ex-faq { max-width: 760px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-faq details { border-bottom: 1px solid var(--ex-line); }
+:is(html[data-examic-theme], html) body .ex-site .ex-faq summary { padding: 16px 0; color: var(--ex-ink); font-weight: 600; cursor: pointer; }
+:is(html[data-examic-theme], html) body .ex-site .ex-faq details p { margin: 0 0 16px; color: var(--ex-muted); line-height: 1.65; }
+@media (max-width: 620px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-page { padding: 36px 16px 52px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-steps li { padding-left: 60px; }
+}
+
+/* Contact form */
+:is(html[data-examic-theme], html) body .ex-site .ex-form { display: grid; gap: 16px; max-width: 640px; margin-top: 8px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-field { display: grid; gap: 6px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-field label { color: var(--ex-ink); font-weight: 600; }
+:is(html[data-examic-theme], html) body .ex-site .ex-field small { color: var(--ex-muted); }
+:is(html[data-examic-theme], html) body .ex-site .ex-field input,
+:is(html[data-examic-theme], html) body .ex-site .ex-field select,
+:is(html[data-examic-theme], html) body .ex-site .ex-field textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #b9c3da; border-radius: 8px; background: #fff; color: var(--ex-ink); font: inherit; }
+:is(html[data-examic-theme], html) body .ex-site .ex-field textarea { min-height: 160px; resize: vertical; }
+:is(html[data-examic-theme], html) body .ex-site .ex-field :focus { outline: 3px solid rgba(0, 36, 125, 0.25); border-color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-hp { position: absolute; left: -9999px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-form-status { min-height: 1.5em; margin: 0; font-weight: 600; }
+:is(html[data-examic-theme], html) body .ex-site .ex-form-status.is-error { color: var(--ex-red); }
+:is(html[data-examic-theme], html) body .ex-site .ex-form-status.is-ok { color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-form .sqe-btn { justify-self: start; min-height: 48px; }
+
+/* Cookie banner and settings dialog: the three choices share one style */
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner { position: fixed; right: 16px; bottom: 16px; left: 16px; z-index: 90; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; max-width: 980px; margin: 0 auto; padding: 18px 20px; border: 1px solid var(--ex-line); border-radius: 12px; background: #fff; box-shadow: 0 12px 32px rgba(14, 27, 61, 0.18); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner[hidden] { display: none; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner p { flex: 1 1 380px; margin: 0; color: var(--ex-ink); font-size: 0.92rem; line-height: 1.55; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner a,
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-more a { color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-choice { min-height: 44px; border: 1px solid var(--ex-blue); background: #fff; color: var(--ex-blue); }
+:is(html[data-examic-theme], html) body .ex-site .ex-choice:hover { background: var(--ex-tint-2); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-dialog { width: min(520px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--ex-line); border-radius: 12px; color: var(--ex-ink); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-dialog::backdrop { background: rgba(14, 27, 61, 0.45); }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-form { display: grid; gap: 14px; padding: 24px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-form h2 { margin: 0; color: var(--ex-blue); font-size: 1.25rem; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-row { display: flex; align-items: flex-start; gap: 12px; line-height: 1.5; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-row input { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-row strong { display: block; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-status { min-height: 1.4em; margin: 0; color: var(--ex-blue); font-weight: 600; }
+:is(html[data-examic-theme], html) body .ex-site .ex-cookie-more { margin: 0; font-size: 0.9rem; }
+@media (max-width: 620px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner { right: 8px; bottom: 8px; left: 8px; gap: 10px; padding: 14px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-cookie-banner p { flex-basis: 100%; font-size: 0.86rem; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-cookie-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-cookie-actions .ex-choice { padding: 8px; font-size: 0.86rem; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-cookie-actions [data-ex-cookie-settings] { grid-column: 1 / -1; }
+}
+
+/* Home: introductory offer */
+:is(html[data-examic-theme], html) body .ex-site .ex-offer { padding-block: 8px 48px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-offer-card { display: flex; align-items: center; gap: 32px; max-width: 1072px; margin: 0 auto; padding: 32px 36px; border: 2px solid var(--ex-red); border-radius: 12px; background: #fff; }
+:is(html[data-examic-theme], html) body .ex-site .ex-offer-card h2 { margin: 0 0 12px; color: var(--ex-blue); font-size: clamp(1.4rem, 2.4vw, 1.85rem); font-weight: 650; letter-spacing: -0.02em; }
+:is(html[data-examic-theme], html) body .ex-site .ex-offer-card p:not(.sqe-eyebrow) { margin: 0 0 8px; color: var(--ex-muted); line-height: 1.6; }
+:is(html[data-examic-theme], html) body .ex-site .ex-offer-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
+:is(html[data-examic-theme], html) body .ex-site .ex-hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+:is(html[data-examic-theme], html) body .ex-site .ex-hero-buttons .sqe-btn-ghost { border: 1px solid var(--ex-blue); }
+@media (max-width: 760px) {
+	:is(html[data-examic-theme], html) body .ex-site .ex-offer { padding-inline: 16px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-offer-card { flex-direction: column; align-items: stretch; padding: 24px 20px; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-hero-buttons { display: grid; }
+}
+
+/* Pricing and billing headings use real heading levels with the existing sizes */
+:is(html[data-examic-theme], html) body .ex-site .ex-h2 { margin: 0 0 12px; color: var(--ex-ink); font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 650; letter-spacing: -0.03em; line-height: 1.15; }
+:is(html[data-examic-theme], html) body .ex-site .ex-plan-title { margin: 0; color: var(--ex-blue); font-size: 1.35rem; font-weight: 650; }
+:is(html[data-examic-theme], html) body .ex-site .ex-section-title { margin: 40px 0 14px; color: var(--ex-ink); font-size: clamp(1.4rem, 2.4vw, 1.75rem); font-weight: 650; letter-spacing: -0.02em; }
+:is(html[data-examic-theme], html) body .ex-site .ex-subhead { margin: 20px 0 10px; color: var(--ex-red); font-size: 1rem; font-weight: 650; }

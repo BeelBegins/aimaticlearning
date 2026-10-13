@@ -1,0 +1,81 @@
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/sqe1" -%}
+{%- set ex_active = "sqe1" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">SQE1 Preparation</p>
+				<h1>Prepare for SQE1 with Examic.study</h1>
+				<p>SQE1 tests functioning legal knowledge: the ability to apply legal principles to practical situations. Examic provides an online environment for studying the subjects and practising the questions included in your plan.</p>
+			</header>
+
+			<div class="ex-prose">
+				<p>SQE1 includes FLK1 and FLK2. The catalogue below shows the subjects published on Examic today. Your account gives access to the resources included in your plan. Official examination fees, assessment booking and admission to the profession are separate from Examic's service.</p>
+				<p>SQE2 preparation will be introduced separately. It is not included in the current SQE1 offer.</p>
+			</div>
+
+			<h2 class="ex-section-title">What you study with</h2>
+			<div class="ex-cards">
+				<article class="ex-card"><h3>Clearly structured notes</h3><p>Summary notes for each published subject, focused on the legal knowledge tested in SQE1 and divided into chapters.</p></article>
+				<article class="ex-card"><h3>Chapter practice questions</h3><p>Subject questions with an explanation for every answer. Review the reasoning behind each answer rather than relying on memorisation.</p></article>
+				<article class="ex-card"><h3>Digital flashcards</h3><p>Focused revision of key legal rules and principles. Rate recall as hard, good or easy and pick up where you stopped.</p></article>
+			</div>
+
+			<h2 class="ex-section-title">Exam style practice</h2>
+			<div class="ex-prose">
+{% if mock_count %}
+				<p>Examic has {{ mock_count }} SQE1 mock exams in the January 2027 assessment format: {{ session_count }} timed sessions in total, each with {{ questions_per_session }} single best answer questions in {{ minutes_per_session }} minutes. Every mock has two FLK1 sessions and two FLK2 sessions. Practise in an assessment style interface with question navigation, review flags and a timer.</p>
+{% else %}
+				<p>Timed SQE1 mock sessions use an assessment style interface with question navigation, review flags and a timer.</p>
+{% endif %}
+				<p>These are practice papers written for Examic. They are not official SQE assessment papers, and the questions are not real examination questions.</p>
+				<p>The free month includes {{ free_mock_names }}. A paid plan unlocks every mock.</p>
+			</div>
+
+			<div class="ex-cards">
+				<article class="ex-card"><h3>Performance feedback</h3><p>After each mock session, download your score, results by subject area, your strongest and weakest topics, and the answer explanations. Use this to decide where to focus your next revision session.</p></article>
+				<article class="ex-card"><h3>Revision board</h3><p>Your revision page shows weak areas and chapters to revise, built from your practice results, so you can organise your revision priorities.</p></article>
+				<article class="ex-card"><h3>Study Buddy (beta)</h3><p>Ask questions in plain English while you study. Study Buddy answers from the approved material of the lesson you have open. AI responses can contain errors; check important points against your course notes.</p></article>
+				<article class="ex-card"><h3>Flexible online learning</h3><p>Study around work and family commitments with access from your laptop, tablet or phone.</p></article>
+			</div>
+
+			<h2 class="ex-section-title" id="catalogue">Course catalogue</h2>
+			<h3 class="ex-subhead">FLK1</h3>
+			<div class="ex-cards">
+{% for course in flk1_courses %}
+				<article class="ex-card">
+					<h3>{{ course.title }}</h3>
+					<p>{{ course.summary }}</p>
+					<p class="ex-card-meta">{{ course.chapter_count }} chapters · {{ course.activity_label }}</p>
+				</article>
+{% else %}
+				<p>No FLK1 subjects are published yet.</p>
+{% endfor %}
+			</div>
+			<h3 class="ex-subhead">FLK2</h3>
+			<div class="ex-cards">
+{% for course in flk2_courses %}
+				<article class="ex-card">
+					<h3>{{ course.title }}</h3>
+					<p>{{ course.summary }}</p>
+					<p class="ex-card-meta">{{ course.chapter_count }} chapters · {{ course.activity_label }}</p>
+				</article>
+{% else %}
+				<p>No FLK2 subjects are published yet.</p>
+{% endfor %}
+			</div>
+
+			<div class="ex-actions-row">
+{% if frappe.session.user == "Guest" %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/login#signup">Start free trial</a>
+{% else %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/lms">Open my portal</a>
+{% endif %}
+				<a href="/pricing">See pricing</a>
+				<a href="/educational-disclaimer">Educational disclaimer</a>
+			</div>
+		</div>
+{% endblock %}

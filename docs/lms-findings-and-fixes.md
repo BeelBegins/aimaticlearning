@@ -711,3 +711,25 @@ Website Settings app_logo and favicon to those local paths, cleared the
 site cache, and updated enrollment.py so a future branding configuration does
 not restore the retired URLs. Verified the page contains the local paths and
 both assets return HTTP 200. No service restart was required.
+
+## 2026-10-13 Public website content handover
+
+**Scope:** public marketing and legal pages, contact form, welcome/reminder email text.
+
+**Finding:** The handover (`Examic_Website_Content_Updated.docx`) states 30 mocks of 90
+questions, 5,000+ flashcards, 2,500+ questions, 1,000+ pages, expert validation of all
+content, a calendar-month trial, "cancel anytime" and limited mock access. Code and data show
+4 mocks (16 sessions of 85 questions, 153 minutes), a 30-day free period with every published
+course plus Mock 1 and 2, no review record for every resource, and a Monthly plan charged at
+checkout. Those handover lines were not published.
+
+**Correction:** Shared site chrome and the new pages listed in `docs/current-state.md`;
+figures come from settings and live data through `lms_learning/public_site.py`. Company name
+EXAMIC LTD in the footer and legal pages and in internal payment notes.
+
+**Verification:** Local only (see `tasks/website-content-20261013/task.md`). Live site not yet
+deployed or checked.
+
+**Remaining risk:** Legal pages need owner or solicitor review; privacy provider list and
+retention are open; checkout cooling-off disclosure is not built.
+

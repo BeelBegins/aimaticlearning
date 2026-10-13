@@ -1,61 +1,29 @@
-{% extends "templates/web.html" %}
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/pricing" -%}
+{%- set ex_active = "pricing" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
 
-{% block meta_block %}
-<meta name="description" content="{{ meta_description }}">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://examic.study/pricing">
-{% endblock %}
-
-{% block title %}{{ title }}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block head_include %}
-<link rel="preload" href="/assets/lms/frontend/assets/Inter.var-C9xDBOS3.woff2?v=3.19" as="font" type="font/woff2" crossorigin>
-<link rel="icon" href="/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261007-price1">
-{% endblock %}
-
-{% block page_content %}
-<div class="sqe-site">
-	<header class="sqe-header">
-		<a class="sqe-brand" href="/sqe" aria-label="Examic Study home">
-			<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study, Examination Preparation Portal" width="320" height="92">
-		</a>
-		<nav class="sqe-nav" aria-label="Primary navigation">
-			<a href="/sqe">Home</a>
-			<a href="/pricing">Pricing</a>
-{% if frappe.session.user == "Guest" %}
-			<a class="sqe-btn sqe-btn-ghost" href="/login">Log in</a>
-			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/login#signup">Start free trial</a>
-{% else %}
-			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/lms">Open my portal</a>
-{% endif %}
-		</nav>
-	</header>
-	<main>
+{% block site_main %}
 		<section class="sx-pricing">
 			<div class="sqe-section-heading">
 				<p class="sqe-eyebrow">Pricing</p>
-				<h2>Try first, then unlock full access</h2>
+				<h1 class="ex-h2">Try first, then unlock full access</h1>
 				<p>Your first month is free. No payment is needed to start.</p>
 			</div>
 			<div class="sx-plans">
 				<article class="sx-plan">
-					<h3>Monthly plan</h3>
-					<p class="sx-plan-sub">Try first, then unlock full access</p>
+					<h2 class="ex-plan-title">Monthly plan</h2>
+					<p class="sx-plan-sub">Pay month by month after you have tried it</p>
 					<div class="sx-phase">
-						<p class="sx-phase-label">Month 1</p>
+						<p class="sx-phase-label">Free month</p>
 						<p class="sx-price"><strong>Free</strong></p>
-						<p class="sx-price-note">£0 for the first month</p>
+						<p class="sx-price-note">£0 for {{ trial_days }} days from when you create your account</p>
 						<ul>
-							<li>4 FLK1 sessions + 4 FLK2 sessions</li>
-							<li>Experience the platform</li>
-							<li>Free access to Mock 1 and Mock 2</li>
-							<li>No payment required to start</li>
-							<li>Cancel anytime</li>
+							<li>Every published subject course: notes, practice questions and flashcards</li>
+							<li>{{ free_mock_names }}: {{ free_sessions_per_flk }} FLK1 sessions + {{ free_sessions_per_flk }} FLK2 sessions</li>
+							<li>No payment card required to start</li>
+							<li>Never turns into a paid plan by itself</li>
 						</ul>
 					</div>
 					<div class="sx-phase">
@@ -63,51 +31,51 @@
 						<p class="sx-price"><strong>{{ monthly_price }}</strong> <span>per month</span></p>
 						<p class="sx-price-note">Charged when you subscribe. All mocks unlock and monthly billing starts that day.</p>
 						<ul>
-							<li>Access to all mock exams</li>
+							<li>Access to all mock exams, including Mock 3 and Mock 4</li>
 							<li>Full preparation resources</li>
-							<li>Detailed performance analytics</li>
-							<li>Upgrade anytime</li>
+							<li>Mock feedback and performance analysis</li>
+							<li>Renews monthly until you cancel from your plan page</li>
 						</ul>
 					</div>
+{% if frappe.session.user == "Guest" %}
 					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/login#signup">Start free trial</a>
+{% else %}
+					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/billing">See my plan</a>
+{% endif %}
 				</article>
 				<article class="sx-plan sx-plan-best">
 					<p class="sx-badge">Best value</p>
-					<h3>3-Month plan</h3>
+					<h2 class="ex-plan-title">3-Month plan</h2>
 					<p class="sx-plan-sub">More time. Better value. Full preparation.</p>
 					<div class="sx-phase">
-						<p class="sx-phase-label">Month 1</p>
+						<p class="sx-phase-label">Free month</p>
 						<p class="sx-price"><strong>Free</strong></p>
-						<p class="sx-price-note">£0 for the first month</p>
+						<p class="sx-price-note">£0 for {{ trial_days }} days from when you create your account</p>
 						<ul>
-							<li>4 FLK1 sessions + 4 FLK2 sessions</li>
-							<li>Experience the platform</li>
-							<li>Free access to Mock 1 and Mock 2</li>
-							<li>No payment required to start</li>
-							<li>Cancel anytime</li>
+							<li>Every published subject course: notes, practice questions and flashcards</li>
+							<li>{{ free_mock_names }}: {{ free_sessions_per_flk }} FLK1 sessions + {{ free_sessions_per_flk }} FLK2 sessions</li>
+							<li>No payment card required to start</li>
+							<li>Never turns into a paid plan by itself</li>
 						</ul>
 					</div>
 					<div class="sx-phase">
 						<p class="sx-phase-label">Months 2 to 4</p>
 						<p class="sx-price"><strong>{{ three_month_price }}</strong> <span>for 3 months</span></p>
-						<p class="sx-price-note">{{ three_month_each }} per month. Paid once at checkout; all mocks unlock after payment is confirmed.</p>
+						<p class="sx-price-note">Equivalent to {{ three_month_each }} per month. One payment of {{ three_month_price }} at checkout, not a monthly charge. All mocks unlock once payment is confirmed.</p>
 						<ul>
-							<li>Access to all mock exams</li>
+							<li>Access to all mock exams, including Mock 3 and Mock 4</li>
 							<li>Full preparation resources</li>
-							<li>Detailed performance analytics</li>
-							<li>Better-value package</li>
+							<li>Mock feedback and performance analysis</li>
+							<li>Does not renew automatically</li>
 						</ul>
 					</div>
+{% if frappe.session.user == "Guest" %}
 					<a class="sqe-btn sqe-btn-final" href="/login#signup">Start free trial</a>
+{% else %}
+					<a class="sqe-btn sqe-btn-final" href="/billing">See my plan</a>
+{% endif %}
 				</article>
 			</div>
-			<p class="sx-fine">Payments are processed securely by Stripe. See the <a href="/refund-policy">refund policy</a>.</p>
+			<p class="sx-fine">Payments are processed securely by Stripe. Paid access starts only after Stripe confirms your payment. Official SQE assessment fees are separate. Read the <a href="/introductory-offer">Introductory Offer Terms</a> and the <a href="/refund-policy">Cancellation and Refund Policy</a>.</p>
 		</section>
-	</main>
-	<footer class="sqe-footer">
-		<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study" width="320" height="92">
-		<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
-		<span>© {{ frappe.utils.now_datetime().year }} Examic Study</span>
-	</footer>
-</div>
 {% endblock %}

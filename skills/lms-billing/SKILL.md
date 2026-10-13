@@ -62,10 +62,12 @@ Mock locks: `exam_product.is_sitting_locked` and `page_renderer`.
 - DocTypes: `Examic Billing Settings` (single; all configuration, secrets as Password),
   `Examic Subscription` (one per student), `Examic Payment` (child log),
   `Examic Payment Event` (webhook idempotency and "Needs review").
-- Pages: `www/pricing`, `www/billing`; copy in `www/sqe.html`, `terms`, `refund-policy`
-  (prices come from settings through `pricing.py` and `terms.py`).
+- Pages: `www/pricing`, `www/billing`; offer copy also in `www/sqe.html`, `introductory-offer`,
+  `terms`, `refund-policy`, `how-it-works`. Every price, trial length and free mock count on
+  those pages comes from settings through `public_site.offer_facts()`; never type £49/£99/30 into copy.
 - Emails (templates created by `enrollment.create_email_templates`): Payment Reminder,
-  Payment Receipt, Payment Problem, Welcome.
+  Payment Receipt, Payment Problem, Welcome. Template wording changes reach the site only
+  when that function is run again on the site (a live mutation: needs approval).
 
 ## Staff and rollout
 

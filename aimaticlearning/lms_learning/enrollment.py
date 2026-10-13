@@ -175,8 +175,8 @@ def create_email_templates() -> None:
 <p>Hello {{ student_name }},</p>
 <p>Your Examic Study account is ready.</p>
 {% if course_titles %}
-<p>Your first month is free, until {{ free_until }}. It includes every course and {{ free_mocks }} mock exams (Mock 1 and Mock 2). No payment is needed to start.</p>
-<p>After that, choose a plan to keep going: {{ monthly_price }} per month, or {{ three_month_price }} for 3 months. Both include all mock exams and detailed performance analytics. See <a href="{{ pricing_url }}">pricing</a>.</p>
+<p>Your free month runs for {{ free_days }} days, until {{ free_until }}. It includes every published course and {{ free_mocks }} mock exams (Mock 1 and Mock 2). No payment card is needed, and the free month never turns into a paid plan by itself.</p>
+<p>To keep going afterwards, choose a plan: {{ monthly_price }} per month, or {{ three_month_price }} once for 3 months. Both unlock every mock exam. See <a href="{{ pricing_url }}">pricing</a> and the <a href="{{ offer_url }}">Introductory Offer Terms</a>.</p>
 <p>You are enrolled in:</p>
 <ul>{% for title in course_titles %}<li>{{ title }}</li>{% endfor %}</ul>
 <p><a href="{{ courses_url }}">Open your courses</a></p>
@@ -197,7 +197,10 @@ def create_email_templates() -> None:
 {% else %}
 <p>Your {{ ending }} ends in {{ days_left }} days, on {{ end_date }}. Choose a plan to keep your access.</p>
 {% endif %}
-<p>Monthly is {{ monthly_price }} per month. The 3-month plan is {{ three_month_price }} once. Both include all mock exams and performance analytics.</p>
+{% if ending == "free month" %}
+<p>Nothing is charged automatically. If you do not choose a plan, your access pauses and your progress is kept.</p>
+{% endif %}
+<p>Monthly is {{ monthly_price }} per month. The 3-month plan is {{ three_month_price }} once and does not renew. Both unlock every mock exam.</p>
 <p><a href="{{ billing_url }}">Choose a plan and pay</a></p>
 """,
 	)
@@ -394,8 +397,9 @@ def complete_student_signup(user: str) -> dict:
 				"pricing_url": get_url("/pricing"),
 				"monthly_price": billing.price_text(billing.settings()["monthly_price"]),
 				"three_month_price": billing.price_text(billing.settings()["three_month_price"]),
-				"free_days": PRODUCT_SETTINGS["free_days"],
-				"free_mocks": PRODUCT_SETTINGS["free_mocks"],
+				"free_days": billing.settings()["trial_days"],
+				"free_mocks": billing.settings().get("free_mock_count", PRODUCT_SETTINGS["free_mocks"]),
+				"offer_url": get_url("/introductory-offer"),
 			}
 			subject, message = _render_template(WELCOME_TEMPLATE, context)
 			_queue_email(doc.email, subject, message, "User", doc.name)

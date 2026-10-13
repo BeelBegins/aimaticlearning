@@ -1,41 +1,11 @@
-{% extends "templates/web.html" %}
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/billing" -%}
+{%- set ex_robots = "noindex, nofollow" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
 
-{% block meta_block %}
-<meta name="description" content="{{ meta_description }}">
-<meta name="robots" content="noindex, nofollow">
-<link rel="canonical" href="https://examic.study/billing">
-{% endblock %}
-
-{% block title %}{{ title }}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block head_include %}
-<link rel="preload" href="/assets/lms/frontend/assets/Inter.var-C9xDBOS3.woff2?v=3.19" as="font" type="font/woff2" crossorigin>
-<link rel="icon" href="/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261007-price1">
-{% endblock %}
-
-{% block page_content %}
-<div class="sqe-site">
-	<header class="sqe-header">
-		<a class="sqe-brand" href="/sqe" aria-label="Examic Study home">
-			<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study, Examination Preparation Portal" width="320" height="92">
-		</a>
-		<nav class="sqe-nav" aria-label="Primary navigation">
-			<a href="/sqe">Home</a>
-			<a href="/pricing">Pricing</a>
-{% if frappe.session.user == "Guest" %}
-			<a class="sqe-btn sqe-btn-ghost" href="/login">Log in</a>
-			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/login#signup">Start free trial</a>
-{% else %}
-			<a class="sqe-btn sqe-btn-primary sqe-btn-header" href="/lms">Open my portal</a>
-{% endif %}
-		</nav>
-	</header>
-	<main>
+{% block site_main %}
 		<section class="sx-billing" id="billing-root">
 			<div class="sqe-section-heading">
 				<p class="sqe-eyebrow">Your plan</p>
@@ -80,7 +50,7 @@
 						lead.textContent = "All mock exams are unlocked. Your monthly subscription has started.";
 					} else {
 						title.textContent = "Your free month is running";
-						lead.textContent = "It ends on " + fmt(s.trial_ends_on) + " (" + s.days_left + " days left). Choose a plan any time to keep your access afterwards.";
+						lead.textContent = "It ends on " + fmt(s.trial_ends_on) + " (" + s.days_left + " days left). Nothing is charged unless you choose a plan. Choose one any time to keep your access afterwards.";
 					}
 				} else {
 					title.textContent = "Your free month has ended";
@@ -128,11 +98,4 @@
 			});
 		})();
 		</script>
-	</main>
-	<footer class="sqe-footer">
-		<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study" width="320" height="92">
-		<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
-		<span>© {{ frappe.utils.now_datetime().year }} Examic Study</span>
-	</footer>
-</div>
 {% endblock %}

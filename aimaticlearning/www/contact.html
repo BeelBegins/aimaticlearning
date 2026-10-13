@@ -1,0 +1,65 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Contact Us | Examic" -%}
+{%- set ex_description = "Contact Examic for account support, content queries, cancellation requests, complaints or privacy questions." -%}
+{%- set ex_path = "/contact" -%}
+{%- set ex_active = "contact" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Contact Us</p>
+				<h1>Contact Examic</h1>
+				<p>Contact Examic for account support, content queries, cancellation requests, complaints or privacy questions. Email <a href="mailto:hello@examic.study">hello@examic.study</a> or use the form below.</p>
+			</header>
+
+			<form class="ex-form" id="ex-contact-form" novalidate>
+				<div class="ex-field">
+					<label for="ex-contact-name">Name</label>
+					<input id="ex-contact-name" name="name" type="text" autocomplete="name" maxlength="140" required>
+				</div>
+				<div class="ex-field">
+					<label for="ex-contact-email">Email</label>
+					<input id="ex-contact-email" name="email" type="email" autocomplete="email" maxlength="140" required>
+					<small>We reply to this address. Use your account email if your question is about your account.</small>
+				</div>
+				<div class="ex-field">
+					<label for="ex-contact-type">Enquiry type</label>
+					<select id="ex-contact-type" name="enquiry_type" required>
+						<option value="">Choose one</option>
+						<option>Account Support</option>
+						<option>Content Issue</option>
+						<option>Subscription &amp; Cancellation</option>
+						<option>Privacy</option>
+						<option>Accessibility</option>
+						<option>Complaint</option>
+						<option>Business Enquiry</option>
+					</select>
+				</div>
+				<div class="ex-field">
+					<label for="ex-contact-message">Message</label>
+					<textarea id="ex-contact-message" name="message" maxlength="5000" required></textarea>
+					<small>Please do not include passwords, payment-card details or confidential client information.</small>
+				</div>
+				<div class="ex-field">
+					<label for="ex-contact-reference">Lesson or order reference (optional)</label>
+					<input id="ex-contact-reference" name="reference" type="text" maxlength="140">
+					<small>For example the subject and lesson, a question number, or the date and amount of a payment.</small>
+				</div>
+				<div class="ex-hp" aria-hidden="true">
+					<label for="ex-contact-website">Leave this field empty</label>
+					<input id="ex-contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
+				</div>
+				<button class="sqe-btn sqe-btn-primary" type="submit">Send message</button>
+				<p class="ex-form-status" id="ex-contact-status" role="status" aria-live="polite"></p>
+			</form>
+
+			<div class="ex-prose">
+				<h2>Company details</h2>
+				<p>EXAMIC LTD, a company registered in England and Wales. Email: <a href="mailto:hello@examic.study">hello@examic.study</a>.</p>
+				<p>Making a complaint? Read how we handle <a href="/complaints">complaints</a>. Asking about your data? Read the <a href="/privacy">Privacy Notice</a>.</p>
+			</div>
+		</div>
+{% endblock %}
