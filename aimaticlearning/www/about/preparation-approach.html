@@ -1,0 +1,24 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Our Preparation Approach | Examic" -%}
+{%- set ex_description = "Build understanding, practise applying the law, revisit and reinforce, and prepare with realistic expectations." -%}
+{%- set ex_path = "/about/preparation-approach" -%}
+{%- set ex_active = "about" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow"><a href="/about">About Us</a></p>
+				<h1>Our Preparation Approach</h1>
+				<p>Understand legal principles. Practise applying them. Review your progress.</p>
+			</header>
+			<div class="ex-cards">
+				<article class="ex-card"><h2>Build understanding</h2><p>Work through the legal principles covered by your course. Use the explanations to connect the rules with the situations in which they apply.</p></article>
+				<article class="ex-card"><h2>Practise applying the law</h2><p>Use practice questions to examine your understanding and identify gaps. Review the reasoning behind answers rather than relying on memorisation alone.</p></article>
+				<article class="ex-card"><h2>Revisit and reinforce</h2><p>Return to challenging subjects and repeat your practice. A consistent routine can help you make productive use of your preparation time.</p></article>
+				<article class="ex-card"><h2>Prepare with realistic expectations</h2><p>Practice results help guide revision; they do not predict your official examination result. Learners remain responsible for their own preparation, assessment registration and checking current official requirements.</p></article>
+			</div>
+		</div>
+{% endblock %}

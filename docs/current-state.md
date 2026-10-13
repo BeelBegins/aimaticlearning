@@ -1,47 +1,100 @@
 # Examic Study — current state
 
-Last updated: 2026-10-07. Verify read-only before any site mutation.
+Last updated: 2026-10-08. Verify read-only before any site mutation.
 
 ## Product
 
 | | |
 |---|---|
 | Brand | Examic Study |
-| Site | `lms.aimatic.tech` |
-| Public hosts | `examic.study`, `www.examic.study` (Caddy aliases; URL stays examic.study) |
-| Apps | frappe, payments, lms, aimatic, aimaticlearning |
-| Code | this repo, branch `main` |
+| Site | `examic.study` |
+| Student URL | `https://www.examic.study/` |
+| Public hosts | `examic.study`, `www.examic.study` |
+| Apps | frappe, payments, lms, aimaticlearning |
+| Code | this repo, branch `student-journey-review-20261008` (student UI rollout) |
 | GitHub | https://github.com/BeelBegins/aimaticlearning |
 
-This site still runs on the shared `/home/nabeel/frappe-bench` workers with live
-SZL (`szl`). There is no LMS staging site. A new server is planned; it is not
-ready.
+The live Examic site runs from `/home/ubuntu/frappe-bench`. SZL is not hosted
+on this bench. Use `examic.study` as the bench site name and `www.examic.study`
+as the student-facing URL. The former `lms.aimatic.tech` server is retired.
 
-## Hosting (until the move)
+## Student portal theme (2026-10-08)
 
-Caddy site block `lms.aimatic.tech, examic.study, www.examic.study` → gunicorn
-`:8000` with `X-Frappe-Site-Name lms.aimatic.tech`. Let’s Encrypt on all three
-hosts. Source: `/home/nabeel/caddy/Caddyfile`.
+The student portal (`/lms`) has no theme choice; it is locked to the public
+`/sqe` palette (white, royal blue `#00247D`, flag red `#CF142B`). Upstream
+LMS's own dark/light/system toggle is hidden for students only, since our
+forced light mode already made it non-functional there. Full detail,
+including which file owns what and how to keep the palette in sync, is in
+`skills/lms-learning/launch-and-theme.md`.
 
-`host_name` in site config is still `https://lms.aimatic.tech`.
+## Student navigation (2026-10-08)
+
+The custom Dashboard, Revision and Mock exams pages share an Examic learner
+sidebar, styled as a full-height LMS rail and collapsed to a horizontal menu on
+narrow screens. These pages use the full-width Frappe content area; Revision
+uses the Examic palette and portal font. The mock lobby offers a direct link to
+the revision board after a completed sitting. This UI was deployed from
+`student-journey-review-20261008`; it changes no LMS records or Frappe core.
+After deploy, `/learning-revision` redirected guests to login, the CSS and JS
+assets returned HTTP 200, `/api/method/ping` returned `pong`, and the web process
+was running. An authenticated learner browser review remains pending.
+
+## Public website content (2026-10-13, not yet deployed)
+
+Branch `claude/eager-bardeen-0d1xts` carries EXAMIC LTD's website content handover:
+one shared header/footer/cookie banner (`templates/examic_site/base.html`) on Home (`/`,
+`/sqe`), `/sqe1`, `/pricing`, `/billing`, `/how-it-works`, `/resources`, `/about` and four
+subpages, `/contact` (form to the support mailbox), `/introductory-offer`, `/terms`,
+`/privacy`, `/cookies`, `/refund-policy`, `/complaints`, `/accessibility` and
+`/educational-disclaimer`. Copy keeps the live facts (30 days, Mock 1 and 2, Monthly charged
+at checkout, £99 once without renewal, no VAT line) and drops the handover's unsupported
+volume and expert-review claims. Deploy, email template refresh and live checks are pending:
+`tasks/website-content-20261013/task.md`.
+
+## Production site restore (2026-10-08)
+
+The separate `/home/ubuntu/frappe-bench` on `vps-6bdd605a` now has site
+`examic.study` restored from the old site's `20261008_172510` database and
+public/private files. Migration and source-count/file verification passed.
+Only frappe, payments, lms and aimaticlearning are installed on this site.
+Maintenance mode was disabled with owner approval on 8 October; local backend
+and public HTTPS `/sqe` return HTTP 200. Authenticated learner browser verification
+is pending. The retired old server was not changed. See the 2026-10-08 entry
+in `docs/lms-findings-and-fixes.md` for rollback and verification locations.
+
+## Hosting
+
+The site config lists `examic.study` and `www.examic.study`, with host name
+`https://examic.study`. Confirm active proxy and certificate configuration on
+this server before operational changes.
 
 ## Coupling to keep in mind
 
-`required_apps` is `lms` only. Study Buddy no longer imports the SZL `aimatic`
-app. This shared bench still has `aimatic` installed on the LMS site; leave it
-until the server move rather than uninstalling here. A new LMS-only bench
-should not install it.
+`required_apps` is `lms` only. Study Buddy has no dependency on other Frappe
+apps beyond the Examic LMS stack.
 
-New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Code is committed locally but NOT live until the patches and worker restart in `tasks/launch-oct10-20261005/task.md` are done.
+New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Verify the live site's installed code before assuming this behavior is active.
 
 ## Billing (2026-10-07)
 
+Read-only runtime check on 2026-10-08 confirmed Stripe is the active provider in
+Live mode, Support Email is `hello@examic.study`, and the default outgoing Email
+Account is `hello@examic.study`. The last recorded webhook was 2026-10-07; a fresh
+live checkout and webhook delivery have not been verified. Student-facing payments
+are Stripe only.
+
 Final pricing: month 1 free (Mock 1 and 2), then 49 GBP monthly or 99 GBP for 3 months.
-New signups only get an `Examic Subscription`; after the free month an unpaid student is
-locked to `/billing`. The 28 existing students are unaffected. Provider is set in Examic
-Billing Settings (`Manual` default, `Stripe` built and tested with sandbox keys). Live on
-`lms.aimatic.tech`: DocTypes loaded, web and workers restarted. Not done: Stripe live
-approval, Wise GBP details entered, legal wording review. 2026-10-07 sandbox rollout:
+After a student completes Monthly Stripe Checkout, £49 is charged immediately, all
+mocks unlock, and monthly billing starts on the checkout date. The 3-Month plan charges
+once at checkout; its paid period follows the free month, and a confirmed payment
+unlocks all mocks immediately. New signups only get an `Examic Subscription`; after the
+free month an unpaid student is locked to `/billing`. Existing students without a
+subscription row keep normal course access and Mock 1 and 2, see plans on `/billing`,
+and get a pending row only when they start Checkout. The old server had 28 existing
+students. Examic Billing Settings DocTypes were loaded on the new site. The live site
+uses Stripe Live mode with active GBP 49 monthly and GBP 99 one-time prices; the key can
+read the live account and both prices. A live checkout and webhook delivery have not yet
+been verified. 2026-10-07 sandbox rollout:
 Stripe test products, prices, webhook and portal config created and stored in settings;
 provider left on `Manual`. Throwaway-student lifecycle passed (lock, signed webhooks for
 monthly, 3-month, failure, duplicate, unknown user; test Checkout URLs for both plans). Details: `skills/lms-billing/SKILL.md`.
@@ -53,8 +106,8 @@ pending academic review (`LMS Course.published = 0`). Re-publish only after
 that review.
 
 Operational diary (incidents, backups, content publishes) is
-`docs/lms-operational-log.md` in this repo — migrated 2026-09-30 from the
-shared bench file, which now only carries a routing pointer to this repo.
+`docs/lms-operational-log.md` in this repo. Older entries may refer to the
+retired server and must be treated as historical evidence.
 
 **SQE1 hard mocks (2026-09-30):** Exam product `Learning Mock Exam` `sqe1-hard-mocks`
 holds four January 2027 sittings (16 timed 85-question sessions, 1360 unique
@@ -256,3 +309,10 @@ Rollback for Mock 4 specifically: delete `Course Chapter` "Mock 4" and its 4
 linked `LMS Quiz`/`Course Lesson` records; Mocks 1–3 and their submissions are
 untouched by that rollback. Expires when: a 5th sitting is added, the criminal
 bank changes materially, or the staff coverage report is regenerated.
+## 2026-10-09 Password-reset branding
+
+The /update-password page now uses local Examic assets for its header logo
+and favicon. The retired lms.aimatic.tech references were removed from live
+Website Settings and from the branding constants used by
+configure_lms_student_access; the header PNG and mark SVG both return HTTP
+200 on examic.study.

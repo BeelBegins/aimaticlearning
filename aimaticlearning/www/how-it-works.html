@@ -1,0 +1,46 @@
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/how-it-works" -%}
+{%- set ex_active = "how" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">How It Works</p>
+				<h1>From sign up to your first study session</h1>
+				<p>Five steps, no payment card needed to begin.</p>
+			</header>
+
+			<ol class="ex-steps">
+				<li><strong>Create your account</strong>Sign up with your name and email address, then set your password from the link we email you.</li>
+				<li><strong>Check your free access</strong>Read the <a href="/introductory-offer">Introductory Offer Terms</a> before you start. Your free month runs for {{ trial_days }} days from sign up and includes every published subject course and {{ free_mock_names }}. Your plan page shows the date it ends.</li>
+				<li><strong>Explore your subjects</strong>Open the FLK1 and FLK2 subjects included in your access. Each subject has chapters of notes, practice questions and, where published, flashcards.</li>
+				<li><strong>Study, practise and revisit</strong>Read the notes, answer the chapter questions, sit timed mock sessions and return to the topics your results point to.</li>
+				<li><strong>Contact us when you need help</strong>Use the <a href="/contact">Contact page</a> for account support or to report a content issue.</li>
+			</ol>
+
+			<div class="ex-actions-row">
+{% if frappe.session.user == "Guest" %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/login#signup">Create Your Account</a>
+{% else %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/lms">Open my portal</a>
+{% endif %}
+				<a href="/pricing">See pricing</a>
+			</div>
+
+			<h2 class="ex-section-title" id="faq">Frequently asked questions</h2>
+			<div class="ex-faq">
+				<details><summary>Who is Examic for?</summary><p>Examic supports people preparing for SQE1 as part of the route to becoming a solicitor in England and Wales.</p></details>
+				<details><summary>Does a subscription qualify me as a solicitor?</summary><p>No. A preparation subscription does not replace the SRA's qualification and admission requirements. Check the current requirements with the SRA.</p></details>
+				<details><summary>Is Examic accredited or endorsed by the SRA?</summary><p>Examic is an independent provider. The SRA does not accredit or endorse SQE preparation providers.</p></details>
+				<details><summary>Is SQE2 included?</summary><p>No. Our initial offering focuses on SQE1. Any SQE2 product will be announced separately.</p></details>
+				<details><summary>How does the introductory offer work?</summary><p>Your first {{ trial_days }} days include every published subject course and {{ free_mock_names }} ({{ free_sessions_per_flk }} FLK1 sessions and {{ free_sessions_per_flk }} FLK2 sessions), with no payment required to start. To keep going, choose {{ monthly_price }} per month or {{ three_month_price }} upfront for three months of full access. Free access never turns into a paid plan by itself.</p></details>
+				<details><summary>Do I need a payment card for free access?</summary><p>No.</p></details>
+				<details><summary>What happens if I choose the Monthly plan during the free month?</summary><p>{{ monthly_price }} is charged at checkout, every mock unlocks straight away and your monthly billing starts that day.</p></details>
+				<details><summary>Does access include examination fees?</summary><p>No. Official assessment fees and booking are separate.</p></details>
+				<details><summary>Is personal tutoring included?</summary><p>No. Access to the online materials does not include one-to-one tuition.</p></details>
+				<details><summary>How do I report a mistake?</summary><p>Email <a href="mailto:{{ support_email }}">{{ support_email }}</a> or use the <a href="/contact">contact form</a> and include the subject, lesson or question reference. Do not include confidential client or case information.</p></details>
+			</div>
+		</div>
+{% endblock %}

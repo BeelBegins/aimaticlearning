@@ -1,24 +1,37 @@
-{% extends "templates/web.html" %}
-{% block title %}Refund Policy | Examic Study{% endblock %}
-{% block page_content %}
-<style>
-.examic-legal { max-width: 720px; margin: 40px auto 72px; padding: 0 16px; color: #1d2433; line-height: 1.7; font-size: 1.02rem; }
-.examic-legal h1 { font-size: 1.8rem; margin: 0 0 6px; }
-.examic-legal h2 { font-size: 1.15rem; margin: 28px 0 8px; }
-.examic-legal .updated { color: #5b6472; margin: 0 0 24px; }
-.examic-legal a { color: #1a5fb4; text-decoration: underline; }
-</style>
-<article class="examic-legal">
-<h1>Refund Policy</h1>
-<p class="updated">Last updated: 5 October 2026</p>
-<p>The first month is free and needs no payment, so there is nothing to refund during that period.</p>
-<h2>Paid plans</h2>
-<p>Payments are made by bank transfer or Pay with Wise in pounds sterling and each one buys a fixed period: one month on the Monthly plan, or three months on the 3-Month plan. There is no automatic renewal, so you can stop at any time by not paying again, and you keep access until the end of the period you paid for.</p>
-<p>If you paid the wrong amount, were charged twice, or cannot use the service because of a fault on our side, email us within 14 days of the payment and we will correct it or refund it.</p>
-<h2>How to ask</h2>
-<p>Email the address below from your account email with the date and amount of the charge.</p>
-<h2>Contact</h2>
-<p>Questions about this page: <a href="mailto:hello@aimatic.tech">hello@aimatic.tech</a>.</p>
-<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
-</article>
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/refund-policy" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Legal</p>
+				<h1>Cancellation and Refund Policy</h1>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+
+				<h2>Free introductory access</h2>
+				<p>No payment is taken for the free month, so there is no subscription payment to refund. Free access does not automatically become paid access. You may stop using the platform or <a href="/contact">contact us</a> to request account closure.</p>
+
+				<h2>Paid plans</h2>
+				<p>Payments are processed by Stripe in pounds sterling.</p>
+				<ul>
+					<li><strong>Monthly plan ({{ monthly_price }} per month):</strong> charged at checkout and then each month until you cancel. To stop future renewal, open your <a href="/billing">plan page</a> and choose "Manage card and cancel", or contact us. You keep access until the end of the month you have paid for.</li>
+					<li><strong>3-Month plan ({{ three_month_price }} once):</strong> a single payment that does not renew, so there is nothing to cancel for future months.</li>
+				</ul>
+				<p>Ending future renewal is separate from cooling-off cancellation or a remedy for a defective service. We do not restrict statutory rights through this policy.</p>
+
+				<h2>Cooling-off rights</h2>
+				<p>If you are a consumer, you may have a legal right to cancel a purchase within a cooling-off period. Immediate access alone does not automatically remove a cancellation right. Any express consent, acknowledgement or early-service request required by law must be obtained and confirmed separately.</p>
+
+				<h2>Problems with the service</h2>
+				<p>Report access or content problems, a wrong amount or a duplicate charge through the <a href="/contact">Contact page</a>. We will investigate and provide the remedy required by the contract and applicable law. Statutory remedies are not subject to a blanket no-refund rule.</p>
+
+				<h2>Cancellation requests</h2>
+				<p>A clear statement of cancellation is sufficient; no special form is required. Include your account email, plan or payment reference and the date of your request, and send it to <a href="mailto:{{ support_email }}">{{ support_email }}</a> or through the <a href="/contact">Contact page</a> ("Subscription &amp; Cancellation"). We confirm when cancellation takes effect. Refunds due under statutory cancellation rights are processed within the applicable legal deadline, ordinarily within 14 days of notice, using the original payment method unless otherwise agreed.</p>
+			</article>
+		</div>
 {% endblock %}

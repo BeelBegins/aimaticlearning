@@ -1,0 +1,44 @@
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/introductory-offer" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Introductory Offer</p>
+				<h1>Introductory Offer Terms</h1>
+				<p>Your first month is free. No payment is needed to start.</p>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+				<p>These terms are offered by EXAMIC LTD, which operates Examic.study. They sit alongside our <a href="/terms">Terms and Conditions</a>.</p>
+
+				<h2>Free introductory access</h2>
+				<p>Every new account starts with a free month of {{ trial_days }} days. It begins when you create your account and ends {{ trial_days }} days later. Your plan page shows the date it ends, and your welcome email confirms it.</p>
+				<p>The free month includes:</p>
+				<ul>
+					<li>every published subject course: notes, practice questions and flashcards;</li>
+					<li>{{ free_mock_names }}, which are {{ free_sessions_per_flk }} FLK1 sessions and {{ free_sessions_per_flk }} FLK2 sessions.</li>
+				</ul>
+				<p>The other mock exams are part of the paid plans and are not included in the free month.</p>
+				<p>No payment card is required to start. Free access does not automatically convert into a paid subscription, and nothing is charged unless you choose and pay for a plan. If you do not choose a plan, your access to the courses and mocks pauses when the free month ends and your progress is kept. You can stop using Examic at any time or <a href="/contact">ask us to close your account</a>.</p>
+
+				<h2>Monthly plan: {{ monthly_price }} per month</h2>
+				<p>The Monthly plan gives access to all mock exams, full preparation resources and mock feedback. If you choose it during the free month, {{ monthly_price }} is charged at checkout and all mocks unlock that day. Your first paid month starts on the checkout date, and any free days left are not added on afterwards. Monthly billing then repeats each month from that date until you cancel from your plan page.</p>
+
+				<h2>3-Month plan: {{ three_month_price }} once</h2>
+				<p>The 3-Month plan is one upfront payment of {{ three_month_price }}, equivalent to {{ three_month_each }} per month. It is not a monthly charge and it does not renew automatically. Bought during the free month, it covers months 2 to 4: the paid period starts when the free month ends. All mocks unlock as soon as your payment is confirmed. It includes access to all mock exams, full preparation resources and mock feedback.</p>
+
+				<h2>Payment and activation</h2>
+				<p>Payments are taken by Stripe. Paid access starts only after Stripe confirms the payment to us, not when your browser returns from the payment page.</p>
+
+				<h2>What is not included</h2>
+				<p>Free access does not include official SQE assessment fees, booking, admission or future products such as SQE2 preparation. Standard account use and intellectual property terms in our <a href="/terms">Terms and Conditions</a> apply.</p>
+
+				<h2>Questions</h2>
+				<p>Email <a href="mailto:{{ support_email }}">{{ support_email }}</a> or use the <a href="/contact">Contact page</a>.</p>
+			</article>
+		</div>
+{% endblock %}

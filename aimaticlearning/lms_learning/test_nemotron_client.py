@@ -142,3 +142,73 @@ class TestNemotronClient(unittest.TestCase):
 		frappe.conf.get.return_value = None
 		with self.assertRaises(NemotronError):
 			get_chat_completion([{"role": "user", "content": "hi"}])
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_desk_api_key_is_used_before_site_config(self, frappe, post):
+		frappe.db.exists.return_value = "Examic Study Settings"
+		frappe.get_single.return_value = _DeskSettings(password="sk-desk")
+		frappe.conf.get.return_value = "sk-site"
+		post.return_value.status_code = 200
+		post.return_value.json.return_value = {
+			"choices": [{"message": {"role": "assistant", "content": "ok"}}]
+		}
+		get_chat_completion([{"role": "user", "content": "hi"}], model=STUDY_BUDDY_MODEL)
+		self.assertEqual(post.call_args.kwargs["headers"]["Authorization"], "Bearer sk-desk")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.requests.post")
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_blank_desk_key_falls_back_to_site_config(self, frappe, post):
+		frappe.db.exists.return_value = "Examic Study Settings"
+		frappe.get_single.return_value = _DeskSettings(password="")
+		frappe.conf.get.return_value = "sk-site"
+		post.return_value.status_code = 200
+		post.return_value.json.return_value = {
+			"choices": [{"message": {"role": "assistant", "content": "ok"}}]
+		}
+		get_chat_completion([{"role": "user", "content": "hi"}], model=STUDY_BUDDY_MODEL)
+		self.assertEqual(post.call_args.kwargs["headers"]["Authorization"], "Bearer sk-site")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_desk_default_model_overrides_site_config(self, frappe):
+		frappe.db.exists.return_value = "Examic Study Settings"
+		frappe.get_single.return_value = _DeskSettings(
+			default_model="openai/gpt-4.1",
+			models=[_ModelRow("openai/gpt-4.1")],
+		)
+		frappe.conf.get.return_value = "deepseek/deepseek-v4-flash"
+		self.assertEqual(get_study_buddy_model(), "openai/gpt-4.1")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_desk_free_model_is_rejected(self, frappe):
+		frappe.db.exists.return_value = "Examic Study Settings"
+		frappe.get_single.return_value = _DeskSettings(
+			default_model="nvidia/nemotron-3.5-lightning:free",
+			models=[_ModelRow("nvidia/nemotron-3.5-lightning:free")],
+		)
+		with self.assertRaises(NemotronError) as raised:
+			get_study_buddy_model()
+		self.assertEqual(raised.exception.code, "configuration")
+
+	@patch("aimaticlearning.lms_learning.nemotron_client.frappe")
+	def test_empty_desk_model_keeps_the_site_config_allowlist(self, frappe):
+		frappe.db.exists.return_value = "Examic Study Settings"
+		frappe.get_single.return_value = _DeskSettings(default_model="", models=[])
+		frappe.conf.get.return_value = "deepseek/deepseek-v4-flash"
+		self.assertEqual(get_study_buddy_model(), "deepseek/deepseek-v4-flash")
+
+
+class _ModelRow:
+	def __init__(self, model_id, enabled=1):
+		self.model_id = model_id
+		self.enabled = enabled
+
+
+class _DeskSettings:
+	def __init__(self, password="", default_model="", models=None):
+		self.password = password
+		self.default_model = default_model
+		self.models = models or []
+
+	def get_password(self, field, raise_exception=False):
+		return self.password

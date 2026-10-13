@@ -5,9 +5,16 @@
 {% block footer %}{% endblock %}
 
 {% block page_content %}
+{% set student_active = "dashboard" %}
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_shell.css?v=20261008-student2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">
+<div class="examic-student-shell">
+{% include "templates/lms_learning/student_sidebar.html" %}
+<div class="examic-student-shell-main">
 <div id="aimatic-student-dashboard" class="aimatic-student-dash">
 	<div class="dash-loading">Loading your dashboard…</div>
 </div>
-<script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261005-dash6"></script>
+</div>
+</div>
+<script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261008-shell1"></script>
 {% endblock %}

@@ -10,6 +10,7 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
+	context.full_width = 1
 	context.show_sidebar = False
 	context.title = _("Dashboard")
 	context.canonical_url = get_url("/learning-dashboard")

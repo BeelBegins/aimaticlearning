@@ -20,6 +20,7 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
+	context.full_width = 1
 	context.show_sidebar = False
 	context.title = _("Revision")
 	context.course = frappe.form_dict.get("course") or PREFERRED_COURSE

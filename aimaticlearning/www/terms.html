@@ -1,29 +1,61 @@
-{% extends "templates/web.html" %}
-{% block title %}Terms of Use | Examic Study{% endblock %}
-{% block page_content %}
-<style>
-.examic-legal { max-width: 720px; margin: 40px auto 72px; padding: 0 16px; color: #1d2433; line-height: 1.7; font-size: 1.02rem; }
-.examic-legal h1 { font-size: 1.8rem; margin: 0 0 6px; }
-.examic-legal h2 { font-size: 1.15rem; margin: 28px 0 8px; }
-.examic-legal .updated { color: #5b6472; margin: 0 0 24px; }
-.examic-legal a { color: #1a5fb4; text-decoration: underline; }
-</style>
-<article class="examic-legal">
-<h1>Terms of Use</h1>
-<p class="updated">Last updated: 5 October 2026</p>
-<p>Examic Study provides study notes, practice questions, flashcards and mock exams for SQE1 preparation. By creating an account you agree to these terms.</p>
-<h2>Your account</h2>
-<p>Give a real email address and keep your sign-in details to yourself. One account is for one learner. We may suspend accounts that share access or abuse the service.</p>
-<h2>Free period and plan</h2>
-<p>Every new account gets its first month free, including every course and Mock 1 and Mock 2, with no payment needed to start. After that, access continues on the Monthly plan ({{ monthly_price }} per month) or the 3-Month plan ({{ three_month_price }} paid once for three months). Both plans include all mock exams and performance analytics. If you do not pay when your free month ends, your access is paused and your progress is kept until you choose a plan. We will tell you before any charge is possible.</p>
-<h2>Our content</h2>
-<p>Notes, questions, explanations and mock papers belong to Examic Study and its authors. You may use them for your own study. You may not copy, resell, publish or share them.</p>
-<h2>No guarantee of results</h2>
-<p>Examic Study is a study aid. It is not legal advice and it does not guarantee a pass in any exam. Content is prepared with care but the official SQE assessment specification and regulator guidance always take priority.</p>
-<h2>Changes</h2>
-<p>We may update these terms. Continuing to use the service after a change means you accept the updated terms.</p>
-<h2>Contact</h2>
-<p>Questions about this page: <a href="mailto:hello@aimatic.tech">hello@aimatic.tech</a>.</p>
-<p><a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></p>
-</article>
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/terms" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Legal</p>
+				<h1>Learner Terms and Conditions</h1>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+
+				<h2>Company and scope</h2>
+				<p>Examic.study is operated by EXAMIC LTD, incorporated in England and Wales. These Terms govern your use of the platform and the access activated or purchased through your account. Contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a> or through the <a href="/contact">Contact page</a>.</p>
+
+				<h2>Access and accounts</h2>
+				<p>The platform's account service is for adults aged 18 or over. Provide accurate registration information and keep your login secure. Access is personal and must not be shared, transferred or resold. Contact us promptly if you believe your account has been compromised.</p>
+				<p>Your plan page identifies your access and its period. Free access is governed by the <a href="/introductory-offer">Introductory Offer Terms</a>. Any paid plan requires separate checkout and payment.</p>
+
+				<h2>Free month and paid plans</h2>
+				<p>Every new account gets a free month of {{ trial_days }} days with every published subject course and {{ free_mock_names }}, with no payment card needed. It never turns into a paid plan by itself.</p>
+				<ul>
+					<li><strong>Monthly plan:</strong> {{ monthly_price }} per month. Charged at checkout; all mocks unlock and monthly billing starts that day. It renews each month until you cancel.</li>
+					<li><strong>3-Month plan:</strong> {{ three_month_price }} paid once for three months ({{ three_month_each }} per month). It does not renew automatically. Bought during the free month, the paid period follows the free month.</li>
+				</ul>
+				<p>Both plans include all mock exams, full preparation resources and mock feedback. Paid access starts only after Stripe confirms your payment. If the free month or a paid period ends without a new payment, access to courses and mocks pauses and your progress is kept until you choose a plan.</p>
+
+				<h2>Learning materials</h2>
+				<p>Materials support examination preparation and general education. They are not advice about a real legal matter. Examic does not provide official assessment booking, grant admission or guarantee results.</p>
+				<p>The service must match its description and applicable statutory standards. Educational disclaimers do not remove your consumer rights.</p>
+
+				<h2>Study Buddy</h2>
+				<p>Study Buddy is an AI assistant. Its answers are generated from the approved material of the lesson you have open, can contain errors, and are not legal advice or reviewed course content.</p>
+
+				<h2>Intellectual property and acceptable use</h2>
+				<p>Materials and platform rights belong to EXAMIC LTD or its licensors. Your access gives a limited permission to use included resources for your own preparation within the access conditions. It does not transfer ownership.</p>
+				<p>Do not redistribute protected materials, scrape question banks, bypass access controls, share credentials, interfere with security, or upload unlawful or confidential third-party information. Applicable legal exceptions remain unaffected.</p>
+
+				<h2>Support, maintenance and changes</h2>
+				<p>Use the <a href="/contact">Contact page</a> to request support or report issues. We may carry out maintenance, correct errors and make proportionate improvements. Material changes affecting your purchased service will be handled fairly, with appropriate notice and remedies where required.</p>
+
+				<h2>Suspension</h2>
+				<p>We may restrict access where necessary to respond to serious misuse, payment failure or a security threat. Action will be proportionate. We will provide reasons and an opportunity to resolve remediable issues where appropriate, and a route to challenge an account decision.</p>
+
+				<h2>Cancellation and refunds</h2>
+				<p>The <a href="/refund-policy">Cancellation and Refund Policy</a> explains how to stop future renewal and exercise applicable cancellation rights. Closing an account and cancelling a subscription are separate actions; contact us if assistance is needed.</p>
+
+				<h2>Liability and rights</h2>
+				<p>Nothing in these Terms excludes liability that cannot lawfully be excluded, including fraud or death or personal injury caused by negligence. Statutory protections concerning digital content and services remain in force. We remain responsible as required by law for foreseeable loss resulting from a breach or failure to exercise required care.</p>
+
+				<h2>Privacy and complaints</h2>
+				<p>The <a href="/privacy">Privacy Notice</a> explains personal-data processing. Accepting these Terms is not consent to marketing or tracking. Complaints can be sent through the <a href="/contact">Contact page</a>; see <a href="/complaints">Complaints</a> for how we handle them.</p>
+
+				<h2>Applicable law</h2>
+				<p>These Terms are governed by the law of England and Wales, subject to mandatory protections applicable to the consumer. Consumers retain any legally available right to bring proceedings in their home jurisdiction.</p>
+			</article>
+		</div>
 {% endblock %}

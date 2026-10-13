@@ -11,7 +11,7 @@ documented fallback if Stripe declines. Build: `skills/lms-billing/`.
 | Wise | Receiving fees vary; no checkout, no payment-link API, no recurring charges, no statement or balance webhook for UK accounts with a personal token | Payout bank and manual fallback only (`docs/wise-payments.md`) |
 | Airwallex | Not researched | Fallback if Stripe declines (recurring payment and subscription APIs) |
 
-Company: Examic Learning Ltd, two non-resident directors. Stripe approval needs a UK legal
+Company: EXAMIC LTD, two non-resident directors. Stripe approval needs a UK legal
 entity, tax ID, UK physical address, phone, working website, ID and a qualifying bank
 account; approval is not guaranteed. Ask Stripe in writing whether GBP payouts to the Wise
 Business account are accepted.

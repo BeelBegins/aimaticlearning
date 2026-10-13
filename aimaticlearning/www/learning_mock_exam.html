@@ -5,12 +5,18 @@
 {% block footer %}{% endblock %}
 
 {% block page_content %}
+{% set student_active = "mocks" %}
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_shell.css?v=20261008-student2">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">
+<div class="examic-student-shell">
+{% include "templates/lms_learning/student_sidebar.html" %}
+<div class="examic-student-shell-main">
 <div class="aimatic-student-dash" id="aimatic-mock-exam">
 	<style>
 		.aimatic-student-dash .dash-hello { margin-bottom: 16px; }
 		.aimatic-student-dash .is-hidden { display: none !important; }
 		.mock-sitting { margin-bottom: 16px; }
+		.mock-unlock-link { width: fit-content; margin: 0 0 12px; }
 		.mock-lock-note { font-weight: 400; font-size: .9rem; color: var(--dash-muted, #5b6472); }
 		.mock-status.is-locked { background: #eef0f3; color: #3f4753; }
 		.mock-sitting h2 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
@@ -33,13 +39,6 @@
 		@media (max-width: 720px) { .mock-grid { grid-template-columns: 1fr; } }
 	</style>
 
-	<nav class="dash-nav" aria-label="Study">
-		<a href="/learning-dashboard">Dashboard</a>
-		<a href="/lms/courses">Courses</a>
-		<a href="/learning-revision">Revision</a>
-		<a href="/learning-mock-exam" aria-current="page">Mock exams</a>
-	</nav>
-
 	<section class="dash-hello">
 		<p class="dash-kicker">SQE1 · January 2027</p>
 		<h1>Mock exams</h1>
@@ -56,6 +55,8 @@
 	<div id="exam-body" class="is-hidden">
 		<div id="exam-papers"></div>
 	</div>
+</div>
+</div>
 </div>
 
 <script>
@@ -134,6 +135,11 @@
 			const heading = node("h2", "", mock.title || "Sitting");
 			if (mock.locked) heading.append(node("span", "mock-lock-note", " " + (data.locked_note || "Included with the paid plan")));
 			card.append(heading);
+			if (mock.locked) {
+				const unlock = node("a", "dash-btn dash-btn-primary mock-unlock-link", "View plans to unlock");
+				unlock.href = "/billing";
+				card.append(unlock);
+			}
 			const grid = node("div", "mock-grid");
 			(mock.sessions || []).forEach(function (session) {
 				const status = session.locked ? { cls: "is-locked", label: "Locked", locked: true } : sessionStatus(session);
@@ -168,6 +174,9 @@
 					const feedback = node("a", "dash-btn", "Download feedback (PDF)");
 					feedback.href = session.feedback_url;
 					actions.append(feedback);
+					const revise = node("a", "dash-btn", "Open revision board");
+					revise.href = "/learning-revision";
+					actions.append(revise);
 				}
 				tile.append(actions);
 				grid.append(tile);

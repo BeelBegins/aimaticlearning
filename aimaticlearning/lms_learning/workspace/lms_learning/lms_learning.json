@@ -1,19 +1,88 @@
 {
  "charts": [],
- "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>LMS Learning</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-studio\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Content Studio\",\"col\":4}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}},{\"id\":\"lmod-shortcut-buddy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy Chat Log\",\"col\":4}}]",
+ "content": "[{\"id\":\"lmod-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>Examic Study</b></span>\",\"col\":12}},{\"id\":\"lmod-settings-note\",\"type\":\"paragraph\",\"data\":{\"text\":\"Study Buddy, live chat, Discord alerts, billing and lesson audio are configured here.\",\"col\":12}},{\"id\":\"lmod-shortcut-study\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy\",\"col\":4}},{\"id\":\"lmod-shortcut-live-chat\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Live chat\",\"col\":4}},{\"id\":\"lmod-shortcut-billing\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Billing\",\"col\":4}},{\"id\":\"lmod-shortcut-audio\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Lesson audio\",\"col\":4}},{\"id\":\"lmod-shortcut-inbox\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Live chat inbox\",\"col\":4}},{\"id\":\"lmod-header-content\",\"type\":\"header\",\"data\":{\"text\":\"<span class='h4'><b>Content</b></span>\",\"col\":12}},{\"id\":\"lmod-shortcut-studio\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Content Studio\",\"col\":4}},{\"id\":\"lmod-shortcut-import\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Module Config\",\"col\":4}},{\"id\":\"lmod-shortcut-map\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Map\",\"col\":4}},{\"id\":\"lmod-shortcut-flash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learning Flashcard\",\"col\":4}},{\"id\":\"lmod-shortcut-buddy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Study Buddy Chat Log\",\"col\":4}}]",
  "creation": "2026-08-30 00:00:00.000000",
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "education",
+ "icon": "graduation-cap",
  "idx": 0,
  "is_hidden": 0,
  "label": "LMS Learning",
  "links": [
   {
    "hidden": 0,
+   "icon": "settings",
    "is_query_report": 0,
-   "label": "Setup",
+   "label": "Settings",
+   "link_count": 5,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "icon": "settings",
+   "is_query_report": 0,
+   "label": "Study Buddy",
+   "link_count": 0,
+   "link_to": "Examic Study Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "icon": "message-circle",
+   "is_query_report": 0,
+   "label": "Live chat",
+   "link_count": 0,
+   "link_to": "Examic Live Chat Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "icon": "settings",
+   "is_query_report": 0,
+   "label": "Billing",
+   "link_count": 0,
+   "link_to": "Examic Billing Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "icon": "settings",
+   "is_query_report": 0,
+   "label": "Lesson audio",
+   "link_count": 0,
+   "link_to": "Lesson Audio Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "icon": "message-circle",
+   "is_query_report": 0,
+   "label": "Live chat inbox",
+   "link_count": 0,
+   "link_to": "Examic Live Chat",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Content",
    "link_count": 0,
    "onboard": 0,
    "type": "Card Break"
@@ -96,7 +165,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-22 15:00:00.000000",
+ "modified": "2026-10-09 01:00:00.000000",
  "modified_by": "Administrator",
  "module": "LMS Learning",
  "name": "LMS Learning",
@@ -108,6 +177,37 @@
  "roles": [],
  "sequence_id": 30.0,
  "shortcuts": [
+  {
+   "color": "Blue",
+   "label": "Study Buddy",
+   "link_to": "Examic Study Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "label": "Live chat",
+   "link_to": "Examic Live Chat Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "label": "Billing",
+   "link_to": "Examic Billing Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "label": "Lesson audio",
+   "link_to": "Lesson Audio Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Live chat inbox",
+   "link_to": "Examic Live Chat",
+   "type": "DocType"
+  },
   {
    "color": "Blue",
    "label": "Content Studio",

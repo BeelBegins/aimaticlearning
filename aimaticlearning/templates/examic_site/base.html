@@ -1,0 +1,129 @@
+{#- Shared chrome for the public Examic website (Home, SQE1, Pricing, About, legal pages).
+    A page sets ex_title, ex_description, ex_path and ex_active before extending this file,
+    then fills {% block site_main %}. Student portal pages (/lms, /learning-*) do not use it. -#}
+{% extends "templates/web.html" %}
+
+{% block meta_block %}
+<meta name="description" content="{{ ex_description }}">
+<meta name="robots" content="{{ ex_robots or 'index, follow' }}">
+<link rel="canonical" href="https://examic.study{{ ex_path }}">
+{% block extra_meta %}{% endblock %}
+{% endblock %}
+
+{% block title %}{{ ex_title }}{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block head_include %}
+<link rel="preload" href="/assets/lms/frontend/assets/Inter.var-C9xDBOS3.woff2?v=3.19" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="/assets/aimaticlearning/images/examic-study-mark-uk.svg?v=20261005-uk" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261007-price1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/examic_site.css?v=20261013-site2">
+{% endblock %}
+
+{% block page_content %}
+{%- set ex_guest = frappe.session.user == "Guest" -%}
+<div class="sqe-site ex-site">
+	<a class="ex-skip" href="#ex-main">Skip to content</a>
+	<header class="sqe-header ex-header">
+		<a class="sqe-brand" href="/" aria-label="Examic home">
+			<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study, Examination Preparation Portal" width="320" height="92">
+		</a>
+		<nav class="ex-nav" id="ex-nav" aria-label="Primary navigation">
+			<ul class="ex-menu">
+				<li><a href="/"{% if ex_active == "home" %} aria-current="page"{% endif %}>Home</a></li>
+				<li><a href="/sqe1"{% if ex_active == "sqe1" %} aria-current="page"{% endif %}>SQE1 Preparation</a></li>
+				<li><a href="/pricing"{% if ex_active == "pricing" %} aria-current="page"{% endif %}>Pricing</a></li>
+				<li><a href="/how-it-works"{% if ex_active == "how" %} aria-current="page"{% endif %}>How It Works</a></li>
+				<li><a href="/resources"{% if ex_active == "resources" %} aria-current="page"{% endif %}>Resources</a></li>
+				<li class="ex-has-sub">
+					<a href="/about"{% if ex_active == "about" %} aria-current="page"{% endif %}>About Us</a>
+					<button class="ex-sub-toggle" type="button" aria-expanded="false" aria-controls="ex-about-sub"><span class="ex-sr">Show About Us pages</span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+					<ul class="ex-sub" id="ex-about-sub">
+						<li><a href="/about/our-story">Our Story</a></li>
+						<li><a href="/about/vision-and-mission">Vision and Mission</a></li>
+						<li><a href="/about/preparation-approach">Our Preparation Approach</a></li>
+						<li><a href="/about/equality-and-accessibility">Equality and Accessibility</a></li>
+					</ul>
+				</li>
+				<li><a href="/contact"{% if ex_active == "contact" %} aria-current="page"{% endif %}>Contact Us</a></li>
+			</ul>
+			<div class="ex-nav-actions">
+{% if ex_guest %}
+				<a class="sqe-btn sqe-btn-ghost" href="/login">Log In</a>
+				<a class="sqe-btn sqe-btn-primary" href="/login#signup">Create Account</a>
+{% else %}
+				<a class="sqe-btn sqe-btn-primary" href="/lms">Open my portal</a>
+{% endif %}
+			</div>
+		</nav>
+		<div class="ex-actions">
+{% if ex_guest %}
+			<a class="ex-login" href="/login">Log In</a>
+			<a class="sqe-btn sqe-btn-primary ex-cta" href="/login#signup">Create Account</a>
+{% else %}
+			<a class="sqe-btn sqe-btn-primary ex-cta" href="/lms">Open my portal</a>
+{% endif %}
+			<button class="ex-menu-toggle" type="button" aria-expanded="false" aria-controls="ex-nav">
+				<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+				<span>Menu</span>
+			</button>
+		</div>
+	</header>
+
+	<main id="ex-main">
+{% block site_main %}{% endblock %}
+	</main>
+
+	<footer class="ex-footer">
+		<nav class="ex-footer-links" aria-label="Legal and policies">
+			<a href="/terms">Terms and Conditions</a>
+			<a href="/privacy">Privacy Notice</a>
+			<a href="/cookies">Cookie Notice</a>
+			<a href="/cookies#cookie-settings" data-ex-cookie-settings>Cookie Settings</a>
+			<a href="/introductory-offer">Introductory Offer</a>
+			<a href="/refund-policy">Cancellation and Refunds</a>
+			<a href="/complaints">Complaints</a>
+			<a href="/accessibility">Accessibility</a>
+			<a href="/educational-disclaimer">Educational Disclaimer</a>
+		</nav>
+		<div class="ex-footer-id">
+			<img src="/assets/aimaticlearning/images/examic-study-header-uk.png?v=20261005-uk" alt="Examic Study" width="320" height="92" loading="lazy">
+			<p>© {{ frappe.utils.now_datetime().year }} EXAMIC LTD. Examic.study is operated by EXAMIC LTD, registered in England and Wales. Contact: <a href="mailto:hello@examic.study">hello@examic.study</a>. Independent SQE preparation provider.</p>
+		</div>
+	</footer>
+
+	<section class="ex-cookie-banner" id="ex-cookie-banner" aria-label="Cookie choice" hidden>
+		<p>We use essential cookies to run Examic.study. No optional cookies are in use today; if we add any, they stay off unless you allow them. You can change your choice at any time in Cookie Settings. <a href="/cookies">Cookie Notice</a></p>
+		<div class="ex-cookie-actions">
+			<button class="sqe-btn ex-choice" type="button" data-ex-cookie="optional">Accept Optional</button>
+			<button class="sqe-btn ex-choice" type="button" data-ex-cookie="essential">Reject Optional</button>
+			<button class="sqe-btn ex-choice" type="button" data-ex-cookie-settings>Manage Preferences</button>
+		</div>
+	</section>
+
+	<dialog class="ex-cookie-dialog" id="ex-cookie-dialog" aria-labelledby="ex-cookie-dialog-title">
+		<form method="dialog" class="ex-cookie-form">
+			<h2 id="ex-cookie-dialog-title">Cookie Settings</h2>
+			<label class="ex-cookie-row">
+				<input type="checkbox" checked disabled>
+				<span><strong>Essential</strong> Keep you signed in, protect forms and remember this choice. Always on.</span>
+			</label>
+			<label class="ex-cookie-row">
+				<input type="checkbox" id="ex-cookie-optional">
+				<span><strong>Optional</strong> None are in use today. If we add any, for example analytics, they run only when this is on.</span>
+			</label>
+			<p class="ex-cookie-status" id="ex-cookie-status" role="status"></p>
+			<div class="ex-cookie-actions">
+				<button class="sqe-btn ex-choice" type="button" data-ex-cookie="optional">Accept Optional</button>
+				<button class="sqe-btn ex-choice" type="button" data-ex-cookie="essential">Reject Optional</button>
+				<button class="sqe-btn sqe-btn-primary" type="button" data-ex-cookie-save>Save choice</button>
+			</div>
+			<p class="ex-cookie-more"><a href="/cookies">Read the Cookie Notice</a></p>
+		</form>
+	</dialog>
+</div>
+<script src="/assets/aimaticlearning/js/examic_site.js?v=20261013-site1" defer></script>
+{% endblock %}

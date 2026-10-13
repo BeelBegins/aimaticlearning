@@ -1,0 +1,24 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Our Story | Examic" -%}
+{%- set ex_description = "Examic.study is operated by EXAMIC LTD, a company registered in England and Wales, to make SQE1 preparation clear, practical and affordable." -%}
+{%- set ex_path = "/about/our-story" -%}
+{%- set ex_active = "about" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow"><a href="/about">About Us</a></p>
+				<h1>Our Story</h1>
+				<p>Examic is the brand. Examic.study is the website and student portal. EXAMIC LTD, a company registered in England and Wales, operates both.</p>
+			</header>
+			<div class="ex-prose">
+				<p>Examic supports aspiring solicitors preparing for the Solicitors Qualifying Examination in England and Wales. We started with SQE1 and built structured resources for both FLK1 and FLK2: notes, practice questions with explanations, flashcards and timed mock exams, in one online platform.</p>
+				<p>Our aim is to make legal preparation clear, practical and affordable. We want learners to understand the law, apply it to realistic scenarios and find the areas that need more revision, while fitting study around work, university and other commitments.</p>
+				<p>Our initial offering focuses on SQE1. Further learning products, including SQE2 preparation, will be announced separately.</p>
+				<p>Examic is an independent preparation provider and is not affiliated with or endorsed by the SRA or the official assessment provider. Read our <a href="/educational-disclaimer">educational disclaimer</a>.</p>
+			</div>
+		</div>
+{% endblock %}

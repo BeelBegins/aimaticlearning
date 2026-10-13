@@ -1,0 +1,57 @@
+{%- set ex_title = title -%}
+{%- set ex_description = meta_description -%}
+{%- set ex_path = "/resources" -%}
+{%- set ex_active = "resources" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% macro subject_cards(courses) %}
+			<div class="ex-cards">
+{% for course in courses %}
+				<article class="ex-card">
+					<h3>{{ course.title }}</h3>
+					<p>{{ course.summary }}</p>
+					<p class="ex-card-meta">{{ course.chapter_count }} chapters · {{ course.activity_label }}</p>
+{% if frappe.session.user != "Guest" %}
+					<a href="{{ course.course_url }}">Open subject</a>
+{% endif %}
+				</article>
+{% else %}
+				<p>No subjects are published in this group yet.</p>
+{% endfor %}
+			</div>
+{% endmacro %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Resources</p>
+				<h1>What is published on Examic</h1>
+				<p>This list is read from the live course catalogue, so it shows only subjects learners can open today. Every subject below is included in the free month.</p>
+			</header>
+
+			<h2 class="ex-section-title">FLK1 subjects</h2>
+			{{ subject_cards(flk1_courses) }}
+
+			<h2 class="ex-section-title">FLK2 subjects</h2>
+			{{ subject_cards(flk2_courses) }}
+
+			<h2 class="ex-section-title">Mock exams</h2>
+			<div class="ex-prose">
+{% if mock_count %}
+				<p>{{ mock_count }} SQE1 mock exams, {{ session_count }} timed sessions of {{ questions_per_session }} questions in {{ minutes_per_session }} minutes. {{ free_mock_names }} are included in the free month; a paid plan unlocks the rest.</p>
+{% else %}
+				<p>Mock exams are not published yet.</p>
+{% endif %}
+				<p>Questions are written for Examic preparation. They are not official SQE assessment questions.</p>
+			</div>
+
+			<div class="ex-actions-row">
+{% if frappe.session.user == "Guest" %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/login#signup">Start free trial</a>
+{% else %}
+				<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/lms">Open my portal</a>
+{% endif %}
+				<a href="/contact">Report a content issue</a>
+			</div>
+		</div>
+{% endblock %}

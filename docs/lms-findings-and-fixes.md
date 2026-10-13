@@ -530,3 +530,206 @@ changing any answer key.
 - Free month, 49 monthly or 99 three-month plans, access lock, `/pricing`, `/billing`, daily reminders (`billing.py`).
 - Wise cannot confirm payments for a UK account (docs saved in `docs/vendor/wise/`); Stripe provider added behind settings (`billing_providers/stripe.py`, webhook `billing.stripe_webhook`), manual confirmation kept as fallback. Dodo dropped.
 - Stripe sandbox keys stored in Examic Billing Settings only. Stripe docs saved in `docs/vendor/stripe/`.
+
+## 2026-10-08 New-server restore verified
+
+- Target: `/home/ubuntu/frappe-bench`, site `examic.study` on `vps-6bdd605a`.
+- Owner approved replacing the target database/files after the restore plan was presented.
+- Restored the four `20261008_172510-lms_aimatic_tech-*` files from `/home/ubuntu/lms-backup`.
+- Verified rollback database/files/config stored in `/home/ubuntu/restore-rollback-20261008`.
+- Preserved target database credentials and `https://examic.study`; source encryption key matches.
+- Removed the missing shared-server `aimatic` app registration from restored app metadata,
+  without installing SZL code. Ran `bench --site examic.study migrate` successfully.
+- Source and restored counts match: 14 courses, 138 chapters, 408 lessons, 175 quizzes,
+  3168 questions, 10588 flashcards, 124 enrolments, 83 quiz submissions, 22 users,
+  30 File records and 1 subscription. All 48 archived file/link entries match.
+- Verification report: `/home/ubuntu/restore-rollback-20261008/verification.json`.
+- Site remains in maintenance mode; public launch and learner browser checks are pending.
+  No changes were made to the old server.
+
+## 2026-10-08 Maintenance mode disabled
+
+Owner approved taking `examic.study` out of maintenance. Ran site-scoped
+`set-maintenance-mode off` and `clear-cache`; config reads maintenance_mode=0.
+Local gunicorn on port 8001 and public HTTPS `/sqe` both return HTTP 200.
+Authenticated learner flows remain unverified.
+
+## 2026-10-08 Student portal locked to the public website's theme
+
+- Removed the student-facing theme picker. `lms_soft_themes.js` no longer
+  reads/writes `localStorage` or offers a choice; it applies one fixed
+  `EXAMIC_THEME` tokens object matching `sqe_frappe_theme.css` on every
+  `/lms` page load, unconditionally.
+- Removed every remaining hardcoded, off-brand hex in
+  `lms_student_experience.css` (leftover navy/gold/teal/ivory from an older
+  design: MCQ selected-answer highlight, nav arrows, flashcard states, topic
+  kicker/intro, pathway card, course cards, flag button). Every colour there
+  is now a `var(--aimatic-*, #hex-fallback)` token matching the locked
+  palette, including the pre-mount/unscoped rules that used to flash the old
+  colours before the learner body class was applied.
+- Hid upstream LMS's own light/dark/system theme toggle for students only
+  (it was already non-functional there, since `lms_soft_themes.js` forces
+  light mode on every render): the desktop user-menu "Toggle Theme" row is
+  hidden in `lms_soft_themes.js` by matching its rendered label, scoped to
+  `[data-slot="item"]`; the mobile "You" "Colour mode" row and its sheet are
+  hidden in pure CSS via `[aria-label="Colour mode"]` /
+  `[data-testid="colour-mode-sheet"]`. Both scoped to
+  `body.aimatic-lms-student`; staff/Administrator/Instructor/Moderator
+  accounts keep a working toggle. Neither touches `apps/lms`.
+- Bumped the cache-busting asset versions for `lms_soft_themes.css/js` and
+  `lms_student_experience.css` to `v=20261008-themelock1` in
+  `page_renderer.py`. Full detail in `skills/lms-learning/launch-and-theme.md`.
+- Owner restarted the web worker. Verified live: `/lms/courses` HTML now
+  references `v=20261008-themelock1` for all three changed assets; the
+  served `lms_soft_themes.js` contains `EXAMIC_THEME`/`hideUpstreamThemeToggle`
+  and no longer contains `addPicker`; the served `lms_student_experience.css`
+  has zero remaining `#c7a900`/`#8eb580`/`#307f73`/`#10233f`/`#c0392b` hits and
+  75 `var(--aimatic-*)` token uses; the served `lms_soft_themes.css` has the
+  `[aria-label="Colour mode"]` hide rule and zero remaining picker/`"blue"`
+  theme selectors.
+  **Still unverified**: this session has no browser/login tool, so the
+  interactive logged-in-student walkthrough (MCQ selected-answer highlight,
+  nav-arrow hover states, opening the desktop user-menu to confirm "Toggle
+  Theme" is gone, opening mobile "You" to confirm "Colour mode" is gone,
+  flashcards, mock lobby, login page) has not been done. Treat this as
+  code/asset-level verified, visually unverified until a learner session
+  confirms it.
+
+## 2026-10-08 Monthly payment starts immediately and unlocks all mocks
+
+- Owner clarified that the 30-day signup free period includes Mock 1 and Mock 2 only.
+  A student choosing Monthly should pay £49 at Checkout, start the subscription that
+  day, and unlock all mocks. The first charge is not deferred to the end of the free
+  period; not subscribing retains the 30-day free access to Mock 1 and Mock 2.
+- Monthly Stripe Checkout no longer sets `subscription_data[trial_end]`. The signed
+  successful Checkout webhook links the Monthly subscription and grants all mocks
+  during the brief interval before `invoice.paid`; the `subscription_create` invoice
+  opens one paid month from the checkout date. An unpaid/failed Checkout does not unlock.
+- `/billing` now says Monthly starts today and its trial-state button says the exact
+  price and that it unlocks all mocks. `/pricing` identifies the two free mocks and
+  explains the upfront Monthly and 3-Month charges. The locked mock lobby links to `/billing`.
+- The earlier live Checkout failure was caused by missing Live Price IDs. Created and
+  verified active GBP 49 recurring and GBP 99 one-time prices in the connected Stripe
+  account, and saved them to Examic Billing Settings.
+- Restarted web and worker supervisor groups. `py_compile` and `git diff --check` passed;
+  all supervisor processes are running, and public `/pricing` and `/billing` return
+  HTTP 200 with the new copy.
+- Not verified with a real student Checkout: no Checkout session or charge was created.
+  The signup account remains in Trial with no Stripe subscription; the student must
+  complete Monthly Checkout for the charge and unlock to occur.
+
+## 2026-10-08 Existing student without a subscription could not buy mock access
+
+- Read-only inspection confirmed `frutyfriend@gmail.com` is an enabled Website User with
+  no Examic Subscription row. The backend returned `state=full` for the billing page,
+  so it said “You have full access” and hid plan choices, while the mock gate correctly
+  kept Mocks 3 and 4 locked. `start_checkout` also rejected the account for lacking a row.
+- No-row accounts now have a separate `unsubscribed` billing state: existing course
+  access and Mock 1/2 remain available, the billing page shows plan choices, and
+  Checkout creates a pending subscription row only when a student starts Checkout.
+  It does not alter access until a confirmed payment/webhook; non-Website Users cannot
+  create student subscriptions through this endpoint.
+- Restarted web and worker groups. A fresh billing-state call for the account now returns
+  `state=unsubscribed` and the £49 Monthly / £99 3-Month plan choices; `can_open_all_mocks`
+  remains false until payment. Public `/billing` returns HTTP 200.
+- Not yet verified end to end: the student must reload `/billing`, complete Checkout, and
+  receive Stripe's paid webhook. No Checkout session or charge was created here.
+
+## 2026-10-08 Portal sidebar site-link is the Examic mark, not text
+
+Follow-up to the same-day theme-lock entry above. The portal-to-public-site
+link in the chapter rail/sidebar read "Examic website", which was redundant
+copy given a student is already inside Examic Study. `addSiteLink()` in
+`lms_soft_themes.js` now renders only the Examic mark
+(`examic-study-mark-uk.svg`, `aria-label="Examic Study home"` on the link,
+decorative `alt=""` on the image) linking to `/sqe`; `lms_soft_themes.css`'s
+`.aimatic-site-link` rule was restyled from a text link to a small circular
+icon button. Bumped `lms_soft_themes.css`/`.js` to `v=20261008-themelock2`
+in `page_renderer.py`. Not yet verified live: needs `bench build` and a
+worker restart, then a logged-in-student check that the icon renders and
+links to `/sqe`.
+
+## 2026-10-08 Shared learner navigation deployed
+
+On branch `student-journey-review-20261008`, added a shared Examic sidebar to
+`/learning-dashboard`, `/learning-revision`, and `/learning-mock-exam`, with a
+horizontal narrow-screen layout. The mock lobby now links completed attempts
+to the revision board. The dashboard script URL was versioned to bypass the
+immutable browser cache. No LMS records, payment state, or Frappe core changed.
+
+Deployed with `bench --site examic.study clear-cache` and restarted only
+`frappe-bench-web:frappe-bench-frappe-web`; app assets are served from the
+`sites/assets/aimaticlearning` symlink, so no app-wide build was needed. Verified
+the public CSS and JS return HTTP 200, the guest revision route redirects to
+login, API ping returns `pong`, and the web process is RUNNING. A logged-in
+student visual review remains pending. Rollback: restore the learner templates,
+dashboard script, and new sidebar stylesheet/template to their pre-change
+versions, clear the `examic.study` cache, and restart only the Frappe web
+process.
+
+## 2026-10-08 Site-link icon repositioned under "Mock Exams" in the LMS sidebar
+
+Follow-up to the two theme-lock entries above; unrelated to the shared
+`examic-student-sidebar`/`lms_student_shell.css` work in the entry directly
+above — that is a separate static sidebar for `/learning-dashboard`,
+`/learning-revision` and `/learning-mock-exam`, which `addSiteLink()` below
+never touches (its path check only matches `/lms...`).
+
+Prepending the site-link icon to the top of `.bg-surface-sidebar` /
+`.aimatic-lms-chapter-rail` left an empty-looking grey gap above the real nav
+rows. `addSiteLink()` in `lms_soft_themes.js` now finds the sidebar's own
+"Mock Exams" row by its rendered text (that label comes from a live Frappe
+Translation record over the stock "Quizzes" nav item, not from this app's
+source, so it cannot be grepped here) and inserts the site link immediately
+after it, cloning that row's `className` so it inherits the same padding,
+icon size and hover state as every other row instead of a hand-tuned box.
+Renders as an icon + "Examic Study website" label, linking to `/sqe`. If no
+such row is found (e.g. a layout without the sidebar), the link is skipped
+rather than falling back to the old top-of-rail placement.
+Bumped `lms_soft_themes.css`/`.js` to `v=20261008-themelock4`.
+Not yet verified live: needs `bench build` (done) and a worker restart, then
+a logged-in-student check that the icon+label row appears directly under
+"Mock Exams" with matching alignment.
+
+### Revision layout refinement
+
+After owner feedback that the page still looked separate and unfinished, the
+custom student pages were switched to Frappe's full-width content area. The
+navigation now uses a flat full-height rail, the Examic mark and Inter font;
+Revision content takes the full portal canvas and uses the locked Examic palette.
+The stylesheet URL was versioned to `20261008-student2`. Cleared the site cache
+and restarted only the Frappe web process. Logged-in visual review is still
+pending because no student browser session was available.
+## 2026-10-09 Password-reset branding asset restored
+
+The Examic /update-password page was loading its header logo and favicon
+from the retired lms.aimatic.tech domain, producing a broken-image icon.
+The correct public assets were already present in aimaticlearning:
+ /assets/aimaticlearning/images/examic-study-header-uk.png and
+ /assets/aimaticlearning/images/examic-study-mark-uk.svg. Updated the live
+Website Settings app_logo and favicon to those local paths, cleared the
+site cache, and updated enrollment.py so a future branding configuration does
+not restore the retired URLs. Verified the page contains the local paths and
+both assets return HTTP 200. No service restart was required.
+
+## 2026-10-13 Public website content handover
+
+**Scope:** public marketing and legal pages, contact form, welcome/reminder email text.
+
+**Finding:** The handover (`Examic_Website_Content_Updated.docx`) states 30 mocks of 90
+questions, 5,000+ flashcards, 2,500+ questions, 1,000+ pages, expert validation of all
+content, a calendar-month trial, "cancel anytime" and limited mock access. Code and data show
+4 mocks (16 sessions of 85 questions, 153 minutes), a 30-day free period with every published
+course plus Mock 1 and 2, no review record for every resource, and a Monthly plan charged at
+checkout. Those handover lines were not published.
+
+**Correction:** Shared site chrome and the new pages listed in `docs/current-state.md`;
+figures come from settings and live data through `lms_learning/public_site.py`. Company name
+EXAMIC LTD in the footer and legal pages and in internal payment notes.
+
+**Verification:** Local only (see `tasks/website-content-20261013/task.md`). Live site not yet
+deployed or checked.
+
+**Remaining risk:** Legal pages need owner or solicitor review; privacy provider list and
+retention are open; checkout cooling-off disclosure is not built.
+

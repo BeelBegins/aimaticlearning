@@ -56,7 +56,7 @@ class TestSignupEnrolment(unittest.TestCase):
 			mock.patch.object(enrollment, "_render_template", return_value=("subject", "body")),
 			mock.patch.object(enrollment, "_queue_email"),
 			mock.patch.object(enrollment, "free_until", return_value="2026-11-09"),
-			mock.patch.object(billing, "settings", return_value={"trial_days": 30, "monthly_price": 49.0, "three_month_price": 99.0}),
+			mock.patch.object(billing, "settings", return_value={"trial_days": 30, "free_mock_count": 2, "monthly_price": 49.0, "three_month_price": 99.0}),
 			mock.patch.object(billing, "create_subscription"),
 			mock.patch.object(enrollment, "get_url", side_effect=lambda path: "https://lms.example" + path),
 			mock.patch.object(enrollment.frappe.utils, "formatdate", side_effect=lambda d: str(d)),
@@ -79,6 +79,8 @@ class TestSignupEnrolment(unittest.TestCase):
 		context = enrollment._render_template.call_args.args[1]
 		self.assertEqual(context["course_titles"], ["Tort", "Land", "Wills"])
 		self.assertEqual(context["free_days"], 30)
+		self.assertEqual(context["free_mocks"], 2)
+		self.assertEqual(context["offer_url"], "https://lms.example/introductory-offer")
 		billing.create_subscription.assert_called_once_with("new@example.com")
 		db.set_value.assert_called_once()
 		self.assertEqual(db.set_value.call_args.args[:3], ("User", "new@example.com", "examic_free_until"))

@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "autoname": "field:student",
+ "creation": "2026-10-08 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "student",
+  "status",
+  "column_break_context",
+  "course",
+  "lesson_title",
+  "section_break_preview",
+  "last_message",
+  "last_message_at",
+  "section_break_messages",
+  "messages"
+ ],
+ "fields": [
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Student",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nWaiting\nClosed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_context",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "course",
+   "fieldtype": "Data",
+   "label": "Course"
+  },
+  {
+   "fieldname": "lesson_title",
+   "fieldtype": "Data",
+   "label": "Lesson"
+  },
+  {
+   "fieldname": "section_break_preview",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "last_message",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Last message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_message_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last message at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_messages",
+   "fieldtype": "Section Break",
+   "label": "Messages"
+  },
+  {
+   "fieldname": "messages",
+   "fieldtype": "Table",
+   "label": "Messages",
+   "options": "Examic Live Chat Message",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-08 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Examic Live Chat",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "LMS Administrator",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "LMS Moderator",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "student",
+ "track_changes": 1
+}

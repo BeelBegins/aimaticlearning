@@ -34,5 +34,5 @@ real player's layout and flow. Do not add controls (e.g. Skip) it does not show.
 1. `ruff check .` for Python.
 2. Check both styles, desktop and phone width, on a test mock.
 3. Chapter MCQ page and normal-style mock still look and behave as before.
-4. Live deploy needs approval; `lms.aimatic.tech` shares a bench with live
-   `szl`, so avoid broad restarts.
+4. Before a live deploy, verify the target is `examic.study`, identify a
+   rollback path, and restart only the required services.

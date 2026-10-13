@@ -1,0 +1,28 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Complaints | Examic" -%}
+{%- set ex_description = "How to make a complaint to Examic and how we handle it." -%}
+{%- set ex_path = "/complaints" -%}
+{%- set ex_active = "" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow">Legal</p>
+				<h1>Complaints</h1>
+			</header>
+			<article class="ex-prose">
+				<p class="ex-updated">Last updated: 13 October 2026</p>
+				<p>Send your complaint through the <a href="/contact">Contact page</a> with the enquiry type "Complaint", or email <a href="mailto:hello@examic.study">hello@examic.study</a>. Include:</p>
+				<ul>
+					<li>your account email;</li>
+					<li>the relevant lesson, question or payment reference;</li>
+					<li>what went wrong and the outcome you are looking for.</li>
+				</ul>
+				<p>We will acknowledge receipt, investigate and explain our response. Where further work is needed, we will explain the next steps. You may request escalation of an unresolved concern. Any applicable dispute-resolution information will be provided when required.</p>
+				<p>For a concern about your personal data you can also complain to the Information Commissioner's Office; see the <a href="/privacy">Privacy Notice</a>.</p>
+			</article>
+		</div>
+{% endblock %}

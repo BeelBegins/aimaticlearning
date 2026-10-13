@@ -7,4 +7,7 @@ aimaticlearning.patches.configure_lms_student_access
 aimaticlearning.patches.sync_learning_mock_exam
 aimaticlearning.patches.add_user_free_until
 aimaticlearning.patches.set_attempt_limits
+aimaticlearning.patches.seed_study_settings
+aimaticlearning.patches.show_desk_settings
+aimaticlearning.patches.split_live_chat_settings
 

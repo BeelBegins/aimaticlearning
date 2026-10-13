@@ -1,8 +1,8 @@
-from aimaticlearning.lms_learning import billing
+from aimaticlearning.lms_learning.public_site import page_context
 
 
 def get_context(context):
-	cfg = billing.settings()
-	context.monthly_price = billing.price_text(cfg["monthly_price"])
-	context.three_month_price = billing.price_text(cfg["three_month_price"])
+	page_context(context)
+	context.title = "Terms and Conditions | Examic"
+	context.meta_description = "The learner terms and conditions for Examic.study, operated by EXAMIC LTD."
 	return context

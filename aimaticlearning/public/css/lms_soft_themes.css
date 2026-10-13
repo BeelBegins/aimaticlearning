@@ -1,20 +1,22 @@
-/* Examic Study theme layer. Keep the learner portal on Frappe's semantic
- * palette instead of maintaining separate sage/sky/lilac colour systems. */
+/* Examic Study theme layer. The learner portal has no theme choice; it is
+ * permanently locked to the public website's palette (sqe_frappe_theme.css).
+ * These declarations are the safe no-JavaScript fallback for first paint,
+ * before lms_soft_themes.js sets the same values as inline custom properties. */
 html[data-examic-theme] {
 	color-scheme: light;
-	--examic-theme-ink: var(--ink-gray-9, #171717);
-	--examic-theme-muted: var(--ink-gray-7, #5b656e);
-	--examic-theme-surface: var(--surface-white, #fff);
-	--examic-theme-subtle: var(--surface-gray-2, #f4f5f6);
-	--examic-theme-subtle-strong: var(--surface-gray-3, #e9ebed);
-	--examic-theme-line: var(--outline-gray-2, #e2e6eb);
-	--examic-theme-primary: var(--ink-gray-9, #171717);
-	--examic-theme-primary-hover: var(--ink-gray-8, #2c3338);
-	--examic-theme-card-end: var(--ink-gray-8, #2c3338);
-	--examic-theme-secondary: var(--ink-gray-7, #5b656e);
-	--examic-theme-danger: var(--red-500, #e24c4b);
-	--examic-theme-danger-soft: var(--surface-red-2, #fff5f5);
-	--examic-theme-shadow: 0 14px 40px var(--black-overlay-100, rgba(0, 0, 0, 0.08));
+	--examic-theme-ink: #0E1B3D;
+	--examic-theme-muted: #4A5878;
+	--examic-theme-surface: #FFFFFF;
+	--examic-theme-subtle: #F5F7FB;
+	--examic-theme-subtle-strong: #EAEFFA;
+	--examic-theme-line: #DDE3F0;
+	--examic-theme-primary: #00247D;
+	--examic-theme-primary-hover: #1A3A94;
+	--examic-theme-card-end: #001A5C;
+	--examic-theme-secondary: #CF142B;
+	--examic-theme-danger: #CF142B;
+	--examic-theme-danger-soft: #FDECEE;
+	--examic-theme-shadow: 0 14px 40px rgba(0, 36, 125, 0.12);
 	/* Keep Frappe's numbered utility colours inside this theme contract. */
 	--ink-amber-5: var(--examic-theme-primary);
 	--ink-amber-6: var(--examic-theme-primary);
@@ -23,10 +25,7 @@ html[data-examic-theme] {
 	--ink-green-3: var(--examic-theme-primary);
 }
 
-/* The Blue palette is injected from the theme registry in lms_soft_themes.js.
- * The declarations above remain the safe no-JavaScript fallback. */
-
-/* The public SQE page shares the same saved choice as the learner portal. */
+/* The public SQE page shares the same locked palette as the learner portal. */
 html[data-examic-theme] .sqe-site {
 	--ex-navy: var(--examic-theme-primary);
 	--ex-navy-2: var(--examic-theme-primary-hover);
@@ -53,11 +52,6 @@ html[data-examic-theme] .sqe-site .sqe-btn-primary:hover {
 	border-color: var(--examic-theme-primary-hover) !important;
 }
 
-html[data-examic-theme="blue"] .sqe-site .sqe-hero h1 em,
-html[data-examic-theme="blue"] .sqe-site .sqe-eyebrow-light {
-	color: var(--examic-theme-danger) !important;
-}
-
 /* Apply one token contract to every learner page, including pages whose
  * component CSS was authored before the theme picker existed. */
 html[data-examic-theme] body.aimatic-lms-learner,
@@ -73,6 +67,7 @@ html[data-examic-theme] body.aimatic-flashcards-page {
 	--aimatic-line: var(--examic-theme-line);
 	--aimatic-shadow: var(--examic-theme-shadow);
 	--aimatic-salmon: var(--examic-theme-danger);
+	--aimatic-danger-soft: var(--examic-theme-danger-soft);
 	--aimatic-green: var(--examic-theme-secondary);
 	--primary: var(--examic-theme-primary);
 	--text-color: var(--examic-theme-ink);
@@ -351,40 +346,14 @@ html[data-examic-theme] body[data-path="login"] .form-control {
 	color: var(--examic-theme-ink);
 }
 
-.aimatic-theme-picker {
-	display: flex;
-	align-items: center;
-	gap: 7px;
-	margin: 10px 12px 0;
-	color: var(--examic-theme-muted);
-	font-size: 0.7rem;
-}
-
-.aimatic-theme-picker { flex-wrap: wrap; }
-
-.aimatic-site-link {
-	flex-basis: 100%;
-	padding: 4px 0;
-	color: var(--examic-theme-primary);
-	font-size: 0.78rem;
-	font-weight: 600;
-	text-decoration: none;
-}
-
-.aimatic-site-link:hover { color: var(--examic-theme-danger); text-decoration: underline; }
-
-.aimatic-theme-picker select {
-	min-height: 32px;
-	min-width: 0;
-	flex: 1;
-	border: 1px solid var(--examic-theme-line);
-	border-radius: 7px;
-	background: var(--examic-theme-surface);
-	color: var(--examic-theme-ink);
-	font: inherit;
-}
-
-@media (max-width: 767px) {
-	.aimatic-theme-picker { margin: 8px 18px 12px; }
-	.aimatic-theme-picker select { min-height: 40px; }
+/* The portal is colour-locked, so upstream LMS's own light/dark/system toggle
+ * is non-functional for students (lms_soft_themes.js forces light mode on
+ * every render). Hide the mobile "Colour mode" row and its picker sheet by
+ * the stable aria-label/data-testid apps/lms itself renders; the desktop
+ * dropdown equivalent is hidden in lms_soft_themes.js instead, since it has
+ * no such attribute to key off in pure CSS. Staff/Administrator views never
+ * carry aimatic-lms-student, so their toggle stays visible and working. */
+body.aimatic-lms-student [aria-label="Colour mode"],
+body.aimatic-lms-student [data-testid="colour-mode-sheet"] {
+	display: none !important;
 }

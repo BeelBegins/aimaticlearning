@@ -7,7 +7,8 @@ Aimatic-owned behaviour is `aimaticlearning/lms_learning/`.
 |---|---|
 | Frappe + LMS | bench apps `frappe`, `lms`, `payments` |
 | Examic features | this app |
-| Study Buddy AI | `lms_learning/nemotron_client.py` + `openrouter_api_key` |
+| Study Buddy, Discord alerts | `lms_learning/study_settings.py` (Examic Study Settings: previous prompt, helpful text wrapper). OpenRouter key falls back to `openrouter_api_key` |
+| Live chat | `lms_learning/study_settings.py` and Examic Live Chat Settings (on/off and hours) |
 | Site data | `sites/lms.aimatic.tech` on the shared bench until cutover |
 | Public DNS | examic.study / www.examic.study → Caddy alias |
 

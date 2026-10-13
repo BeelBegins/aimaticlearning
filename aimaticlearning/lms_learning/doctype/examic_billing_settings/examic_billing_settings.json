@@ -53,7 +53,7 @@
    "fieldname": "support_email",
    "fieldtype": "Data",
    "label": "Support Email",
-   "default": "hello@aimatic.tech"
+   "default": "hello@examic.study"
   },
   {
    "fieldname": "cb1",

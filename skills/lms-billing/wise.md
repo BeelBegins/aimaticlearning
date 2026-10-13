@@ -1,4 +1,8 @@
-# Wise (manual provider and payout bank)
+# Wise payout destination
+
+Wise is not a student payment method on Examic Study. Customer payments use
+Stripe Checkout. This note covers Wise only as a possible destination for Stripe
+payouts.
 
 Full API docs: `docs/vendor/wise/`. Summary: `docs/wise-payments.md`.
 

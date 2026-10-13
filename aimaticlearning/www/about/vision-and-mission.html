@@ -1,0 +1,25 @@
+---
+no_cache: 1
+---
+{%- set ex_title = "Vision and Mission | Examic" -%}
+{%- set ex_description = "Examic's mission is dependable SQE preparation through clear learning materials, meaningful practice and affordable digital access." -%}
+{%- set ex_path = "/about/vision-and-mission" -%}
+{%- set ex_active = "about" -%}
+{% extends "aimaticlearning/templates/examic_site/base.html" %}
+
+{% block site_main %}
+		<div class="ex-page">
+			<header class="ex-page-head">
+				<p class="sqe-eyebrow"><a href="/about">About Us</a></p>
+				<h1>Vision and Mission</h1>
+			</header>
+			<div class="ex-cards">
+				<article class="ex-card"><h2>Our mission</h2><p>To make dependable SQE preparation accessible through clear learning materials, meaningful practice and affordable digital access.</p></article>
+				<article class="ex-card"><h2>Our vision</h2><p>To build a trusted digital learning platform that supports professional examination preparation and continued learning.</p></article>
+			</div>
+			<div class="ex-prose">
+				<h2>Our approach</h2>
+				<p>Understand legal principles. Practise applying them. Review your progress. Examic supports an independent study routine that fits around work, university and other commitments. Read more about <a href="/about/preparation-approach">our preparation approach</a>.</p>
+			</div>
+		</div>
+{% endblock %}

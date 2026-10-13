@@ -1,10 +1,10 @@
 # Examic Study (aimaticlearning)
 
-This repository is the Examic Study product. Development runs on
-`lms.aimatic.tech` (shared bench). `examic.study` and `www.examic.study` will
-serve production from a separate server once development is complete; a 503
-there is expected until then, not a defect. It is not SZL retail. Do not load POS,
-FBR, purchase, Foodpanda, or other SZL skills.
+This repository is the Examic Study product. The live student URL is
+`https://www.examic.study/`, served by the `examic.study` site on this bench.
+`lms.aimatic.tech` is a retired server domain. Use the Frappe site name
+`examic.study` in bench commands and `https://www.examic.study/` for student
+links.
 
 Identify this product, then load only `lms-learning` (and `lms-course-upload`
 for Word import). Read `docs/current-state.md` for this site only.
@@ -13,7 +13,7 @@ for Word import). Read `docs/current-state.md` for this site only.
 
 All reusable LMS instructions, quality standards, findings, and operating
 records belong in this repository. Do not treat a personal agent memory,
-global skill folder, or another Aimatic/SZL checkout as the source of truth.
+global skill folder, or another checkout as the source of truth.
 
 - `AGENTS.md` is the shared routing and safety baseline.
 - `skills/` contains reusable LMS workflows for every supported agent.
@@ -27,24 +27,23 @@ global skill folder, or another Aimatic/SZL checkout as the source of truth.
 ## Authority
 
 1. current local code and uncommitted diff;
-2. verified read-only runtime on `lms.aimatic.tech`;
+2. verified read-only runtime on the `examic.study` site;
 3. rules here, facts in `docs/`, procedures in `skills/`.
 
 ## Code
 
 Owned features live in `aimaticlearning/lms_learning/`. Never modify
-`apps/lms`, Frappe, ERPNext, or HRMS core. Do not install this app on `szl`,
-`siezal`, or `hsm`.
+`apps/lms`, Frappe, ERPNext, or HRMS core. Install this app only on the Examic
+Study site.
 
 GitHub: `BeelBegins/aimaticlearning`, branch `main`. The Frappe app name stays
 `aimaticlearning` so `bench get-app` matches the Python package.
 
 ## Safety
 
-Until this site leaves the shared bench, web/queue restarts can still hit live
-`szl`. Read-only diagnosis is allowed. Any live mutation, import, migrate,
-deploy, or impactful restart needs explicit approval, checks, and a rollback
-path. No LMS backup unless asked.
+This is the Examic production bench. Verify site role, current configuration,
+and rollback path before any live mutation, import, migration, deployment, or
+impactful restart. Do not take a backup unless asked.
 
 Keep Word sources private. A self-service signup is enrolled in every published
 subject course by `complete_student_signup`; staff-invited and existing students
@@ -65,12 +64,10 @@ Reuse the dashboard tokens (`lms_student_dashboard.css`) instead of inventing a
 new look. Use real course, exam and learner data only. A reviewer rejects a page
 that looks generated.
 
-## Apps on a new server
+## Examic site apps
 
-Install frappe, payments, lms, and this app. Do not install `aimatic` (SZL ERP).
-Study Buddy reads `openrouter_api_key` from site config. This shared bench may
-still have `aimatic` installed until the site moves; that leftover is not a
-code dependency.
+The Examic site uses frappe, payments, lms, and this app. Study Buddy reads
+the OpenRouter key from Examic Study Settings, then site config.
 
 ## Skills
 
@@ -81,7 +78,7 @@ code dependency.
 | MCQ or mock quality, feedback, mapping, and learner display | `lms-mcq-quality` |
 | Mock exam sitting UI (Pearson style, review grid, timer, calculator) | `lms-exam-mode` |
 | Pricing, free month, payments, Stripe/Wise, access lock | `lms-billing` |
-| Site, backup, Caddy, workers, restore | shared bench `bench-ops` |
+| Site, backup, Caddy, workers, restore | `bench-ops` |
 | New production server | `docs/production-server.md` |
 
 Keep `lms-billing` and `docs/current-state.md` current when pricing or payment facts change.

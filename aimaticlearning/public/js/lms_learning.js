@@ -311,6 +311,8 @@
 		toggle.setAttribute("aria-expanded", String(open));
 		dock.classList.toggle("is-open", open);
 		if (open) {
+			const chatDock = document.querySelector(".aimatic-live-chat-dock");
+			if (chatDock) setLiveChatOpen(chatDock, false);
 			const input = panel.querySelector("textarea");
 			if (input) input.focus();
 		}
@@ -327,7 +329,7 @@
 			return;
 		}
 		topic.textContent = lessonHeadingText() || "This lesson";
-		if (hint) hint.textContent = "Approved chapter context is selected automatically.";
+		if (hint) hint.textContent = studyFeatures().helpful_text || "Approved chapter context is selected automatically.";
 	}
 
 	function wireStudyBuddy(dock) {
@@ -365,6 +367,7 @@
 		document.addEventListener("keydown", function (event) {
 			if (event.key === "Escape") setStudyBuddyOpen(dock, false);
 		});
+		fillStarterPrompts(card);
 		card.querySelectorAll("[data-study-buddy-prompt]").forEach(function (button) {
 			button.addEventListener("click", function () {
 				input.value = button.dataset.studyBuddyPrompt;
@@ -449,34 +452,209 @@
 		});
 	}
 
+	var DEFAULT_STARTERS = [
+		{ prompt: "Explain the key rule in simple terms.", label: "Explain the key rule" },
+		{ prompt: "Test me on the most important points in this lesson.", label: "Test my recall" },
+		{ prompt: "What should I remember for SQE-style questions?", label: "Focus my revision" }
+	];
+
+	function studyFeatures() {
+		const features = window.examicStudyFeatures || {};
+		return {
+			study_buddy_enabled: features.study_buddy_enabled !== false && features.study_buddy_enabled !== 0,
+			helpful_text: features.helpful_text || "Approved chapter context is selected automatically.",
+			live_chat_enabled: features.live_chat_enabled === true || features.live_chat_enabled === 1,
+			live_chat_open: features.live_chat_open === true || features.live_chat_open === 1,
+			live_chat_greeting: features.live_chat_greeting || "Hello. Someone from Examic is here if you need technical help.",
+			live_chat_offline_message: features.live_chat_offline_message || "Live chat is closed right now.",
+			live_chat_hours: features.live_chat_hours || "",
+			starter_prompts: Array.isArray(features.starter_prompts) ? features.starter_prompts : []
+		};
+	}
+
+	function isExamSitting() {
+		return document.body.classList.contains("aimatic-exam-sitting") || document.body.classList.contains("aimatic-pearson-sitting");
+	}
+
+	function fillStarterPrompts(card) {
+		const host = card.querySelector("[data-study-buddy-prompts]");
+		if (!host || host.dataset.promptsReady) return;
+		host.dataset.promptsReady = "1";
+		const custom = studyFeatures().starter_prompts.filter(function (prompt) { return String(prompt || "").trim(); });
+		const items = custom.length ? custom.map(function (prompt) {
+			return { prompt: String(prompt), label: String(prompt) };
+		}) : DEFAULT_STARTERS;
+		items.forEach(function (item) {
+			const button = document.createElement("button");
+			button.type = "button";
+			button.dataset.studyBuddyPrompt = item.prompt;
+			button.textContent = item.label;
+			host.appendChild(button);
+		});
+	}
+
+	function stopLiveChatPoll() {
+		if (window.examicLiveChatTimer) {
+			window.clearInterval(window.examicLiveChatTimer);
+			window.examicLiveChatTimer = null;
+		}
+	}
+
+	function applyLiveChatAvailability(panel) {
+		if (!panel) return;
+		const features = studyFeatures();
+		const closed = !features.live_chat_open;
+		const notice = panel.querySelector("[data-live-chat-offline]");
+		if (notice) {
+			notice.hidden = !closed;
+			notice.textContent = [features.live_chat_offline_message, features.live_chat_hours].filter(Boolean).join(" ");
+		}
+		const greeting = panel.querySelector("[data-live-chat-greeting]");
+		if (greeting) greeting.textContent = features.live_chat_greeting;
+		panel.querySelectorAll("textarea, button[type=submit]").forEach(function (el) { el.disabled = closed; });
+	}
+
+	function renderLiveMessages(transcript, messages) {
+		const signature = (messages || []).map(function (row) { return row.role + "\n" + row.body; }).join("\n---\n");
+		if (transcript.dataset.signature === signature) return;
+		transcript.dataset.signature = signature;
+		transcript.replaceChildren();
+		(messages || []).forEach(function (row) {
+			const message = document.createElement("div");
+			message.className = "aimatic-study-buddy-message aimatic-study-buddy-message-" + (row.role === "Student" ? "user" : "assistant");
+			const body = document.createElement("p");
+			body.textContent = row.body || "";
+			message.appendChild(body);
+			transcript.appendChild(message);
+		});
+		transcript.hidden = !messages || !messages.length;
+		transcript.scrollTop = transcript.scrollHeight;
+	}
+
+	function refreshLiveChat(dock) {
+		const panel = dock.querySelector("[data-live-chat-panel]");
+		if (!panel) return;
+		fetch("/api/method/aimaticlearning.lms_learning.live_chat.get_live_chat", { credentials: "same-origin" })
+			.then(function (response) { return response.json(); })
+			.then(function (payload) {
+				const result = payload.message || {};
+				if (window.examicStudyFeatures) {
+					window.examicStudyFeatures.live_chat_open = !!result.open;
+					window.examicStudyFeatures.live_chat_enabled = !!result.enabled;
+					window.examicStudyFeatures.live_chat_greeting = result.greeting || window.examicStudyFeatures.live_chat_greeting;
+					window.examicStudyFeatures.live_chat_offline_message = result.offline_message || window.examicStudyFeatures.live_chat_offline_message;
+					window.examicStudyFeatures.live_chat_hours = result.hours || "";
+				}
+				applyLiveChatAvailability(panel);
+				renderLiveMessages(panel.querySelector("[data-live-chat-transcript]"), result.messages || []);
+			})
+			.catch(function () {});
+	}
+
+	function setLiveChatOpen(dock, open) {
+		const panel = dock.querySelector("[data-live-chat-panel]");
+		const toggle = dock.querySelector("[data-live-chat-toggle]");
+		if (!panel || !toggle) return;
+		panel.hidden = !open;
+		toggle.setAttribute("aria-expanded", String(open));
+		if (open) {
+			const buddyDock = document.querySelector(".aimatic-study-buddy-dock");
+			if (buddyDock) setStudyBuddyOpen(buddyDock, false);
+			applyLiveChatAvailability(panel);
+			refreshLiveChat(dock);
+			stopLiveChatPoll();
+			window.examicLiveChatTimer = window.setInterval(function () { refreshLiveChat(dock); }, 8000);
+			const input = panel.querySelector("textarea");
+			if (input && !input.disabled) input.focus();
+			return;
+		}
+		stopLiveChatPoll();
+	}
+
+	function wireLiveChat(dock) {
+		const panel = dock.querySelector("[data-live-chat-panel]");
+		if (!panel || panel.dataset.liveChatReady) return;
+		panel.dataset.liveChatReady = "1";
+		const toggle = dock.querySelector("[data-live-chat-toggle]");
+		const closer = panel.querySelector("[data-live-chat-close]");
+		const form = panel.querySelector("form");
+		const input = panel.querySelector("textarea");
+		const status = panel.querySelector("[data-live-chat-status]");
+		applyLiveChatAvailability(panel);
+		toggle.addEventListener("click", function () {
+			setLiveChatOpen(dock, panel.hidden);
+		});
+		if (closer) closer.addEventListener("click", function () { setLiveChatOpen(dock, false); });
+		document.addEventListener("keydown", function (event) {
+			if (event.key === "Escape") setLiveChatOpen(dock, false);
+		});
+		form.addEventListener("submit", function (event) {
+			event.preventDefault();
+			if (!studyFeatures().live_chat_open) return;
+			const message = input.value.trim();
+			if (!message) {
+				input.focus();
+				return;
+			}
+			const context = currentLessonContext();
+			const submit = form.querySelector("button[type=submit]");
+			submit.disabled = true;
+			status.textContent = "Sending…";
+			fetch("/api/method/aimaticlearning.lms_learning.live_chat.post_live_chat_message", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: { "Content-Type": "application/json", "X-Frappe-CSRF-Token": window.csrf_token || "" },
+				body: JSON.stringify({
+					message: message,
+					course: context ? context.course : "",
+					lesson_title: lessonHeadingText() || ""
+				})
+			}).then(function (response) { return response.json().then(function (payload) { return { response: response, payload: payload }; }); })
+				.then(function (result) {
+					if (!result.response.ok) throw new Error(studyBuddyServerMessage(result.payload, result.response));
+					input.value = "";
+					status.textContent = "Waiting for a reply.";
+					const state = result.payload.message || {};
+					renderLiveMessages(panel.querySelector("[data-live-chat-transcript]"), state.messages || []);
+				})
+				.catch(function (error) {
+					status.textContent = error.message || "Live chat is unavailable right now.";
+				})
+				.finally(function () {
+					submit.disabled = !studyFeatures().live_chat_open;
+				});
+		});
+	}
+
 	function addStudyBuddyDock() {
+		renderStudyBuddyDock();
+		renderLiveChatDock();
+	}
+
+	function renderStudyBuddyDock() {
+		const features = studyFeatures();
 		const context = currentLessonContext();
-		if (!context) {
-			const leftover = document.querySelector(".aimatic-study-buddy-dock");
+		const showBuddy = features.study_buddy_enabled && !!context && !isExamSitting();
+		const leftover = document.querySelector(".aimatic-study-buddy-dock");
+		if (!showBuddy) {
 			if (leftover) leftover.remove();
 			return;
 		}
-		let dock = document.querySelector(".aimatic-study-buddy-dock");
-		if (dock) {
-			refreshStudyBuddyTopic(dock.querySelector("[data-study-buddy]"));
-			loadStudyBuddyHistory(dock, context);
+		if (leftover) {
+			refreshStudyBuddyTopic(leftover.querySelector("[data-study-buddy]"));
+			loadStudyBuddyHistory(leftover, context);
 			return;
 		}
-		dock = document.createElement("div");
+		const dock = document.createElement("div");
 		dock.className = "aimatic-study-buddy-dock";
-		dock.innerHTML =
-			'<button type="button" class="aimatic-study-buddy-fab" data-study-buddy-toggle aria-expanded="false" aria-controls="aimatic-study-buddy-panel">Study Buddy</button>' +
+		dock.innerHTML = '<button type="button" class="aimatic-study-buddy-fab" data-study-buddy-toggle aria-expanded="false" aria-controls="aimatic-study-buddy-panel">Study Buddy</button>' +
 			'<section id="aimatic-study-buddy-panel" class="aimatic-lms-ai-card aimatic-study-buddy" data-study-buddy data-study-buddy-panel hidden>' +
 				'<div class="aimatic-study-buddy-head">Study Buddy' +
 					'<button type="button" class="aimatic-study-buddy-new" data-study-buddy-new>New chat</button>' +
 					'<button type="button" class="aimatic-study-buddy-close" data-study-buddy-close aria-label="Close Study Buddy">×</button></div>' +
-				'<div class="aimatic-lms-ai-context"><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint>Approved chapter context is selected automatically.</small></div>' +
+				'<div class="aimatic-lms-ai-context"><strong data-study-buddy-topic>This lesson</strong><small data-study-buddy-hint></small></div>' +
 				'<div class="aimatic-study-buddy-transcript" data-study-buddy-transcript aria-live="polite" hidden></div>' +
-				'<div class="aimatic-study-buddy-prompts" aria-label="Suggested questions">' +
-					'<button type="button" data-study-buddy-prompt="Explain the key rule in simple terms.">Explain the key rule</button>' +
-					'<button type="button" data-study-buddy-prompt="Test me on the most important points in this lesson.">Test my recall</button>' +
-					'<button type="button" data-study-buddy-prompt="What should I remember for SQE-style questions?">Focus my revision</button>' +
-				'</div>' +
+				'<div class="aimatic-study-buddy-prompts" data-study-buddy-prompts aria-label="Suggested questions"></div>' +
 				'<form class="aimatic-study-buddy-form"><label class="sr-only" for="aimatic-study-buddy-question">Ask Study Buddy</label><textarea id="aimatic-study-buddy-question" rows="2" maxlength="1200" placeholder="Ask this lesson"></textarea><button type="submit">Send</button></form>' +
 				'<p class="aimatic-study-buddy-status" data-study-buddy-status>Not legal advice.</p>' +
 			'</section>';
@@ -484,6 +662,48 @@
 		setStudyBuddyOpen(dock, false);
 		wireStudyBuddy(dock);
 		loadStudyBuddyHistory(dock, context);
+	}
+
+	function renderLiveChatDock() {
+		const features = studyFeatures();
+		const showChat = features.live_chat_enabled && isLmsRoute() && !isExamSitting();
+		const leftover = document.querySelector(".aimatic-live-chat-dock");
+		if (!showChat) {
+			stopLiveChatPoll();
+			if (leftover) leftover.remove();
+			return;
+		}
+		if (leftover) {
+			applyLiveChatAvailability(leftover.querySelector("[data-live-chat-panel]"));
+			return;
+		}
+		stopLiveChatPoll();
+		const dock = document.createElement("div");
+		dock.className = "aimatic-live-chat-dock";
+		dock.innerHTML = '<button type="button" class="aimatic-live-chat-fab" data-live-chat-toggle aria-expanded="false" aria-controls="aimatic-live-chat-panel">Live chat</button>' +
+			'<section id="aimatic-live-chat-panel" class="aimatic-lms-ai-card aimatic-study-buddy aimatic-live-chat" data-live-chat-panel hidden>' +
+				'<div class="aimatic-study-buddy-head">Live chat' +
+					'<button type="button" class="aimatic-study-buddy-close" data-live-chat-close aria-label="Close live chat">×</button></div>' +
+				'<div class="aimatic-lms-ai-context"><strong>Examic</strong><small data-live-chat-greeting></small></div>' +
+				'<p class="aimatic-live-chat-offline" data-live-chat-offline hidden></p>' +
+				'<div class="aimatic-study-buddy-transcript" data-live-chat-transcript aria-live="polite" hidden></div>' +
+				'<form class="aimatic-study-buddy-form"><label class="sr-only" for="aimatic-live-chat-message">Message Examic</label><textarea id="aimatic-live-chat-message" rows="2" maxlength="2000" placeholder="Message Examic"></textarea><button type="submit">Send</button></form>' +
+				'<p class="aimatic-study-buddy-status" data-live-chat-status>Technical help with the site.</p>' +
+			'</section>';
+		document.body.appendChild(dock);
+		wireLiveChat(dock);
+	}
+
+	function refreshStudyFeatures() {
+		return fetch("/api/method/aimaticlearning.lms_learning.study_settings.get_study_features", { credentials: "same-origin" })
+			.then(function (response) { return response.json(); })
+			.then(function (payload) {
+				if (payload && payload.message) {
+					window.examicStudyFeatures = payload.message;
+					if (isLmsRoute()) decorateLessonPage();
+				}
+			})
+			.catch(function () {});
 	}
 
 	function decorateLessonPage() {
@@ -599,10 +819,16 @@
 	function boot() {
 		if (!isLmsRoute()) return;
 		decorateLessonPage();
+		refreshStudyFeatures();
 		setTimeout(decorateLessonPage, 250);
 		setTimeout(decorateLessonPage, 800);
 		bootHubs();
 		setTimeout(decorateLessonPage, 1800);
+		if (!window.examicStudyFeatureTimer) {
+			window.examicStudyFeatureTimer = window.setInterval(function () {
+				if (isLmsRoute()) refreshStudyFeatures();
+			}, 60000);
+		}
 	}
 
 	function apply() {
