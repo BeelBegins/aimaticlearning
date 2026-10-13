@@ -212,6 +212,39 @@ body[data-path="login"] .form-signin .btn-login {
 	font-size: 1rem !important;
 }
 
+/* Frappe's btn-primary is near-black. Use the public site palette (sqe_frappe_theme.css):
+ * royal blue, a lighter blue on hover, flag red while pressed. Never black. */
+body[data-path="login"] .btn-primary,
+body[data-path="login"] .btn-primary:disabled,
+body[data-path="login"] .btn-primary.disabled {
+	border-color: #00247d !important;
+	background: #00247d !important;
+	color: #fff !important;
+}
+
+body[data-path="login"] .btn-primary:disabled,
+body[data-path="login"] .btn-primary.disabled {
+	opacity: 0.55;
+}
+
+body[data-path="login"] .btn-primary:not(:disabled):hover {
+	border-color: #1a3a94 !important;
+	background: #1a3a94 !important;
+}
+
+body[data-path="login"] .btn-primary:not(:disabled):active,
+body[data-path="login"] .btn-primary:focus-visible {
+	border-color: #cf142b !important;
+	background: #cf142b !important;
+	box-shadow: 0 0 0 3px rgba(207, 20, 43, 0.3) !important;
+}
+
+body[data-path="login"] .sign-up-message a,
+body[data-path="login"] .forgot-password-message a,
+body[data-path="login"] .examic-signup-terms a {
+	color: #00247d;
+}
+
 body[data-path="login"] .signup-form .sign-up-message {
 	margin-top: 8px;
 }

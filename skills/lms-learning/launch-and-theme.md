@@ -26,7 +26,8 @@
   All of it lives in `public/css/sqe_frappe_theme.css`, scoped as
   `:is(html[data-examic-theme], html) body .sqe-site` because `lms_soft_themes.css`
   also styles `.sqe-site` with `!important`. Never use black or grey for buttons or
-  their hover/active states. Logo files are `examic-study-header-uk.png` and
+  their hover/active states. `/login` (sign in and sign up) repeats the same button
+  colours in `public/css/examic_login.css`, because Frappe's own `btn-primary` is near-black. Logo files are `examic-study-header-uk.png` and
   `examic-study-mark-uk.svg` (originals kept). Live Website Settings `app_logo` still
   points at the old mark until `configure_lms_student_access` is run (needs approval).
 - **Student portal theme is locked, not selectable.** There is no theme picker.
