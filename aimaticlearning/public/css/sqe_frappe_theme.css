@@ -113,7 +113,7 @@
 
 /* Sections and cards */
 :is(html[data-examic-theme], html) body .sqe-site .sqe-section { padding-block: 64px; }
-:is(html[data-examic-theme], html) body .sqe-site .sqe-how { border-block: 1px solid var(--ex-line); background: var(--ex-tint); }
+:is(html[data-examic-theme], html) body .sqe-site .sqe-how { border-block: 1px solid var(--ex-line); background: #fff; }
 :is(html[data-examic-theme], html) body .sqe-site .sqe-section-heading h2 { color: var(--ex-ink); font-family: var(--ex-font); font-size: clamp(1.8rem, 3.2vw, 2.5rem); font-weight: 650; letter-spacing: -0.03em; }
 :is(html[data-examic-theme], html) body .sqe-site .sqe-section-heading p:not(.sqe-eyebrow) { color: var(--ex-muted); }
 :is(html[data-examic-theme], html) body .sqe-site .sqe-three article,

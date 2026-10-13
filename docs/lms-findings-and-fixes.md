@@ -733,3 +733,7 @@ deployed or checked.
 **Remaining risk:** Legal pages need owner or solicitor review; privacy provider list and
 retention are open; checkout cooling-off disclosure is not built.
 
+
+## 2026-10-13: Home study rhythm background
+
+Owner requested that the grey Prepare → Practice → Perform section match the white public website. Changed only `.sqe-how` background in `sqe_frappe_theme.css` to `#fff`, retaining the cards and section borders. Bumped its shared-template URL to `20261013-how-white` because static assets are served with immutable caching. Cleared the Examic site cache; no migration or service restart. Verified public HTTPS home HTML references the new version and the served CSS contains the white rule; `git diff --check` passed. Browser visual verification remains pending. Rollback: restore the previous CSS rule and version link, then clear site cache.

@@ -39,7 +39,7 @@ After deploy, `/learning-revision` redirected guests to login, the CSS and JS
 assets returned HTTP 200, `/api/method/ping` returned `pong`, and the web process
 was running. An authenticated learner browser review remains pending.
 
-## Public website content (2026-10-13, not yet deployed)
+## Public website content (2026-10-13)
 
 Branch `claude/eager-bardeen-0d1xts` carries EXAMIC LTD's website content handover:
 one shared header/footer/cookie banner (`templates/examic_site/base.html`) on Home (`/`,
@@ -48,8 +48,7 @@ subpages, `/contact` (form to the support mailbox), `/introductory-offer`, `/ter
 `/privacy`, `/cookies`, `/refund-policy`, `/complaints`, `/accessibility` and
 `/educational-disclaimer`. Copy keeps the live facts (30 days, Mock 1 and 2, Monthly charged
 at checkout, £99 once without renewal, no VAT line) and drops the handover's unsupported
-volume and expert-review claims. Deploy, email template refresh and live checks are pending:
-`tasks/website-content-20261013/task.md`.
+volume and expert-review claims. Public HTTPS home verification on 13 October confirms the shared template and `examic_site.css?v=20261013-site2` are now served after a cache clear. The home study rhythm section uses white instead of grey, with theme asset version `20261013-how-white`. Other page checks and email template refresh remain unverified; see `tasks/website-content-20261013/task.md`.
 
 ## Production site restore (2026-10-08)
 
