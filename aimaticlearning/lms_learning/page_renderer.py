@@ -1,3 +1,4 @@
+import json
 import re
 
 import frappe
@@ -46,17 +47,18 @@ QUIZ_NAV_BOOT = """<script>
 </script>
 """
 ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20261005-notes1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_learning.css?v=20261009-split1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_kinnu.css?v=20260917-railfix1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261003-mcqnav4">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261008-themelock1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261005-pearson6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lesson_audio.css?v=20260907-1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20261005-site1">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20261008-themelock5">
 <script defer src="/assets/aimaticlearning/js/lms_dom_observe.js?v=20260902-1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20260917-buddy4"></script>
-<script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20261005-site1"></script>
+<script defer src="/assets/aimaticlearning/js/course_content_navigation.js?v=20261013-1"></script>
+<script defer src="/assets/aimaticlearning/js/lms_learning.js?v=20261009-split1"></script>
+<script defer src="/assets/aimaticlearning/js/lms_soft_themes.js?v=20261008-themelock5"></script>
 <script defer src="/assets/aimaticlearning/js/lms_kinnu.js?v=20260902-1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261004-mcqnav6"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261005-dash6"></script>
@@ -94,11 +96,33 @@ class AimaticLMSPageRenderer(TemplatePage):
 		if _is_exam_sitting_path(path):
 			html = mark_exam_sitting_body(html)
 		if ASSET_MARKER not in html:
-			html = html.replace("</head>", f"{ASSET_TAGS}\n</head>", 1)
+			html = html.replace("</head>", f"{_study_features_script()}{ASSET_TAGS}\n</head>", 1)
 		if "__examicRefBoot" not in html:
 			html = html.replace("<script type=\"module\"", QUIZ_NAV_BOOT + "<script type=\"module\"", 1)
 		response.set_data(html)
 		return response
+
+
+def _study_features_script() -> str:
+	"""Flags for the learner script so Study Buddy and live chat do not flash on."""
+	fallback = {
+		"study_buddy_enabled": True,
+		"helpful_text": "Approved chapter context is selected automatically.",
+		"live_chat_enabled": False,
+		"live_chat_open": False,
+		"live_chat_greeting": "",
+		"live_chat_offline_message": "",
+		"live_chat_hours": "",
+		"starter_prompts": [],
+	}
+	try:
+		from aimaticlearning.lms_learning.study_settings import public_features
+
+		payload = public_features()
+	except Exception:
+		payload = fallback
+	encoded = json.dumps(payload, ensure_ascii=True).replace("<", "\\u003c")
+	return f"<script>window.examicStudyFeatures = {encoded};</script>\n"
 
 
 def mark_student_body(html: str) -> str:

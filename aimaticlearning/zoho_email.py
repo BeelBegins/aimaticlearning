@@ -6,11 +6,11 @@ import frappe
 from frappe import _
 from frappe.utils import validate_email_address
 
-DEFAULT_ZOHO_EMAIL = "hello@aimatic.tech"
+DEFAULT_ZOHO_EMAIL = "hello@examic.study"
 DEFAULT_ZOHO_SMTP = "smtp.zoho.com"
 DEFAULT_ZOHO_SMTP_PORT = 587
-DEFAULT_ZOHO_ACCOUNT_NAME = "Aimatic Zoho"
-ZOHO_APP_PASSWORD_SECRET = Path.home() / ".local/share/aimatic/site-secrets/lms.aimatic.tech.zoho-app-password"
+DEFAULT_ZOHO_ACCOUNT_NAME = "Examic Study Zoho"
+ZOHO_APP_PASSWORD_SECRET = Path.home() / ".local/share/aimatic/site-secrets/examic.study.zoho-app-password"
 
 
 def _read_zoho_app_password(password: str | None = None) -> str:

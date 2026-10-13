@@ -242,23 +242,6 @@
 	function render(host, data) {
 		host.classList.add("aimatic-student-dash");
 		host.replaceChildren();
-		if (isStandalone()) {
-			const nav = el("nav", "dash-nav");
-			nav.setAttribute("aria-label", "Study");
-			[
-				["/learning-dashboard", "Dashboard", true],
-				["/lms/courses", "Subjects", false],
-				["/learning-revision", "Revision", false],
-				["/learning-mock-exam", "Mock exams", false],
-			].forEach(function (item) {
-				const link = el("a", "", item[1]);
-				link.href = item[0];
-				if (item[2]) link.setAttribute("aria-current", "page");
-				nav.append(link);
-			});
-			host.append(nav);
-		}
-
 		if (data.empty_reason) {
 			const empty = el("div", "dash-empty");
 			empty.append(el("h2", "", "No course data yet"));

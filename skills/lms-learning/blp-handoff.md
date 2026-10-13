@@ -1,8 +1,14 @@
-# LMS BLP handoff (lms.aimatic.tech)
+# Historical LMS BLP handoff
+
+> Historical snapshot from 2026-08-30. Its URLs, server paths, commands,
+> product counts, credential references, and status notes describe the old
+> server and are not current operational instructions. Current student URL:
+> `https://www.examic.study/`. Frappe site name: `examic.study`. Verify live
+> course and learner data before relying on any snapshot below.
 
 **Updated:** 2026-08-30  
 **Primary skill:** `lms-learning`  
-**Site:** `lms.aimatic.tech` (apps: frappe, payments, lms, aimatic, aimaticlearning)
+**Historical site:** retired `lms.aimatic.tech` (apps then: frappe, payments, lms, aimaticlearning)
 
 ## Product goal
 
@@ -14,14 +20,14 @@ New self-service signups are enrolled in every published course by `complete_stu
 
 | URL | Purpose |
 |-----|---------|
-| https://lms.aimatic.tech/ | SQE marketing landing (`www/sqe.html`, home_page=`sqe`) |
-| https://lms.aimatic.tech/sqe | Same landing |
-| https://lms.aimatic.tech/login | Signup `#signup`, login |
-| https://lms.aimatic.tech/lms | LMS SPA (post-login default_app=`lms`) |
+| https://www.examic.study/ | SQE marketing landing (`www/sqe.html`, home_page=`sqe`) |
+| https://www.examic.study/sqe | Same landing |
+| https://www.examic.study/login | Signup `#signup`, login |
+| https://www.examic.study/lms | LMS SPA (post-login default_app=`lms`) |
 | https://examic.study/ | Same LMS site (Caddy alias, URL stays examic.study) |
 | https://www.examic.study/ | Same LMS site (Caddy alias) |
-| https://lms.aimatic.tech/lms/courses/business-law-practice-blp | BLP course |
-| https://lms.aimatic.tech/learning-revision | Student revision / weak-area board |
+| https://www.examic.study/lms/courses/business-law-practice-blp | BLP course |
+| https://www.examic.study/learning-revision | Student revision / weak-area board |
 
 ## Live data snapshot
 
@@ -38,7 +44,7 @@ New self-service signups are enrolled in every published course by `complete_stu
 
 ## Email (configured)
 
-- **Email Account:** `Aimatic Zoho` on LMS + SZL sites
+- **Email Account:** `Aimatic Zoho` on the historical LMS site
 - **SMTP:** `hello@aimatic.tech` via `smtp.zoho.com:587` TLS
 - **Secret file:** `~/.local/share/aimatic/site-secrets/lms.aimatic.tech.zoho-app-password` (do not commit; password was shared in chat once — consider rotate)
 - **Admin password:** `~/.local/share/aimatic/site-secrets/lms.aimatic.tech.admin-password`
@@ -95,24 +101,24 @@ All LMS product code: `apps/aimaticlearning/aimaticlearning/lms_learning/` — *
 ## Commands
 
 ```bash
-cd /home/nabeel/frappe-bench
+cd /home/ubuntu/frappe-bench
 
 # Repair chapter order + hub HTML + course description
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.course_presentation.repair_course_presentation --args '["business-law-practice-blp"]'
+bench --site examic.study execute aimaticlearning.lms_learning.course_presentation.repair_course_presentation --args '["business-law-practice-blp"]'
 
 # Re-import MCQs from docx
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.mcq_import.import_mcqs_for_module --args '["LMOD-00017"]'
+bench --site examic.study execute aimaticlearning.lms_learning.mcq_import.import_mcqs_for_module --args '["LMOD-00017"]'
 
 # Student access + email templates + home routes
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.enrollment.configure_lms_student_access
+bench --site examic.study execute aimaticlearning.lms_learning.enrollment.configure_lms_student_access
 
 # Zoho email (needs secret file or password kwarg)
-bench --site lms.aimatic.tech execute aimaticlearning.zoho_email.configure_zoho_outgoing_email
+bench --site examic.study execute aimaticlearning.zoho_email.configure_zoho_outgoing_email
 
 # Module assessment blueprint (150)
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.content_generation.build_module_assessment_blueprint --kwargs '{"learning_module": "LMOD-00017"}'
+bench --site examic.study execute aimaticlearning.lms_learning.content_generation.build_module_assessment_blueprint --kwargs '{"learning_module": "LMOD-00017"}'
 
-bench --site lms.aimatic.tech clear-cache
+bench --site examic.study clear-cache
 ```
 
 Desk API: `aimaticlearning.lms_learning.api.repair_blp_presentation` (System Manager).
@@ -133,13 +139,12 @@ Desk API: `aimaticlearning.lms_learning.api.repair_blp_presentation` (System Man
 5. **UK brand:** Replace “Aimatic Learning” on public surfaces when brand name finalized.
 6. **Rotate Zoho app password** (was exposed in chat).
 
-## Safety
+## Operational note
 
-- `lms.aimatic.tech` is a separate learning product — do not load SZL skills.
-- Live gate for site mutations: approval and rollback. No LMS backup unless
-  asked. This bench shares workers with live `szl`.
-- Do not commit secrets. SZL also has Zoho configured — same hello@ account;
-  do not mix site operations.
+This handoff records the old server's state. The bench commands above target
+the current Frappe site name, but their content arguments and assumptions are
+historical. Verify current course data and intended changes before running
+them. Do not commit secrets or take a backup unless asked.
 
 ## Git state (frappe-bench guidance repo)
 

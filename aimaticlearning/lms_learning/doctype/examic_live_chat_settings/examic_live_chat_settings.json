@@ -1,0 +1,158 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 01:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "live_chat_enabled",
+  "section_live_chat",
+  "live_chat_greeting",
+  "live_chat_offline_message",
+  "section_schedule",
+  "live_chat_schedule_enabled",
+  "live_chat_timezone",
+  "column_break_hours",
+  "live_chat_start",
+  "live_chat_end",
+  "section_days",
+  "live_chat_monday",
+  "live_chat_tuesday",
+  "live_chat_wednesday",
+  "live_chat_thursday",
+  "column_break_days",
+  "live_chat_friday",
+  "live_chat_saturday",
+  "live_chat_sunday"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "description": "When off, the live chat button is hidden and new student messages are refused, even during the hours below.",
+   "fieldname": "live_chat_enabled",
+   "fieldtype": "Check",
+   "label": "Live chat enabled"
+  },
+  {
+   "fieldname": "section_live_chat",
+   "fieldtype": "Section Break",
+   "label": "Messages"
+  },
+  {
+   "default": "Hello. Someone from Examic is here if you need technical help.",
+   "description": "First line the student sees. Keep it to technical help. Do not offer tutor or study help here.",
+   "fieldname": "live_chat_greeting",
+   "fieldtype": "Small Text",
+   "label": "Greeting"
+  },
+  {
+   "default": "Live chat is closed right now.",
+   "fieldname": "live_chat_offline_message",
+   "fieldtype": "Small Text",
+   "label": "Offline message"
+  },
+  {
+   "description": "Turn this on to accept messages only during the hours below. The master switch above still closes chat completely.",
+   "fieldname": "section_schedule",
+   "fieldtype": "Section Break",
+   "label": "Live chat hours"
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_schedule_enabled",
+   "fieldtype": "Check",
+   "label": "Limit to these hours"
+  },
+  {
+   "default": "Europe/London",
+   "fieldname": "live_chat_timezone",
+   "fieldtype": "Data",
+   "label": "Timezone"
+  },
+  {
+   "fieldname": "column_break_hours",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "09:00:00",
+   "fieldname": "live_chat_start",
+   "fieldtype": "Time",
+   "label": "Opens"
+  },
+  {
+   "default": "17:00:00",
+   "fieldname": "live_chat_end",
+   "fieldtype": "Time",
+   "label": "Closes"
+  },
+  {
+   "fieldname": "section_days",
+   "fieldtype": "Section Break",
+   "label": "Days"
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_monday",
+   "fieldtype": "Check",
+   "label": "Monday"
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_tuesday",
+   "fieldtype": "Check",
+   "label": "Tuesday"
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_wednesday",
+   "fieldtype": "Check",
+   "label": "Wednesday"
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_thursday",
+   "fieldtype": "Check",
+   "label": "Thursday"
+  },
+  {
+   "fieldname": "column_break_days",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_friday",
+   "fieldtype": "Check",
+   "label": "Friday"
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_saturday",
+   "fieldtype": "Check",
+   "label": "Saturday"
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_sunday",
+   "fieldtype": "Check",
+   "label": "Sunday"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-09 02:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Examic Live Chat Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

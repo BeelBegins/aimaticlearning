@@ -1,7 +1,7 @@
 ---
 name: lms-course-upload
 description: >-
-  Reusable LMS course-content upload at lms.aimatic.tech. Use when importing
+  Reusable LMS course-content upload for www.examic.study. Use when importing
   Word notes or question banks, filling empty Course Lessons, mapping source
   headings to lessons, publishing notes-only, or building MCQ/flashcard dry-run
   reports. One LMS Course per subject. Never assume an MCQ answer key.
@@ -9,8 +9,9 @@ description: >-
 
 # LMS course upload
 
-Reusable pipeline for `lms.aimatic.tech` / examic.study. Owned code only:
-`aimaticlearning/lms_learning/`. Never edit `apps/lms`, Frappe core, or SZL sites.
+Reusable pipeline for `https://www.examic.study/` (Frappe site `examic.study`).
+The old `lms.aimatic.tech` server domain is retired. Owned code only:
+`aimaticlearning/lms_learning/`. Never edit `apps/lms` or Frappe core.
 
 **Model:** use Claude Opus thinking (high) for Word-to-lesson rendering, source
 coverage audits, legal gap drafts, and MCQ review packs. Do not use fast/flash
@@ -21,7 +22,8 @@ Read [pipeline.md](pipeline.md) before mutating. Implementation:
 
 ## Every upload
 
-1. Verify site role is `lms.aimatic.tech`. Do not take an LMS backup unless asked.
+1. Verify the target is the Examic site `examic.study`. Do not take an LMS
+   backup unless asked.
 2. Keep Word sources private. Never attach them as learner downloads.
 3. Render student HTML into `Course Lesson.body`. Always set `content = ""`.
 4. Record source File name, content hash, and section locator on the Learning

@@ -59,8 +59,10 @@ def interpret_event(event: dict) -> dict:
 		if obj.get("mode") == "payment" and obj.get("payment_status") == "paid":
 			return {**base, "action": "pay", "amount": (obj.get("amount_total") or 0) / 100,
 				"reference": obj.get("payment_intent") or obj.get("id")}
-		if obj.get("mode") == "subscription":
+		if obj.get("mode") == "subscription" and obj.get("payment_status") == "paid":
 			return {**base, "action": "link"}
+		if obj.get("mode") == "subscription":
+			return {"action": "ignore"}
 		return {"action": "ignore"}
 	if kind == "invoice.paid":
 		amount = (obj.get("amount_paid") or 0) / 100
@@ -68,7 +70,8 @@ def interpret_event(event: dict) -> dict:
 		if amount <= 0:
 			return {"action": "ignore"}
 		return {"action": "pay", "plan": "Monthly", "user": meta.get("user"), "customer": obj.get("customer"),
-			"subscription": obj.get("subscription"), "amount": amount, "reference": obj.get("id")}
+			"subscription": obj.get("subscription"), "amount": amount, "reference": obj.get("id"),
+			"starts_now": obj.get("billing_reason") == "subscription_create"}
 	if kind == "invoice.payment_failed":
 		meta = (obj.get("subscription_details") or {}).get("metadata") or {}
 		return {"action": "failed", "user": meta.get("user"), "customer": obj.get("customer"),
@@ -133,9 +136,6 @@ class StripeProvider(PaymentProvider):
 				data["customer_update[address]"] = "auto"
 		if plan == "Monthly":
 			data["subscription_data[metadata][user]"] = user
-			trial_end = trial_end_timestamp(subscription.get("trial_ends_on"))
-			if trial_end:
-				data["subscription_data[trial_end]"] = trial_end
 		else:
 			data["payment_intent_data[metadata][user]"] = user
 		session = _post("/checkout/sessions", data, cfg["stripe_secret_key"])

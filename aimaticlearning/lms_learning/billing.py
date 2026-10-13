@@ -1,8 +1,7 @@
 """Free month, paid plans and access gating for Examic Study.
 
-Payments are confirmed by staff (Wise bank transfer or Pay with Wise), so this module
-only decides what a student may open. It never talks to a payment provider. A future
-gateway can call `confirm_payment` and nothing else changes.
+Stripe Checkout and its signed webhooks handle student card payments. Staff can still
+confirm a payment directly through the restricted manual confirmation method.
 
 Access states:
   staff   staff roles: everything
@@ -87,7 +86,7 @@ def mocks_unlocked(state: str) -> bool:
 def settings() -> dict:
 	"""Billing settings with safe defaults. Secrets are decrypted here and never logged."""
 	defaults = {
-		"enabled": 1, "active_provider": "Manual", "support_email": "hello@aimatic.tech",
+		"enabled": 1, "active_provider": "Manual", "support_email": "hello@examic.study",
 		"trial_days": DEFAULT_TRIAL_DAYS, "free_mock_count": FREE_MOCKS, "reminder_days": REMIND_DAYS_BEFORE,
 		"monthly_price": PLANS["Monthly"]["default_price"], "three_month_price": PLANS["3-Month"]["default_price"],
 		"account_holder": "", "sort_code": "", "account_number": "", "payment_instructions": "",
@@ -156,15 +155,20 @@ def access_state(user: str | None = None) -> dict:
 	else:
 		row = frappe.db.get_value(
 			SUBSCRIPTION, user,
-			["status", "plan", "trial_ends_on", "paid_until", "pending_plan", "pending_reference"],
+			["status", "plan", "trial_ends_on", "paid_until", "pending_plan", "pending_reference", "stripe_subscription"],
 			as_dict=True,
 		)
 		if not row:
-			result = {"state": "full"}
+			result = {"state": "unsubscribed"}
 		else:
 			status = status_for(row.trial_ends_on, row.paid_until, row.pending_plan)
 			state = state_for(status, False, True)
+			if status == "Awaiting Payment" and not row.trial_ends_on and not row.paid_until:
+				state = "unsubscribed"
 			end = row.paid_until if state == "paid" else row.trial_ends_on
+			monthly_subscription_active = bool(
+				state in ("trial", "unsubscribed") and row.plan == "Monthly" and row.stripe_subscription
+			)
 			result = {
 				"state": state,
 				"status": status,
@@ -173,6 +177,7 @@ def access_state(user: str | None = None) -> dict:
 				"paid_until": row.paid_until,
 				"pending_plan": row.pending_plan,
 				"pending_reference": row.pending_reference,
+				"monthly_subscription_active": monthly_subscription_active,
 				"days_left": (getdate(end) - getdate(nowdate())).days if end else 0,
 			}
 	cache[user] = result
@@ -180,7 +185,8 @@ def access_state(user: str | None = None) -> dict:
 
 
 def can_open_mock(user: str | None = None) -> bool:
-	return mocks_unlocked(access_state(user)["state"])
+	state = access_state(user)
+	return mocks_unlocked(state["state"]) or bool(state.get("monthly_subscription_active"))
 
 
 def is_locked_path(path: str) -> bool:
@@ -254,8 +260,16 @@ def get_billing_state() -> dict:
 			"can_manage": bool(sub.get("stripe_customer")) and prov.name == "Stripe",
 			"payment_problem": sub.get("last_payment_error") or "",
 			"plans": [
-				{"name": "Monthly", "price": cfg["monthly_price"], "detail": "per month after your free month"},
-				{"name": "3-Month", "price": cfg["three_month_price"], "detail": "for 3 months, paid once (months 2 to 4)"},
+				{"name": "Monthly", "price": cfg["monthly_price"], "detail": "per month, starts today"},
+				{
+					"name": "3-Month",
+					"price": cfg["three_month_price"],
+					"detail": (
+						"for 3 months after your free month, paid once today"
+						if info.get("state") == "trial"
+						else "for 3 months, paid once, starts today"
+					),
+				},
 			],
 			"account_holder": cfg["account_holder"],
 			"sort_code": cfg["sort_code"],
@@ -278,7 +292,18 @@ def start_checkout(plan: str) -> dict:
 		frappe.throw(_("Card payment is not available yet."), frappe.ValidationError)
 	sub = frappe.db.get_value(SUBSCRIPTION, user, ["trial_ends_on", "stripe_customer"], as_dict=True)
 	if not sub:
-		frappe.throw(_("No subscription found for this account."), frappe.ValidationError)
+		user_doc = frappe.db.get_value("User", user, ["enabled", "user_type"], as_dict=True)
+		if not user_doc or not user_doc.enabled or user_doc.user_type != "Website User":
+			frappe.throw(_("This account cannot start a student plan."), frappe.PermissionError)
+		doc = frappe.get_doc({
+			"doctype": SUBSCRIPTION,
+			"user": user,
+			"pending_plan": plan,
+			"pending_reference": _reference(user),
+			"pending_requested_on": frappe.utils.now_datetime(),
+		})
+		doc.insert(ignore_permissions=True)
+		sub = {"trial_ends_on": None, "stripe_customer": None}
 	email = frappe.db.get_value("User", user, "email") or user
 	return prov.start_payment(user, email, plan, settings(), dict(sub))
 
@@ -324,10 +349,12 @@ def request_payment(plan: str) -> dict:
 
 
 def apply_payment(doc, plan: str, amount: float | None, paid_on, reference: str | None,
-		method: str, note: str | None = None, confirmed_by: str | None = None) -> dict:
-	"""The one place that opens a paid period. Manual confirmation and Stripe both end here."""
+		method: str, note: str | None = None, confirmed_by: str | None = None,
+		starts_now: bool = False) -> dict:
+	"""The one place that opens a paid period. `starts_now` lets Monthly begin on checkout day."""
 	paid_on = getdate(paid_on or nowdate())
-	doc.paid_until = extend_paid_until(plan, doc.trial_ends_on, doc.paid_until, paid_on)
+	trial_end = None if starts_now else doc.trial_ends_on
+	doc.paid_until = extend_paid_until(plan, trial_end, doc.paid_until, paid_on)
 	doc.plan = plan
 	doc.last_payment_on = paid_on
 	doc.last_payment_error = None
@@ -346,6 +373,12 @@ def apply_payment(doc, plan: str, amount: float | None, paid_on, reference: str 
 		PAYMENT_RECEIPT_TEMPLATE, doc.user,
 		{"plan": plan, "amount": price_text(value),
 		 "paid_until": frappe.utils.formatdate(doc.paid_until), "portal_url": get_url("/lms")},
+	)
+	_discord(
+		"payment_confirmed",
+		"Payment confirmed",
+		f"{doc.user} paid {price_text(value)} ({plan}). Paid until {doc.paid_until}.",
+		f"payment:{doc.user}:{reference}",
 	)
 	return {"status": doc.status, "paid_until": str(doc.paid_until)}
 
@@ -400,6 +433,12 @@ def process_stripe_event(event: dict) -> str:
 	if not name:
 		_log_event(event_id, "Stripe", event_type, "Needs review", reference=action.get("reference"),
 			amount=action.get("amount"), error="No matching student for this payment event.")
+		_discord(
+			"payment_needs_review",
+			"Payment needs review",
+			"No matching student for this payment event.",
+			f"review:{event_id}",
+		)
 		return "Needs review"
 	doc = frappe.get_doc(SUBSCRIPTION, name)
 	if action.get("customer") and not doc.stripe_customer:
@@ -413,8 +452,17 @@ def process_stripe_event(event: dict) -> str:
 			doc.save(ignore_permissions=True)
 			_log_event(event_id, "Stripe", event_type, "Needs review", user=name, reference=action.get("reference"),
 				amount=action.get("amount"), error="Plan missing on the payment.")
+			_discord(
+				"payment_needs_review",
+				"Payment needs review",
+				f"{name}: plan missing on the payment.",
+				f"review:{event_id}",
+			)
 			return "Needs review"
-		apply_payment(doc, plan, action.get("amount"), nowdate(), action.get("reference"), "Stripe card", None, None)
+		apply_payment(
+			doc, plan, action.get("amount"), nowdate(), action.get("reference"), "Stripe card",
+			None, None, starts_now=bool(action.get("starts_now")),
+		)
 	elif kind == "failed":
 		doc.last_payment_error = action["message"]
 		doc.save(ignore_permissions=True)
@@ -423,6 +471,8 @@ def process_stripe_event(event: dict) -> str:
 		doc.stripe_subscription = None
 		doc.save(ignore_permissions=True)
 	else:  # link
+		if action.get("plan") in PLANS:
+			doc.plan = action["plan"]
 		doc.save(ignore_permissions=True)
 	_log_event(event_id, "Stripe", event_type, "Matched", user=name, plan=action.get("plan"),
 		amount=action.get("amount"), reference=action.get("reference"))
@@ -453,6 +503,15 @@ def stripe_webhook():
 	return {"status": status}
 
 
+def _discord(event: str, title: str, description: str, dedupe_key: str) -> None:
+	try:
+		from aimaticlearning.lms_learning.discord_alerts import notify
+
+		notify(event, title=title, description=description, dedupe_key=dedupe_key)
+	except Exception:
+		frappe.log_error(title="Discord alert failed")
+
+
 def _send_template(template: str, user: str, extra: dict) -> None:
 	from aimaticlearning.lms_learning.enrollment import _queue_email, _render_template
 
@@ -478,6 +537,13 @@ def daily_billing_job() -> dict:
 		if new_status != row.status:
 			frappe.db.set_value(SUBSCRIPTION, row.name, "status", new_status, update_modified=False)
 			counts["updated"] += 1
+			if row.status in ("Trial", "Active") and new_status in ("Expired", "Awaiting Payment"):
+				_discord(
+					"access_locked",
+					"Access locked",
+					f"{row.name} is now {new_status}.",
+					f"locked:{row.name}:{today}",
+				)
 		if end and new_status in ("Trial", "Active"):
 			days_left = (getdate(end) - today).days
 			if days_left in (settings()["reminder_days"], 0):

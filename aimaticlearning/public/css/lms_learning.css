@@ -655,7 +655,53 @@ body.aimatic-lms-learner .aimatic-study-buddy-fab[aria-expanded="true"] {
 	background: var(--ink-gray-8, #2c3338);
 }
 
-body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy {
+.aimatic-support-fabs {
+	display: flex;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 8px;
+	width: 100%;
+}
+
+.aimatic-live-chat-fab {
+	min-height: 44px;
+	padding: 10px 16px;
+	border: 1px solid var(--outline-gray-3, rgba(16, 35, 63, 0.16));
+	border-radius: 999px;
+	background: #fff;
+	color: var(--aimatic-ink, #171717);
+	font: inherit;
+	font-size: 0.82rem;
+	font-weight: 650;
+	box-shadow: 0 10px 24px rgba(16, 35, 63, 0.16);
+	cursor: pointer;
+}
+
+.aimatic-live-chat-fab[aria-expanded="true"] {
+	background: #f3f5f7;
+}
+
+.aimatic-live-chat-offline {
+	margin: 0;
+	padding: 12px 16px 0;
+	color: var(--aimatic-ink-soft, #5b6570);
+	font-size: 0.82rem;
+}
+
+.aimatic-live-chat-dock {
+	position: fixed;
+	left: 18px;
+	bottom: 18px;
+	z-index: 30;
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: flex-start;
+	gap: 10px;
+	max-width: min(360px, calc(100vw - 24px));
+}
+
+body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy,
+.aimatic-live-chat-dock .aimatic-live-chat {
 	width: min(360px, calc(100vw - 24px));
 	max-height: min(72vh, 640px);
 	overflow: hidden;
@@ -715,13 +761,28 @@ body.aimatic-lms-learner .aimatic-study-buddy-close {
 	}
 
 	body.aimatic-lms-learner .aimatic-study-buddy-fab,
-	.aimatic-study-buddy-fab {
+	.aimatic-study-buddy-fab,
+	.aimatic-live-chat-fab {
 		min-height: 40px;
 		padding: 8px 12px;
 		font-size: 0.78rem;
 	}
 
-	body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy {
+	.aimatic-support-fabs {
+		justify-content: flex-start;
+	}
+
+	.aimatic-live-chat-dock {
+		left: auto;
+		right: 12px;
+		bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+		align-items: flex-end;
+		z-index: 15;
+		max-width: min(calc(100vw - 24px), 22rem);
+	}
+
+	body.aimatic-lms-learner .aimatic-study-buddy-dock .aimatic-study-buddy,
+	.aimatic-live-chat-dock .aimatic-live-chat {
 		width: min(calc(100vw - 24px), 22rem);
 		max-height: min(58vh, 480px);
 	}

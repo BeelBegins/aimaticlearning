@@ -20,7 +20,8 @@ site on the shared bench. Nothing below is done yet unless marked.
 - `site_config` host name and `host_name` must be `https://examic.study`.
 
 ## Email
-- Outgoing mail is `hello@aimatic.tech` through Zoho. Decide whether production
+- Outgoing mail is `hello@examic.study` through Zoho. Confirm the live Zoho
+  account and app password before enabling outgoing mail. Decide whether production
   sends from an `examic.study` address. If so add SPF, DKIM and DMARC for that
   domain and update the Email Account.
 - Send a test signup and check the welcome email lands in an inbox, not spam.
@@ -28,7 +29,7 @@ site on the shared bench. Nothing below is done yet unless marked.
   shared in chat once: rotate it for production.
 
 ## Site config
-- `openrouter_api_key` in site config for Study Buddy (not in code).
+- `openrouter_api_key` in site config for Study Buddy when Examic Study Settings has no key (not in code).
 - Signup enabled, role `LMS Student`, home page `sqe`.
 - Terms, Privacy and Refund pages (`/terms`, `/privacy`, `/refund-policy`) are a
   plain draft: the owner or a solicitor must review them before launch.

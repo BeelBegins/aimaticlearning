@@ -68,25 +68,37 @@
 				if (s.state === "staff" || s.state === "full") {
 					title.textContent = "You have full access"; lead.textContent = "No payment is needed for this account.";
 					var open = node("a", "sqe-btn sqe-btn-primary", "Open my portal"); open.href = "/lms"; pay.append(open); pay.classList.remove("is-hidden"); return;
-				}
-				if (s.state === "paid") {
+				} else if (s.state === "unsubscribed") {
+					title.textContent = "Choose a plan to unlock all mocks";
+					lead.textContent = "Your courses and Mock 1 and Mock 2 remain available. Choose a paid plan to unlock Mock 3 and Mock 4.";
+				} else if (s.state === "paid") {
 					title.textContent = "Your plan is active"; lead.textContent = (s.plan || "Paid") + " plan, paid until " + fmt(s.paid_until) + ". Every course and all mock exams are open.";
 					var go = node("a", "sqe-btn sqe-btn-primary", "Open my portal"); go.href = "/lms"; pay.append(go); pay.classList.remove("is-hidden");
 				} else if (s.state === "trial") {
-					title.textContent = "Your free month is running";
-					lead.textContent = "It ends on " + fmt(s.trial_ends_on) + " (" + s.days_left + " days left). Choose a plan any time to keep your access afterwards.";
+					if (s.monthly_subscription_active) {
+						title.textContent = "Your Monthly plan is active";
+						lead.textContent = "All mock exams are unlocked. Your monthly subscription has started.";
+					} else {
+						title.textContent = "Your free month is running";
+						lead.textContent = "It ends on " + fmt(s.trial_ends_on) + " (" + s.days_left + " days left). Choose a plan any time to keep your access afterwards.";
+					}
 				} else {
 					title.textContent = "Your free month has ended";
 					lead.textContent = s.pending_plan ? "We are checking your payment. Your access opens as soon as we confirm it." : "Choose a plan to open your courses and mock exams again. Your progress is saved.";
+				}
+				if (s.provider !== "Stripe") {
+					title.textContent = "Card payments are temporarily unavailable";
+					lead.textContent = "Please try again later or email hello@examic.study for help.";
+					return;
 				}
 				s.plans.forEach(function (p) {
 					var card = node("article", "sx-plan");
 					card.append(node("h3", "", p.name + " plan"), node("p", "sx-price", ""));
 					card.lastChild.append(node("strong", "", gbp(p.price)), document.createTextNode(" " + p.detail));
-					var card_btn = s.provider === "Stripe";
-					var b = node("button", "sqe-btn sqe-btn-primary", (card_btn ? "Pay by card " : "Pay ") + gbp(p.price));
+				var buttonText = s.state === "trial" ? "Pay " + gbp(p.price) + " now to unlock all mocks" : "Pay by card " + gbp(p.price);
+				var b = node("button", "sqe-btn sqe-btn-primary", buttonText);
 					b.type = "button";
-					b.addEventListener("click", function () { if (card_btn) { checkout(b, p); } else { showPay(s, p); } });
+					b.addEventListener("click", function () { checkout(b, p); });
 					card.append(b); plans.append(card);
 				});
 				if (s.payment_problem) document.getElementById("bill-msg").textContent = s.payment_problem;
@@ -99,45 +111,20 @@
 					pay.append(manage); pay.classList.remove("is-hidden");
 				}
 				plans.classList.remove("is-hidden");
-				if (s.provider !== "Stripe" && s.pending_plan) showPay(s, s.plans.filter(function (p) { return p.name === s.pending_plan; })[0] || s.plans[0], true);
 			}
 			function checkout(button, plan) {
 				button.disabled = true;
 				api("start_checkout", { plan: plan.name }).then(function (r) {
 					if (r.message && r.message.url) { window.location = r.message.url; return; }
 					throw new Error("none");
-				}).catch(function () { button.disabled = false; document.getElementById("bill-msg").textContent = "We could not open the card page. Try again or email hello@aimatic.tech."; });
-			}
-			function row(label, value) { var r = node("div", "sx-pay-row"); r.append(node("span", "", label), node("strong", "", value)); return r; }
-			function showPay(s, plan, already) {
-				var pay = document.getElementById("bill-pay"); pay.replaceChildren();
-				pay.append(node("h3", "", "Pay " + gbp(plan.price) + " for the " + plan.name + " plan"));
-				if (!s.account_number) {
-					pay.append(node("p", "", "Payment details are being set up. Email " + s.support_email + " and we will send them to you."));
-				} else {
-					pay.append(row("Account holder", s.account_holder), row("Sort code", s.sort_code), row("Account number", s.account_number), row("Amount", gbp(plan.price)), row("Payment reference", s.reference));
-					pay.append(node("p", "sx-fine", "Pay by bank transfer or Pay with Wise in pounds sterling. Use the reference exactly so we can match your payment. " + (s.instructions || "")));
-				}
-				if (!already) {
-					var done = node("button", "sqe-btn sqe-btn-final", "I have paid"); done.type = "button";
-					done.addEventListener("click", function () {
-						done.disabled = true;
-						api("request_payment", { plan: plan.name }).then(function (r) {
-							if (r.exc_type || !r.message) throw new Error("fail");
-							document.getElementById("bill-msg").textContent = "Thank you. We will confirm your payment and open your plan, usually within one working day.";
-							api("get_billing_state").then(function (x) { render(x.message); });
-						}).catch(function () { done.disabled = false; document.getElementById("bill-msg").textContent = "Could not record that. Try again or email " + s.support_email + "."; });
-					});
-					pay.append(done);
-				}
-				pay.classList.remove("is-hidden");
+				}).catch(function () { button.disabled = false; document.getElementById("bill-msg").textContent = "We could not open the card page. Try again or email hello@examic.study."; });
 			}
 			if (/[?&]paid=1/.test(window.location.search)) {
 				document.getElementById("bill-msg").textContent = "Thank you. Your payment is being confirmed, this usually takes under a minute. Refresh this page to see your plan.";
 			}
 			api("get_billing_state").then(function (r) { render(r.message); }).catch(function () {
 				document.getElementById("bill-title").textContent = "We could not load your plan";
-				document.getElementById("bill-lead").textContent = "Refresh the page or email hello@aimatic.tech.";
+				document.getElementById("bill-lead").textContent = "Refresh the page or email hello@examic.study.";
 			});
 		})();
 		</script>

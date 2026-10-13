@@ -1,25 +1,40 @@
 ---
 name: lms-learning
-description: Build and operate Examic Study's Frappe LMS product at lms.aimatic.tech. Use for LMS course/chapter/lesson structure, protected study notes, chapter MCQs and feedback, flashcards, module assessments, learner analytics, AI-assisted content drafting, instructor tools, and LMS-specific site changes.
+description: Build and operate Examic Study's Frappe LMS product at www.examic.study. Use for LMS course/chapter/lesson structure, protected study notes, chapter MCQs and feedback, flashcards, module assessments, learner analytics, AI-assisted content drafting, instructor tools, and LMS-specific site changes.
 ---
 
 # Examic Study
 
-Product repo for `lms.aimatic.tech` / examic.study. Do not load SZL retail
-skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
+Product repo for the live student URL `https://www.examic.study/` and Frappe
+site `examic.study`. The old `lms.aimatic.tech` server domain is retired. Keep
+Frappe LMS upstream-compatible. Put every owned feature in
 `aimaticlearning/lms_learning/`; never modify `apps/lms` or Frappe core.
 
 ## Working model
 
 - Read `docs/current-state.md` in this repo. For BLP course state, `blp-handoff.md`.
   For Word import, empty-lesson fill, or coverage reports, load `lms-course-upload`.
-- Do not install LMS features on `szl`, `siezal`, or `hsm`, or couple them to
-  POS data. `siezal.aimatic.tech` is SZL test, not an LMS sandbox.
-- Use `bench-ops` for site, proxy, worker, certificate, or migration.
-  This bench shares workers with live `szl`. Do not take an LMS backup unless
-  asked.
+- Use Frappe site name `examic.study` for bench commands. Student-facing links
+  use `https://www.examic.study/`.
+- Use `bench-ops` for site, proxy, worker, certificate, or migration work.
+  Verify the Examic site and a rollback path before live changes. Do not take
+  an LMS backup unless asked.
 - Use Frappe LMS for course, chapter, lesson, enrolment, and baseline quiz
   behaviour. Keep `aimaticlearning` additions namespaced to avoid collisions.
+
+## Desk
+
+The desk home has two tiles. **Learning** is the Frappe LMS course catalogue.
+**LMS Learning** is Examic Study. Open that tile. Its Settings card is the one
+place for configuration:
+
+- Study Buddy: previous prompt, helpful text wrapper, model, OpenRouter key, Discord webhook
+- Live chat: on/off and hours
+- Billing
+- Lesson audio
+- Live chat inbox, where staff reply
+
+`https://www.examic.study/desk/lms-learning`
 
 ## Content and privacy
 
@@ -85,8 +100,11 @@ skills. Keep Frappe LMS upstream-compatible. Put every owned feature in
   chapter-scoped conversation via `get_study_buddy_history` (session user only).
   Ground answers in the open lesson plus its approved `Learning Chapter Profile`
   notes; never include answer keys or instructor-only content. Do not store lesson
-  bodies, system prompts, or raw provider errors. Use only paid
-  `nvidia/nemotron-3.5-lightning` for learner turns (never `:free` or a fallback model).
+  bodies, system prompts, or raw provider errors. Learner turns use the paid
+  model selected in Examic Study Settings, seeded as
+  `nvidia/nemotron-3.5-lightning`. Never use a `:free` model. The OpenRouter
+  key, previous prompt, helpful text wrapper, Study Buddy switch, and Discord
+  alerts are set on Examic Study Settings. Live chat hours are on Examic Live Chat Settings.
 - Keep chapter MCQs, the 150-question module assessment, and the 200-card
   target explicit; never silently duplicate or discard approved questions.
   SQE1 FLK mocks use `docs/sqe1/`; no Kaplan; no invented keys.

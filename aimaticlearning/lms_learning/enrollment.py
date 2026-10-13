@@ -47,6 +47,17 @@ def update_website_context(context):
 	request = getattr(frappe.local, "request", None)
 	if request and request.path.rstrip("/") == "/login":
 		context["logo"] = LOGIN_MARK
+	try:
+		from aimaticlearning.lms_learning.study_settings import public_features
+
+		context["examic_study_features"] = public_features()
+	except Exception:
+		context["examic_study_features"] = {
+			"study_buddy_enabled": True,
+			"live_chat_enabled": False,
+			"live_chat_open": False,
+			"starter_prompts": [],
+		}
 
 
 def configure_lms_student_access() -> dict:
@@ -124,7 +135,7 @@ def _configure_course_quiz_feedback() -> None:
 
 
 def configure_zoho_outgoing_email(
-	email_id: str = "hello@aimatic.tech",
+	email_id: str = "hello@examic.study",
 	password: str | None = None,
 	smtp_server: str = "smtp.zoho.com",
 	smtp_port: int = 587,
@@ -237,7 +248,7 @@ def _ensure_lms_learning_settings() -> None:
 def _support_email() -> str:
 	return (
 		frappe.db.get_single_value("LMS Settings", "contact_us_email")
-		or "hello@aimatic.tech"
+		or "hello@examic.study"
 	)
 
 
@@ -388,6 +399,17 @@ def complete_student_signup(user: str) -> dict:
 			}
 			subject, message = _render_template(WELCOME_TEMPLATE, context)
 			_queue_email(doc.email, subject, message, "User", doc.name)
+			try:
+				from aimaticlearning.lms_learning.discord_alerts import notify
+
+				notify(
+					"signup",
+					title="New student",
+					description=f"{user} signed up. {created} new enrolments.",
+					dedupe_key=f"signup:{user}",
+				)
+			except Exception:
+				frappe.log_error(title="Discord alert failed")
 		return {"user": user, "courses": len(titles), "new_enrolments": created}
 	finally:
 		frappe.set_user(previous_user)

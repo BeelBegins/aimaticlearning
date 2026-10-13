@@ -1,0 +1,343 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "study_buddy_enabled",
+  "section_openrouter",
+  "openrouter_api_key",
+  "column_break_sampling",
+  "temperature",
+  "max_output_tokens",
+  "section_models",
+  "default_model",
+  "models",
+  "section_prompt",
+  "system_prompt",
+  "helpful_wrapper",
+  "helpful_text",
+  "starter_prompts",
+  "section_discord",
+  "discord_alerts_enabled",
+  "discord_webhook_url",
+  "column_break_alerts",
+  "alert_signup",
+  "alert_payment_confirmed",
+  "alert_payment_review",
+  "alert_access_locked",
+  "alert_study_buddy_failure",
+  "alert_live_chat",
+  "live_chat_enabled",
+  "section_live_chat",
+  "live_chat_greeting",
+  "live_chat_offline_message",
+  "section_schedule",
+  "live_chat_schedule_enabled",
+  "live_chat_timezone",
+  "column_break_hours",
+  "live_chat_start",
+  "live_chat_end",
+  "section_days",
+  "live_chat_monday",
+  "live_chat_tuesday",
+  "live_chat_wednesday",
+  "live_chat_thursday",
+  "column_break_days",
+  "live_chat_friday",
+  "live_chat_saturday",
+  "live_chat_sunday"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "description": "When off, learners do not see Study Buddy and questions are not sent to the model.",
+   "fieldname": "study_buddy_enabled",
+   "fieldtype": "Check",
+   "label": "Study Buddy enabled"
+  },
+  {
+   "default": "0",
+   "description": "When off, the live chat button is hidden and new student messages are refused.",
+   "fieldname": "live_chat_enabled",
+   "fieldtype": "Check",
+   "label": "Live chat enabled",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_live_chat",
+   "fieldtype": "Section Break",
+   "label": "Live chat",
+   "hidden": 1
+  },
+  {
+   "default": "Hello. Someone from Examic is here if you need technical help.",
+   "fieldname": "live_chat_greeting",
+   "fieldtype": "Small Text",
+   "label": "Greeting",
+   "hidden": 1
+  },
+  {
+   "default": "Live chat is closed right now.",
+   "fieldname": "live_chat_offline_message",
+   "fieldtype": "Small Text",
+   "label": "Offline message",
+   "hidden": 1
+  },
+  {
+   "description": "Turn this on to accept messages only during the hours below. Live chat enabled still closes chat completely, including during those hours.",
+   "fieldname": "section_schedule",
+   "fieldtype": "Section Break",
+   "label": "Live chat hours",
+   "hidden": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_schedule_enabled",
+   "fieldtype": "Check",
+   "label": "Limit to these hours",
+   "hidden": 1
+  },
+  {
+   "default": "Europe/London",
+   "fieldname": "live_chat_timezone",
+   "fieldtype": "Data",
+   "label": "Timezone",
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_hours",
+   "fieldtype": "Column Break",
+   "hidden": 1
+  },
+  {
+   "default": "09:00:00",
+   "fieldname": "live_chat_start",
+   "fieldtype": "Time",
+   "label": "Opens",
+   "hidden": 1
+  },
+  {
+   "default": "17:00:00",
+   "fieldname": "live_chat_end",
+   "fieldtype": "Time",
+   "label": "Closes",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_days",
+   "fieldtype": "Section Break",
+   "label": "Days",
+   "hidden": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_monday",
+   "fieldtype": "Check",
+   "label": "Monday",
+   "hidden": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_tuesday",
+   "fieldtype": "Check",
+   "label": "Tuesday",
+   "hidden": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_wednesday",
+   "fieldtype": "Check",
+   "label": "Wednesday",
+   "hidden": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_thursday",
+   "fieldtype": "Check",
+   "label": "Thursday",
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_days",
+   "fieldtype": "Column Break",
+   "hidden": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "live_chat_friday",
+   "fieldtype": "Check",
+   "label": "Friday",
+   "hidden": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_saturday",
+   "fieldtype": "Check",
+   "label": "Saturday",
+   "hidden": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "live_chat_sunday",
+   "fieldtype": "Check",
+   "label": "Sunday",
+   "hidden": 1
+  },
+  {
+   "fieldname": "section_openrouter",
+   "fieldtype": "Section Break",
+   "label": "OpenRouter"
+  },
+  {
+   "description": "Leave blank to keep using the site config key.",
+   "fieldname": "openrouter_api_key",
+   "fieldtype": "Password",
+   "label": "OpenRouter API Key"
+  },
+  {
+   "fieldname": "column_break_sampling",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0.1",
+   "description": "Saved values are kept between 0 and 1.",
+   "fieldname": "temperature",
+   "fieldtype": "Float",
+   "label": "Temperature",
+   "precision": "2"
+  },
+  {
+   "default": "900",
+   "description": "Saved values are kept between 128 and 2000.",
+   "fieldname": "max_output_tokens",
+   "fieldtype": "Int",
+   "label": "Max output tokens"
+  },
+  {
+   "fieldname": "section_models",
+   "fieldtype": "Section Break",
+   "label": "Models"
+  },
+  {
+   "description": "Must match an enabled model id, for example nvidia/nemotron-3.5-lightning. Leave empty to keep the site config model.",
+   "fieldname": "default_model",
+   "fieldtype": "Data",
+   "label": "Default model"
+  },
+  {
+   "fieldname": "models",
+   "fieldtype": "Table",
+   "label": "Allowed models",
+   "options": "Examic AI Model"
+  },
+  {
+   "fieldname": "section_prompt",
+   "fieldtype": "Section Break",
+   "label": "Study Buddy prompt",
+   "description": "Safety rules are always placed in front of the previous prompt and cannot be removed."
+  },
+  {
+   "description": "The original Study Buddy instructions. Edit them here. Safety rules stay in front of this text.",
+   "fieldname": "system_prompt",
+   "fieldtype": "Text",
+   "label": "Previous prompt"
+  },
+  {
+   "description": "One suggested question per line. Leave empty to keep the built-in suggestions.",
+   "fieldname": "starter_prompts",
+   "fieldtype": "Small Text",
+   "label": "Starter questions"
+  },
+  {
+   "fieldname": "section_discord",
+   "fieldtype": "Section Break",
+   "label": "Discord alerts"
+  },
+  {
+   "default": "0",
+   "description": "When off, no alerts are sent. The test button can still check the webhook.",
+   "fieldname": "discord_alerts_enabled",
+   "fieldtype": "Check",
+   "label": "Discord alerts enabled"
+  },
+  {
+   "description": "Discord channel webhook. Used only to post staff alerts.",
+   "fieldname": "discord_webhook_url",
+   "fieldtype": "Password",
+   "label": "Discord webhook URL"
+  },
+  {
+   "fieldname": "column_break_alerts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_signup",
+   "fieldtype": "Check",
+   "label": "New signup"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_payment_confirmed",
+   "fieldtype": "Check",
+   "label": "Payment confirmed"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_payment_review",
+   "fieldtype": "Check",
+   "label": "Payment needs review"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_access_locked",
+   "fieldtype": "Check",
+   "label": "Access locked"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_study_buddy_failure",
+   "fieldtype": "Check",
+   "label": "Study Buddy failure"
+  },
+  {
+   "default": "0",
+   "fieldname": "alert_live_chat",
+   "fieldtype": "Check",
+   "label": "New live chat message"
+  },
+  {
+   "description": "Text wrapped around the approved lesson. Use {lesson} for the lesson title and {source} for the approved material.",
+   "fieldname": "helpful_wrapper",
+   "fieldtype": "Text",
+   "label": "Helpful text wrapper"
+  },
+  {
+   "default": "Approved chapter context is selected automatically.",
+   "description": "Short line learners see under the lesson title in Study Buddy.",
+   "fieldname": "helpful_text",
+   "fieldtype": "Small Text",
+   "label": "Helpful text"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-09 01:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "LMS Learning",
+ "name": "Examic Study Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

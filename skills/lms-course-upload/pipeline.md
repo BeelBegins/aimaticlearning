@@ -1,19 +1,20 @@
 # Course upload pipeline
 
-Site: `lms.aimatic.tech`. Code: `aimaticlearning.lms_learning.course_upload`.
+Student URL: `https://www.examic.study/`. Frappe site: `examic.study`.
+Code: `aimaticlearning.lms_learning.course_upload`.
 Preferred model: Claude Opus thinking (high).
 
 ## Commands
 
 ```bash
-cd /home/nabeel/frappe-bench
+cd /home/ubuntu/frappe-bench
 # Do not take an LMS backup unless asked.
 
 # 1. Dry-run coverage (no write)
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.course_upload.coverage_report --kwargs '{"course":"contract-law","source_file":"ca1d016ce3"}'
+bench --site examic.study execute aimaticlearning.lms_learning.course_upload.coverage_report --kwargs '{"course":"contract-law","source_file":"ca1d016ce3"}'
 
 # 2. Attach lessons to the LMS chapter rail (required for /learn/N-1)
-bench --site lms.aimatic.tech execute aimaticlearning.lms_learning.course_upload.relink_notes_lessons
+bench --site examic.study execute aimaticlearning.lms_learning.course_upload.relink_notes_lessons
 ```
 
 Rollback: revert the content change. Backup LMS only if asked.

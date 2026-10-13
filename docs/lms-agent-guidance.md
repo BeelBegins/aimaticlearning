@@ -1,8 +1,8 @@
 # Examic LMS agent guidance map
 
 This `aimaticlearning` repository is the single source of truth for Examic
-Study LMS agent work. It is separate from Aimatic/SZL retail. Keep reusable
-guidance here; do not store LMS-only procedures as personal agent memory.
+Study LMS agent work. Keep reusable guidance here; do not store LMS-only
+procedures as personal agent memory.
 
 ## Use this order
 

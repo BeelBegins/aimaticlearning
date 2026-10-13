@@ -1,0 +1,68 @@
+.examic-student-shell {
+	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.examic-student-shell {
+	--shell-ink: var(--examic-theme-ink, var(--ink-gray-9, #0e1b3d));
+	--shell-muted: var(--examic-theme-muted, var(--ink-gray-7, #53617b));
+	--shell-accent: var(--examic-theme-primary, #00247d);
+	--shell-surface: var(--examic-theme-surface, #fff);
+	--shell-subtle: var(--examic-theme-subtle, #f3f6fb);
+	--shell-line: var(--examic-theme-line, #d9e1ef);
+	--shell-canvas: var(--examic-theme-canvas, #f7f8fa);
+	box-sizing: border-box;
+	display: grid;
+	grid-template-columns: 248px minmax(0, 1fr);
+	gap: 0;
+	width: 100%;
+	min-height: calc(100vh - 48px);
+	margin: 0 auto;
+	padding: 0;
+	background: var(--shell-canvas);
+	color: var(--shell-ink);
+}
+
+.examic-student-shell *,
+.examic-student-shell *::before,
+.examic-student-shell *::after { box-sizing: border-box; }
+
+.examic-student-sidebar {
+	position: sticky;
+	top: 0;
+	align-self: start;
+	min-height: calc(100vh - 48px);
+	padding: 18px 14px;
+	border-right: 1px solid var(--shell-line);
+	background: var(--shell-surface);
+}
+
+.examic-student-sidebar a { color: var(--shell-muted); text-decoration: none; }
+.examic-student-sidebar-brand { display: flex; align-items: center; gap: 10px; min-height: 48px; margin: 0 4px 24px; color: var(--shell-ink) !important; font-size: 1rem; font-weight: 700; }
+.examic-student-sidebar-brand img { display: block; width: 32px; height: 32px; object-fit: contain; }
+.examic-student-sidebar-heading { margin: 0 0 8px; padding: 0 12px; color: var(--shell-muted); font-size: .8rem; font-weight: 600; }
+.examic-student-sidebar nav { display: grid; gap: 4px; }
+.examic-student-sidebar nav a,
+.examic-student-sidebar-plan { display: flex; align-items: center; min-height: 38px; padding: 7px 12px; border-radius: 6px; font-size: .875rem; font-weight: 550; }
+.examic-student-sidebar nav a:hover,
+.examic-student-sidebar-plan:hover { background: var(--shell-subtle); color: var(--shell-ink); }
+.examic-student-sidebar nav a[aria-current="page"] { background: var(--shell-subtle); color: var(--shell-accent); font-weight: 650; }
+.examic-student-sidebar-plan { margin: 24px 4px 0; padding: 14px 8px 0; border-top: 1px solid var(--shell-line); border-radius: 0; }
+.examic-student-shell-main { min-width: 0; padding: 24px clamp(20px, 3vw, 48px) 48px; }
+
+.examic-student-shell .aimatic-student-dash { max-width: 1240px; padding: 0; }
+.examic-student-shell .aimatic-revision { max-width: 1240px; padding: 0 0 40px; background: transparent; }
+
+@media (max-width: 760px) {
+	.examic-student-shell { grid-template-columns: minmax(0, 1fr); min-height: auto; }
+	.examic-student-sidebar { position: static; min-height: 0; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--shell-line); }
+	.examic-student-sidebar-brand { display: none; }
+	.examic-student-sidebar-heading, .examic-student-sidebar-plan { display: none; }
+	.examic-student-sidebar nav { display: flex; gap: 4px; overflow-x: auto; }
+	.examic-student-sidebar nav a { flex: 0 0 auto; min-height: 40px; padding: 8px 12px; white-space: nowrap; }
+	.examic-student-shell-main { padding: 20px 16px 36px; }
+	.examic-student-shell .aimatic-revision { padding-bottom: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.examic-student-sidebar a { scroll-behavior: auto; transition: none; }
+}

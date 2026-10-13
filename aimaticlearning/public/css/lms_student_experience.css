@@ -22,9 +22,9 @@ body.aimatic-lms-learner .aimatic-revision-entry {
 	display: block;
 	margin: 8px 12px 10px;
 	padding: 11px 12px;
-	border: 1px solid rgba(11, 154, 132, 0.22);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 14px;
-	background: #eef8f5;
+	background: var(--aimatic-mint, #f5f7fb);
 	color: var(--aimatic-ink) !important;
 	text-decoration: none !important;
 }
@@ -62,10 +62,10 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete-actions a,
 .ach-flash-complete-actions a {
 	min-height: 40px;
 	padding: 8px 14px;
-	border: 1px solid rgba(16, 35, 63, 0.12);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 999px;
-	background: #fff;
-	color: #10233f;
+	background: var(--aimatic-cream, #fff);
+	color: var(--aimatic-ink, #0e1b3d);
 	font-weight: 700;
 	font-size: 0.8rem;
 	text-decoration: none;
@@ -73,9 +73,9 @@ body.aimatic-lms-learner .aimatic-chapter-hub .ach-flash-complete-actions a,
 }
 body.aimatic-lms-learner .aimatic-flk1-switcher {
 	margin: 12px 12px 4px;
-	border: 1px solid rgba(23, 36, 58, 0.12);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 14px;
-	background: #fffdf8;
+	background: var(--aimatic-cream, #fff);
 	overflow: hidden;
 }
 
@@ -141,7 +141,7 @@ body.aimatic-lms-learner .aimatic-flk1-switcher a {
 }
 
 body.aimatic-lms-learner .aimatic-flk1-switcher a[aria-current="page"] {
-	background: #f6ebd5 !important;
+	background: var(--aimatic-mint-deep, #eaeffa) !important;
 	color: var(--aimatic-ink) !important;
 }
 
@@ -196,8 +196,8 @@ body.aimatic-lms-learner .aimatic-flk1-switcher a i {
 	transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
-.aimatic-topic-action-mcq { background: #cf918b; }
-.aimatic-topic-action-flash { background: #8eb580; }
+.aimatic-topic-action-mcq { background: var(--aimatic-salmon, #cf142b); }
+.aimatic-topic-action-flash { background: var(--aimatic-green, #cf142b); }
 
 .aimatic-topic-actions > p {
 	display: flex;
@@ -211,7 +211,7 @@ body.aimatic-lms-learner .aimatic-flk1-switcher a i {
 .aimatic-topic-intro .aimatic-topic-kicker {
 	display: block;
 	margin: 0 0 7px !important;
-	color: #307f73 !important;
+	color: var(--aimatic-teal, #00247d) !important;
 	font-family: "Source Serif 4", Georgia, serif;
 	font-size: 1.8rem !important;
 	font-weight: 500;
@@ -221,13 +221,13 @@ body.aimatic-lms-learner .aimatic-flk1-switcher a i {
 .aimatic-topic-intro {
 	margin-bottom: 28px;
 	padding-bottom: 24px;
-	border-bottom: 1px solid rgba(45, 42, 36, 0.12);
+	border-bottom: 1px solid var(--aimatic-line, #dde3f0);
 }
 
 .aimatic-topic-intro > span {
 	display: block;
 	margin-bottom: 7px;
-	color: #307f73;
+	color: var(--aimatic-teal, #00247d);
 	font-family: "Source Serif 4", Georgia, serif;
 	font-size: 1.8rem;
 	font-weight: 500;
@@ -236,7 +236,7 @@ body.aimatic-lms-learner .aimatic-flk1-switcher a i {
 
 .aimatic-topic-intro p {
 	margin: 0 !important;
-	color: #747875 !important;
+	color: var(--aimatic-ink-soft, #4a5878) !important;
 	font-size: 0.86rem !important;
 }
 
@@ -269,13 +269,13 @@ body.aimatic-lms-learner .aimatic-lms-ai-context {
 	gap: 5px;
 	margin: 18px 0 22px;
 	padding: 13px 14px;
-	border: 1px solid rgba(48, 127, 115, 0.14);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 12px;
-	background: #f5f8f5;
+	background: var(--aimatic-mint, #f5f7fb);
 }
 
 body.aimatic-lms-learner .aimatic-lms-ai-context span {
-	color: #7e837e;
+	color: var(--aimatic-ink-soft, #4a5878);
 	font-size: 0.64rem;
 	font-weight: 650;
 	letter-spacing: 0.1em;
@@ -319,7 +319,7 @@ body.aimatic-lms-learner .aimatic-topic-action {
 body.aimatic-lms-learner .aimatic-topic-action:hover {
 	filter: brightness(0.97);
 	transform: translateY(-1px);
-	box-shadow: 0 8px 18px rgba(57, 49, 38, 0.12);
+	box-shadow: 0 8px 18px rgba(0, 36, 125, 0.12);
 }
 
 body.aimatic-lms-learner .aimatic-topic-action-mcq {
@@ -371,7 +371,7 @@ body.aimatic-lms-learner .aimatic-topic-sections h2:first-child {
 
 body.aimatic-lms-learner .aimatic-topic-sections p {
 	margin: 0 0 15px !important;
-	color: #3f433f !important;
+	color: var(--aimatic-ink, #0e1b3d) !important;
 	font-family: var(--aimatic-reading-font) !important;
 	font-size: 1rem !important;
 	line-height: 1.78 !important;
@@ -395,9 +395,9 @@ body.aimatic-lms-learner .aimatic-flashcard-state {
 	min-height: 190px;
 	margin-top: 26px;
 	padding: 28px;
-	border: 1px solid rgba(42, 157, 143, 0.14);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 20px;
-	background: #f5faf7;
+	background: var(--aimatic-mint, #f5f7fb);
 	color: var(--aimatic-teal-dark);
 	text-align: center;
 }
@@ -414,8 +414,8 @@ body.aimatic-lms-learner .aimatic-flashcard-loader > span:first-child {
 body.aimatic-lms-learner .aimatic-flashcard-loader.is-error,
 body.aimatic-lms-learner .aimatic-flashcard-empty {
 	flex-direction: column;
-	background: #fff9f5;
-	color: #8d554c;
+	background: var(--aimatic-danger-soft, #fdecee);
+	color: var(--aimatic-salmon, #cf142b);
 }
 
 body.aimatic-lms-learner .aimatic-flashcard-loader.is-error span,
@@ -451,9 +451,9 @@ body.aimatic-lms-learner .ach-rate-easy {
 body.aimatic-lms-learner .aimatic-sqe-pathway {
 	margin: 0 20px 28px;
 	padding: 26px;
-	border: 1px solid rgba(23, 36, 58, 0.1);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 24px;
-	background: linear-gradient(145deg, #fffdf8, #f7fbf8);
+	background: linear-gradient(145deg, var(--aimatic-cream, #fff), var(--aimatic-mint, #f5f7fb));
 }
 
 body.aimatic-lms-learner .aimatic-sqe-pathway-intro {
@@ -498,9 +498,9 @@ body.aimatic-lms-learner .aimatic-sqe-pathway-tabs {
 body.aimatic-lms-learner .aimatic-sqe-pathway-tab {
 	min-height: 44px;
 	padding: 9px 16px;
-	border: 1px solid rgba(48, 127, 115, 0.2);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 999px;
-	background: #fff;
+	background: var(--aimatic-cream, #fff);
 	color: var(--aimatic-teal-dark);
 	font: inherit;
 	font-size: 0.78rem;
@@ -517,7 +517,7 @@ body.aimatic-lms-learner .aimatic-sqe-pathway-tab[aria-selected="true"] {
 body.aimatic-lms-learner .aimatic-sqe-pathway-tab:focus-visible,
 body.aimatic-lms-learner .aimatic-sqe-switcher > button:focus-visible,
 body.aimatic-lms-learner .aimatic-sqe-switcher a:focus-visible {
-	outline: 3px solid rgba(198, 154, 59, 0.55);
+	outline: 3px solid var(--aimatic-teal, #00247d);
 	outline-offset: 2px;
 }
 
@@ -554,8 +554,8 @@ body.aimatic-lms-learner .aimatic-sqe-course-card {
 	min-width: 0;
 	padding: 0;
 	border-radius: 15px;
-	background: #fff;
-	box-shadow: 0 7px 22px rgba(16, 35, 63, 0.06);
+	background: var(--aimatic-cream, #fff);
+	box-shadow: 0 7px 22px rgba(0, 36, 125, 0.06);
 	color: inherit;
 	text-decoration: none;
 	transition: transform 160ms ease, box-shadow 160ms ease;
@@ -563,7 +563,7 @@ body.aimatic-lms-learner .aimatic-sqe-course-card {
 
 body.aimatic-lms-learner .aimatic-sqe-course-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 12px 28px rgba(16, 35, 63, 0.11);
+	box-shadow: 0 12px 28px rgba(0, 36, 125, 0.11);
 }
 
 body.aimatic-lms-learner .aimatic-sqe-switcher-group {
@@ -645,10 +645,10 @@ body.aimatic-lms-learner .aimatic-sqe-switcher-group > small {
 	width: 1.7rem;
 	height: 1.7rem;
 	margin-left: 0;
-	border: 1px solid rgba(16, 35, 63, 0.2);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 999px;
-	background: #fff;
-	color: #10233f;
+	background: var(--aimatic-cream, #fff);
+	color: var(--aimatic-ink, #0e1b3d);
 	font-size: 0.78rem;
 	font-weight: 700;
 	line-height: 1;
@@ -666,13 +666,13 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(.aimatic-mcq-option-let
 }
 
 label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:checked) {
-	border: 1px solid #c7a900;
-	background: #fff7b8 !important;
-	box-shadow: 0 0 0 2px rgba(255, 229, 0, 0.24);
+	border: 1px solid var(--aimatic-teal, #00247d);
+	background: var(--aimatic-mint-deep, #eaeffa) !important;
+	box-shadow: 0 0 0 2px rgba(0, 36, 125, 0.18);
 }
 
 label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
-	outline: 2px solid #10233f;
+	outline: 2px solid var(--aimatic-teal, #00247d);
 	outline-offset: 2px;
 }
 
@@ -686,7 +686,7 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
 
 .aimatic-mcq-nav-status {
 	min-width: 3.2rem;
-	color: #10233f;
+	color: var(--aimatic-ink, #0e1b3d);
 	font-size: 0.8rem;
 	font-weight: 600;
 	text-align: center;
@@ -699,10 +699,10 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
 	min-width: 44px;
 	min-height: 44px;
 	padding: 0;
-	border: 1px solid rgba(16, 35, 63, 0.18);
+	border: 1px solid var(--aimatic-line, #dde3f0);
 	border-radius: 8px;
-	background: #fff;
-	color: #10233f;
+	background: var(--aimatic-cream, #fff);
+	color: var(--aimatic-ink, #0e1b3d);
 	font-size: 1.1rem;
 	font-weight: 700;
 	line-height: 1;
@@ -710,7 +710,7 @@ label.flex.items-center.bg-surface-gray-3.rounded-md:has(input:focus-visible) {
 }
 
 .aimatic-mcq-nav-btn:hover:not(:disabled) {
-	background: #f4f7f6;
+	background: var(--aimatic-mint, #f5f7fb);
 }
 
 .aimatic-mcq-nav-btn:disabled {
@@ -744,17 +744,17 @@ body.aimatic-lms-learner .ach-flag {
 	gap: 6px;
 	height: 34px;
 	padding: 0 14px;
-	border: 1px solid #c0392b;
+	border: 1px solid var(--aimatic-salmon, #cf142b);
 	border-radius: 999px;
-	background: #fff;
-	color: #c0392b;
+	background: var(--aimatic-cream, #fff);
+	color: var(--aimatic-salmon, #cf142b);
 	font-size: 14px;
 	font-weight: 600;
 	line-height: 1;
 	cursor: pointer;
 }
 body.aimatic-lms-learner .ach-flag::after { content: "Flag"; }
-body.aimatic-lms-learner .ach-flag:hover { background: #fdecea; }
-body.aimatic-lms-learner .ach-flag.is-flagged { background: #c0392b; color: #fff; }
+body.aimatic-lms-learner .ach-flag:hover { background: var(--aimatic-danger-soft, #fdecee); }
+body.aimatic-lms-learner .ach-flag.is-flagged { background: var(--aimatic-salmon, #cf142b); color: var(--aimatic-cream, #fff); }
 body.aimatic-lms-learner .ach-flag.is-flagged::after { content: "Flagged"; }
 body.aimatic-lms-learner .ach-flag:disabled { cursor: progress; }

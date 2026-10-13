@@ -51,3 +51,20 @@ configuration created through the API; ids and secrets stored in Examic Billing 
 only. Lifecycle test on a throwaway student passed and its data was removed. Two bugs
 found and fixed: `frappe.local.__dict__` in `access_state` (use an attribute) and the
 payment Method select lacking "Stripe card". Provider stays `Manual` until the owner goes live.
+
+Owner clarification 2026-10-08: the free signup month includes Mock 1 and Mock 2 only.
+Choosing Monthly starts a paid subscription immediately: charge GBP 49 at Checkout, unlock
+all mocks when Stripe confirms the payment, and renew monthly from the checkout date. The
+free month is optional; choosing Monthly ends the free-only mock limit. The 3-Month plan
+remains a GBP 99 one-time charge, with its paid period following the free month and all
+mocks unlocking as soon as payment is confirmed. Monthly Checkout must not add a Stripe
+trial. The live implementation is in `billing.py`, `billing_providers/stripe.py`, and
+`www/billing.html`; restart only web/workers after static review. Do not run a live charge
+as a verification step.
+
+Owner report 2026-10-08: `frutyfriend@gmail.com` had no subscription row. Billing UI
+incorrectly treated that as full access, while Mock 4 remained locked and Checkout
+refused to start. No-row students now have a distinct `unsubscribed` billing state, keep
+their courses and Mocks 1 and 2, see plan choices, and get a pending subscription record
+only when starting Checkout. A paid webhook opens all mocks. Staff and non-student users
+cannot create student subscriptions through Checkout.
