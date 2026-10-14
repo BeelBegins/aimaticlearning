@@ -737,3 +737,31 @@ retention are open; checkout cooling-off disclosure is not built.
 ## 2026-10-13: Home study rhythm background
 
 Owner requested that the grey Prepare → Practice → Perform section match the white public website. Changed only `.sqe-how` background in `sqe_frappe_theme.css` to `#fff`, retaining the cards and section borders. Bumped its shared-template URL to `20261013-how-white` because static assets are served with immutable caching. Cleared the Examic site cache; no migration or service restart. Verified public HTTPS home HTML references the new version and the served CSS contains the white rule; `git diff --check` passed. Browser visual verification remains pending. Rollback: restore the previous CSS rule and version link, then clear site cache.
+
+## 2026-10-14: Live Stripe webhook endpoint missing
+
+**Scope:** Stripe billing on examic.study (Live mode).
+
+**Finding:** A student completed Monthly Checkout and was charged £49, but their
+Examic Subscription stayed "Awaiting Payment" with no payment row. Read-only Stripe API
+checks found no webhook endpoint on the live account; every event showed
+`pending_webhooks = 0`, and `Examic Payment Event` had no rows at all, so no live payment
+had ever reached the site. One affected student.
+
+**Correction:** The owner created the live endpoint
+`https://www.examic.study/api/method/aimaticlearning.lms_learning.billing.stripe_webhook`
+with `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed` and
+`customer.subscription.deleted` (some extra events are also selected; the site logs them
+as Ignored), and saved its signing secret in Examic Billing Settings. The student was
+refunded in full and the Stripe subscription cancelled, so the missed events were not
+replayed and no access was granted. No code change.
+
+**Verification:** After the cancel, `customer.subscription.deleted` was stored in
+Examic Payment Event as Matched for the student, with no Error Log. The site only logs
+events whose signature passes, so delivery and the secret are confirmed. Stripe shows no
+pending deliveries.
+
+**Remaining risk:** A live `invoice.paid` has not yet been processed end to end; check
+the next real payment shows Matched and opens the paid period. The refunded student's
+site row has no `stripe_customer`, so `/billing` hides "Manage card and cancel" for them
+until a new Checkout links one.

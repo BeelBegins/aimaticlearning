@@ -78,8 +78,10 @@ New self-service signups are enrolled in every published course (`complete_stude
 
 Read-only runtime check on 2026-10-08 confirmed Stripe is the active provider in
 Live mode, Support Email is `hello@examic.study`, and the default outgoing Email
-Account is `hello@examic.study`. The last recorded webhook was 2026-10-07; a fresh
-live checkout and webhook delivery have not been verified. Student-facing payments
+Account is `hello@examic.study`. The live webhook endpoint was created on
+2026-10-14 (none existed before, so no earlier live payment reached the site); a live
+`customer.subscription.deleted` delivery was verified Matched that day. A live
+`invoice.paid` has not yet been processed. Student-facing payments
 are Stripe only.
 
 Final pricing: month 1 free (Mock 1 and 2), then 49 GBP monthly or 99 GBP for 3 months.
@@ -92,8 +94,8 @@ subscription row keep normal course access and Mock 1 and 2, see plans on `/bill
 and get a pending row only when they start Checkout. The old server had 28 existing
 students. Examic Billing Settings DocTypes were loaded on the new site. The live site
 uses Stripe Live mode with active GBP 49 monthly and GBP 99 one-time prices; the key can
-read the live account and both prices. A live checkout and webhook delivery have not yet
-been verified. 2026-10-07 sandbox rollout:
+read the live account and both prices. See the 2026-10-14 entry in
+`docs/lms-findings-and-fixes.md`. 2026-10-07 sandbox rollout:
 Stripe test products, prices, webhook and portal config created and stored in settings;
 provider left on `Manual`. Throwaway-student lifecycle passed (lock, signed webhooks for
 monthly, 3-month, failure, duplicate, unknown user; test Checkout URLs for both plans). Details: `skills/lms-billing/SKILL.md`.
