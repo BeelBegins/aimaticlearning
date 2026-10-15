@@ -100,6 +100,13 @@ Stripe test products, prices, webhook and portal config created and stored in se
 provider left on `Manual`. Throwaway-student lifecycle passed (lock, signed webhooks for
 monthly, 3-month, failure, duplicate, unknown user; test Checkout URLs for both plans). Details: `skills/lms-billing/SKILL.md`.
 
+## Equity and Trust Law (2026-10-15)
+
+Rebuilt to its six-chapter Word source (File `bed22e0354`). Notes and chapter quizzes
+follow the source exactly. 120 new flashcards await owner review (Under Review); the
+older published cards stay live until then. See the 2026-10-15 entry in
+`docs/lms-findings-and-fixes.md`.
+
 ## Unpublished on `/sqe`
 
 `dispute-resolution`, `legal-services`, and `criminal-law` are unpublished

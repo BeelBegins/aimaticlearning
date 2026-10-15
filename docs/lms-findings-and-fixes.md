@@ -765,3 +765,41 @@ pending deliveries.
 the next real payment shows Matched and opens the paid period. The refunded student's
 site row has no `stripe_customer`, so `/billing` hides "Manage card and cancel" for them
 until a new Checkout links one.
+
+## 2026-10-15: Equity and Trust Law rebuilt to its six-chapter source
+
+**Finding:** The live course did not match the owner's Word source (`EQUITY AND
+TRUSTS.docx`, File `bed22e0354`, six chapters). An unrecorded session on 13 and 14
+October had split it into eight chapters and reworded all notes. At 00:19 on 14 October
+it also moved the correct answer and explanation of five shared questions one option
+along (QTS-2026-01462 to 01466, Chapter 2 Q1 to Q5). Those questions also sit in the
+Module Assessment and FLK2 Mocks 2 and 3. The module's recorded source, `Eq nd
+trust.docx` (`7e662d8062`), an older eight-section file, was no longer on disk.
+
+**Correction:** The five keys and explanations were restored to the source answers.
+`lms_learning/equity_rebuild.py` then rebuilt the course from the source:
+- six reused Course Chapters, in source order, with source titles;
+- the source notes verbatim, with summary and glossary moved to the Module Assessment
+  revision lesson and the embedded MCQs, answers and self-assessment left out;
+- 20 source questions per chapter quiz. 113 existing questions were reused with keys
+  checked against the source, and 7 missing Chapter 4 questions were created.
+
+Old Chapters 7 and 8 were removed through Content Studio after their cards and question
+tags moved to the merged chapters. The retired File row was deleted, and the module now
+points to `bed22e0354`. 120 new flashcards (20 per chapter) were written to the owner's
+flashcard prompt from the new notes. They are imported as Under Review, and the earlier
+published cards stay live until the owner approves the swap.
+
+**Verification:** For every chapter quiz, each question's key and explanation match the
+source answer. The course has 20 lessons: 6 times 3, plus 2 in the Module Assessment.
+FLK2 Mocks 1 to 3 (85 each) and the 150-question assessment are unchanged. A notes leak
+scan found nothing. Every card quote is found verbatim in its chapter notes. A
+logged-in learner browser check is still pending.
+
+**Rollback:** `bench --site examic.study execute
+aimaticlearning.lms_learning.equity_rebuild.rollback --kwargs '{"confirm":"rollback equity"}'`
+restores the snapshot at `sites/examic.study/private/equity_rebuild_snapshot.json`.
+
+**Source wording kept from the site, not the Word file:** two UK spellings, Ch6 Q12
+option C, Ch6 Q20 options B and E (the source has half-finished working). The source's
+own answers to Ch1 Q12, Ch5 Q3 and Ch5 Q4 are doubtful in law and await owner review.
