@@ -1,6 +1,7 @@
 {% set custom_signup_content = frappe.db.get_single_value("LMS Settings", "custom_signup_content") %}
 {% set user_category = frappe.db.get_single_value("LMS Settings", "user_category") %}
-{% set already_registered_message = _("An account with this email already exists. Sign in, or use <a href=\"#forgot\">Forgot password?</a> to set a new password.") %}
+{% set trial_days = frappe.db.get_single_value("Examic Billing Settings", "trial_days") or 30 %}
+{% set support_email = frappe.db.get_single_value("LMS Settings", "contact_us_email") or "hello@examic.study" %}
 <form class="form-signin signup-form" role="form" novalidate>
 	<div class="page-card-body">
 		<div class="login-success-banner examic-signup-banner examic-signup-banner--success hidden" role="status"></div>
@@ -36,6 +37,8 @@
 		</div>
 		{% endif %}
 
+		<p class="examic-signup-note">{{ _("After you log in you choose Monthly or 3-Month and add a card. Nothing is charged for {0} days. Then your card is charged automatically for your plan, unless you cancel before then.").format(trial_days) }}</p>
+
 		{% if custom_signup_content %}
 		<div class="form-group examic-signup-terms">
 			<label class="examic-signup-terms-label" for="signup-terms">
@@ -57,6 +60,7 @@
 
 <script>
 	let signup_button_label = "";
+	let login_notice_pending = false;
 
 	frappe.ready(function () {
 		signup_button_label = $(".signup-form .btn-signup").text().trim();
@@ -71,6 +75,11 @@
 
 		$(window).on("hashchange", function () {
 			reset_signup_form();
+			if (login_notice_pending) {
+				login_notice_pending = false;
+			} else {
+				$(".for-login .examic-login-notice").addClass("hidden").empty();
+			}
 		});
 
 		$(".signup-form").on("submit", function (e) {
@@ -149,16 +158,20 @@
 		return Object.assign({}, login.login_handlers, {
 			200: function (data) {
 				const [code, message] = data.message;
-				const section = $("section:visible");
+				const email = ($("#signup_email").val() || "").trim();
 
 				if (cint(code) === 0) {
 					hide_signup_loading();
-					section.find(".login-success-banner").addClass("hidden");
-					show_signup_error(message);
+					$(".signup-form .login-success-banner").addClass("hidden");
+					if (message === {{ _("Already Registered") | tojson }}) {
+						go_to_login_for_existing_account(email);
+					} else {
+						show_signup_error(message);
+					}
+				} else if (cint(code) === 1) {
+					show_signup_sent(email);
 				} else {
-					login.set_status({{ _("Success") | tojson }}, "green");
-					section.find(".login-error-banner").addClass("hidden");
-					show_signup_success(message);
+					show_signup_error({{ _("Your account was created, but we could not send the email. Please contact") | tojson }} + " " + {{ support_email | tojson }} + ".");
 				}
 			}
 		});
@@ -168,19 +181,37 @@
 		$(".signup-form .btn-signup").removeAttr("aria-busy").text(signup_button_label);
 	}
 
-	function show_signup_success(message) {
-		$(".signup-form .login-success-banner")
-			.removeClass("hidden")
-			.text(message);
+	function show_signup_sent(email) {
+		$(".signup-form .login-error-banner").addClass("hidden");
+		const banner = $(".signup-form .login-success-banner").empty().removeClass("hidden");
+		$("<strong>").text({{ _("Check your inbox.") | tojson }}).appendTo(banner);
+		banner.append(document.createTextNode(" "));
+		banner.append(document.createTextNode(
+			{{ _("We have sent a sign up email to") | tojson }} + " " + email + ". " +
+			{{ _("Open it and use the link to set your password, then log in. If it does not arrive within a few minutes, check your spam folder.") | tojson }}
+		));
+		$(".signup-form .btn-signup").prop("disabled", true).text(signup_button_label);
+		banner.append(document.createTextNode(" "));
+		$("<a>").attr("href", "#login").text({{ _("Go to login") | tojson }}).appendTo(banner);
+	}
+
+	function go_to_login_for_existing_account(email) {
+		login_notice_pending = true;
+		$(".for-login .examic-login-notice")
+			.empty()
+			.append($("<strong>").text({{ _("You already have an account.") | tojson }}))
+			.append(document.createTextNode(
+				" " + {{ _("Log in with") | tojson }} + " " + email + ". " +
+				{{ _("If you do not remember your password, choose Forgot Password to get a new link.") | tojson }}
+			))
+			.removeClass("hidden");
+		window.location.hash = "#login";
+		$("#login_email").val(email);
+		$("#login_password").trigger("focus");
 	}
 
 	function show_signup_error(message) {
-		const banner = $(".signup-form .login-error-banner");
-		if (message === {{ _("Already Registered") | tojson }}) {
-			banner.html({{ already_registered_message | tojson }});
-		} else {
-			banner.text(message);
-		}
-		banner.removeClass("hidden");
+		$(".signup-form .login-success-banner").addClass("hidden");
+		$(".signup-form .login-error-banner").text(message).removeClass("hidden");
 	}
 </script>

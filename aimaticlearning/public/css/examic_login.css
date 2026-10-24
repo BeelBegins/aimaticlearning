@@ -186,6 +186,41 @@ body[data-path="login"] .signup-form #signup-terms {
 	flex-shrink: 0;
 }
 
+/* Frappe hides .login-success-banner and .login-error-banner (display: none) and only its own
+ * login.js shows them. Our signup form toggles .hidden instead, so show them here. */
+body[data-path="login"] .signup-form .examic-signup-banner,
+body[data-path="login"] .examic-login-notice {
+	display: block;
+}
+
+body[data-path="login"] .signup-form .examic-signup-banner.hidden,
+body[data-path="login"] .examic-login-notice.hidden {
+	display: none;
+}
+
+body[data-path="login"] .examic-login-notice {
+	margin: 0 0 12px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: #eef2fb;
+	color: #00247d;
+	font-size: 0.95rem;
+	line-height: 1.45;
+}
+
+body[data-path="login"] .examic-signup-banner a {
+	color: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+}
+
+body[data-path="login"] .signup-form .examic-signup-note {
+	margin: 0 0 12px;
+	color: #3d4752;
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
 body[data-path="login"] .examic-signup-banner {
 	margin-bottom: 12px;
 	padding: 10px 12px;

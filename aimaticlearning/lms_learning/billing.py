@@ -6,6 +6,7 @@ confirm a payment directly through the restricted manual confirmation method.
 Access states:
   staff   staff roles: everything
   full    an account with no subscription row (existing students): all courses, mocks 1 and 2
+  setup   new signup that has not yet chosen a plan and added a card: billing page only
   trial   free month: all courses, Mock 1 and Mock 2
   paid    paid period: everything including every mock
   locked  free month over and not paid: only the billing page
@@ -18,6 +19,8 @@ import json
 import frappe
 from frappe import _
 from frappe.utils import add_days, add_months, get_url, getdate, nowdate
+
+from aimaticlearning.lms_learning.billing_providers.stripe import first_charge_date, plan_end_timestamp
 
 SETTINGS = "Examic Billing Settings"
 SUBSCRIPTION = "Examic Subscription"
@@ -92,8 +95,8 @@ def settings() -> dict:
 		"monthly_price": PLANS["Monthly"]["default_price"], "three_month_price": PLANS["3-Month"]["default_price"],
 		"account_holder": "", "sort_code": "", "account_number": "", "payment_instructions": "",
 		"stripe_mode": "Test", "stripe_publishable_key": "", "stripe_monthly_price_id": "",
-		"stripe_three_month_price_id": "", "stripe_secret_key": "", "stripe_webhook_secret": "",
-		"stripe_automatic_tax": 0,
+		"stripe_three_month_price_id": "", "stripe_three_month_recurring_price_id": "",
+		"stripe_secret_key": "", "stripe_webhook_secret": "", "stripe_automatic_tax": 0,
 	}
 	if not frappe.db.exists("DocType", SETTINGS):
 		return defaults
@@ -154,11 +157,10 @@ def access_state(user: str | None = None) -> dict:
 	elif not frappe.db.exists("DocType", SUBSCRIPTION) or not settings()["enabled"]:
 		result = {"state": "full"}
 	else:
-		row = frappe.db.get_value(
-			SUBSCRIPTION, user,
-			["status", "plan", "trial_ends_on", "paid_until", "pending_plan", "pending_reference", "stripe_subscription"],
-			as_dict=True,
-		)
+		fields = ["status", "plan", "trial_ends_on", "paid_until", "pending_plan", "pending_reference", "stripe_subscription"]
+		if card_required_field():
+			fields.append("card_required")
+		row = frappe.db.get_value(SUBSCRIPTION, user, fields, as_dict=True)
 		if not row:
 			result = {"state": "unsubscribed"}
 		else:
@@ -170,6 +172,9 @@ def access_state(user: str | None = None) -> dict:
 			monthly_subscription_active = bool(
 				state in ("trial", "unsubscribed") and row.plan == "Monthly" and row.stripe_subscription
 			)
+			card_plan = row.pending_plan if row.stripe_subscription and state == "trial" else None
+			if needs_card_setup(state, row.get("card_required"), row.stripe_subscription):
+				state = "setup"
 			result = {
 				"state": state,
 				"status": status,
@@ -179,10 +184,22 @@ def access_state(user: str | None = None) -> dict:
 				"pending_plan": row.pending_plan,
 				"pending_reference": row.pending_reference,
 				"monthly_subscription_active": monthly_subscription_active,
+				"card_plan": card_plan,
+				"charge_on": str(first_charge_date(row.trial_ends_on)) if row.trial_ends_on else None,
 				"days_left": (getdate(end) - getdate(nowdate())).days if end else 0,
 			}
 	cache[user] = result
 	return result
+
+
+def card_required_field() -> bool:
+	"""False until the DocType change is loaded on the site, so older sites keep working."""
+	return frappe.get_meta(SUBSCRIPTION).has_field("card_required")
+
+
+def needs_card_setup(state: str, card_required, stripe_subscription) -> bool:
+	"""A new signup in the free month must choose a plan and add a card first."""
+	return state == "trial" and bool(card_required) and not stripe_subscription
 
 
 def can_open_mock(user: str | None = None) -> bool:
@@ -222,9 +239,12 @@ def enforce_access():
 	path = request.path or ""
 	if not is_locked_path(path):
 		return
-	if access_state()["state"] != "locked":
+	state = access_state()["state"]
+	if state not in ("locked", "setup"):
 		return
 	if path.startswith("/api/"):
+		if state == "setup":
+			raise PaymentRequired(_("Choose a plan and add a card on the billing page to start your free month."))
 		raise PaymentRequired(_("Your free month has ended. Choose a plan on the billing page."))
 	raise _found("/billing")
 
@@ -235,6 +255,8 @@ def create_subscription(user: str, start=None):
 		return frappe.get_doc(SUBSCRIPTION, user)
 	end = trial_end(start)
 	doc = frappe.get_doc({"doctype": SUBSCRIPTION, "user": user, "trial_ends_on": end, "status": "Trial"})
+	if card_required_field() and provider().name == "Stripe":
+		doc.card_required = 1
 	doc.insert(ignore_permissions=True)
 	return doc
 
@@ -254,24 +276,38 @@ def get_billing_state() -> dict:
 	prov = provider()
 	info = dict(access_state(user))
 	sub = frappe.db.get_value(SUBSCRIPTION, user, ["stripe_customer", "last_payment_error"], as_dict=True) or {}
+	in_trial = info.get("state") in ("trial", "setup")
+	deferred = info.get("state") == "setup"
+	charge_on = frappe.utils.formatdate(info["charge_on"]) if info.get("charge_on") else ""
+	plans = [
+		{
+			"name": "Monthly",
+			"price": cfg["monthly_price"],
+			"detail": f"per month, first charge on {charge_on}" if deferred else "per month, starts today",
+		}
+	]
+	if not deferred or cfg["stripe_three_month_recurring_price_id"]:
+		plans.append(
+			{
+				"name": "3-Month",
+				"price": cfg["three_month_price"],
+				"detail": (
+					f"for 3 months, charged once on {charge_on}, does not renew"
+					if deferred
+					else "for 3 months after your free month, paid once today"
+					if in_trial
+					else "for 3 months, paid once, starts today"
+				),
+			}
+		)
 	info.update(
 		{
 			"provider": prov.name,
 			"reference": _reference(user),
 			"can_manage": bool(sub.get("stripe_customer")) and prov.name == "Stripe",
 			"payment_problem": sub.get("last_payment_error") or "",
-			"plans": [
-				{"name": "Monthly", "price": cfg["monthly_price"], "detail": "per month, starts today"},
-				{
-					"name": "3-Month",
-					"price": cfg["three_month_price"],
-					"detail": (
-						"for 3 months after your free month, paid once today"
-						if info.get("state") == "trial"
-						else "for 3 months, paid once, starts today"
-					),
-				},
-			],
+			"plans": plans,
+			"card_plan_price": plan_price(info["card_plan"]) if info.get("card_plan") in PLANS else None,
 			"account_holder": cfg["account_holder"],
 			"sort_code": cfg["sort_code"],
 			"account_number": cfg["account_number"],
@@ -291,7 +327,12 @@ def start_checkout(plan: str) -> dict:
 	prov = provider()
 	if prov.name != "Stripe":
 		frappe.throw(_("Card payment is not available yet."), frappe.ValidationError)
-	sub = frappe.db.get_value(SUBSCRIPTION, user, ["trial_ends_on", "stripe_customer"], as_dict=True)
+	fields = ["trial_ends_on", "stripe_customer", "stripe_subscription"]
+	if card_required_field():
+		fields.append("card_required")
+	sub = frappe.db.get_value(SUBSCRIPTION, user, fields, as_dict=True)
+	if sub and sub.get("card_required") and sub.stripe_subscription:
+		frappe.throw(_("You already have a plan with a card on file. Use Manage card to change it."), frappe.ValidationError)
 	if not sub:
 		user_doc = frappe.db.get_value("User", user, ["enabled", "user_type"], as_dict=True)
 		if not user_doc or not user_doc.enabled or user_doc.user_type != "Website User":
@@ -304,9 +345,12 @@ def start_checkout(plan: str) -> dict:
 			"pending_requested_on": frappe.utils.now_datetime(),
 		})
 		doc.insert(ignore_permissions=True)
-		sub = {"trial_ends_on": None, "stripe_customer": None}
+		sub = {"trial_ends_on": None, "stripe_customer": None, "stripe_subscription": None}
 	email = frappe.db.get_value("User", user, "email") or user
-	return prov.start_payment(user, email, plan, settings(), dict(sub))
+	sub = dict(sub)
+	# New signups pay nothing now: Stripe takes the card and charges when the free month ends.
+	sub["defer_charge"] = bool(sub.get("card_required"))
+	return prov.start_payment(user, email, plan, settings(), sub)
 
 
 @frappe.whitelist()
@@ -470,14 +514,37 @@ def process_stripe_event(event: dict) -> str:
 		_send_template(PAYMENT_PROBLEM_TEMPLATE, name, {})
 	elif kind == "cancelled":
 		doc.stripe_subscription = None
+		if not doc.paid_until:
+			doc.pending_plan = None
+			doc.pending_reference = None
 		doc.save(ignore_permissions=True)
+	elif kind == "trial":
+		# Card saved during the free month. Stripe charges on the first day after it ends, so
+		# the plan stays pending (no paid access, no mocks) until that invoice is paid.
+		if action.get("plan") in PLANS:
+			doc.pending_plan = action["plan"]
+			doc.pending_reference = _reference(name)
+		doc.last_payment_error = None
+		doc.save(ignore_permissions=True)
+		_end_fixed_term(doc, action.get("plan"), deferred=True)
 	else:  # link
 		if action.get("plan") in PLANS:
 			doc.plan = action["plan"]
 		doc.save(ignore_permissions=True)
+		_end_fixed_term(doc, action.get("plan"), deferred=False)
 	_log_event(event_id, "Stripe", event_type, "Matched", user=name, plan=action.get("plan"),
 		amount=action.get("amount"), reference=action.get("reference"))
 	return "Matched"
+
+
+def _end_fixed_term(doc, plan: str | None, deferred: bool) -> None:
+	"""The 3-Month plan is a Stripe subscription that must not renew: end it after one term."""
+	prov = provider()
+	if plan != "3-Month" or not doc.stripe_subscription or prov.name != "Stripe":
+		return
+	if not prov.uses_subscription(plan, settings()):
+		return
+	prov.schedule_end(doc.stripe_subscription, plan_end_timestamp(plan, doc.trial_ends_on, deferred), settings())
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -531,14 +598,15 @@ def daily_billing_job() -> dict:
 	counts = {"updated": 0, "reminded": 0}
 	today = getdate(nowdate())
 	for row in frappe.get_all(
-		SUBSCRIPTION, fields=["name", "status", "trial_ends_on", "paid_until", "pending_plan"]
+		SUBSCRIPTION, fields=["name", "status", "trial_ends_on", "paid_until", "pending_plan", "stripe_subscription"]
 	):
 		end = row.paid_until if row.paid_until and getdate(row.paid_until) >= today else row.trial_ends_on
 		new_status = status_for(row.trial_ends_on, row.paid_until, row.pending_plan, today)
 		if new_status != row.status:
 			frappe.db.set_value(SUBSCRIPTION, row.name, "status", new_status, update_modified=False)
 			counts["updated"] += 1
-			if row.status in ("Trial", "Active") and new_status in ("Expired", "Awaiting Payment"):
+			card_charge_due = new_status == "Awaiting Payment" and row.stripe_subscription
+			if row.status in ("Trial", "Active") and new_status in ("Expired", "Awaiting Payment") and not card_charge_due:
 				_discord(
 					"access_locked",
 					"Access locked",
@@ -548,11 +616,12 @@ def daily_billing_job() -> dict:
 		if end and new_status in ("Trial", "Active"):
 			days_left = (getdate(end) - today).days
 			if days_left in (settings()["reminder_days"], 0):
-				_send_template(
-					PAYMENT_REMINDER_TEMPLATE, row.name,
-					{"days_left": days_left, "end_date": frappe.utils.formatdate(end),
-					 "ending": "free month" if new_status == "Trial" else "plan"},
-				)
+				extra = {"days_left": days_left, "end_date": frappe.utils.formatdate(end),
+					"ending": "free month" if new_status == "Trial" else "plan"}
+				if new_status == "Trial" and row.stripe_subscription and row.pending_plan in PLANS:
+					extra.update({"charge_plan": row.pending_plan, "charge_price": price_text(plan_price(row.pending_plan)),
+						"charge_date": frappe.utils.formatdate(first_charge_date(end))})
+				_send_template(PAYMENT_REMINDER_TEMPLATE, row.name, extra)
 				counts["reminded"] += 1
 	frappe.db.commit()
 	return counts

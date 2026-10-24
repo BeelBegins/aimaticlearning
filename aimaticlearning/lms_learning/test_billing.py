@@ -49,6 +49,17 @@ class TestPeriods(unittest.TestCase):
 		self.assertEqual(got, date(2027, 1, 9))
 
 
+class TestCardSetup(unittest.TestCase):
+	def test_new_signup_without_a_card_must_set_up_first(self):
+		self.assertTrue(billing.needs_card_setup("trial", 1, None))
+
+	def test_card_on_file_or_older_signup_or_other_state_does_not(self):
+		self.assertFalse(billing.needs_card_setup("trial", 1, "sub_1"))
+		self.assertFalse(billing.needs_card_setup("trial", 0, None))
+		self.assertFalse(billing.needs_card_setup("paid", 1, None))
+		self.assertFalse(billing.needs_card_setup("locked", 1, None))
+
+
 class TestEnforcementPaths(unittest.TestCase):
 	def test_locked_surfaces_and_allowed_pages(self):
 		for path in ("/lms", "/lms/courses/tort-law", "/learning-mock-exam", "/api/method/lms.lms.utils.get_courses",

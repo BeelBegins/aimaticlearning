@@ -20,11 +20,12 @@
 <link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_prep.css?v=20261005-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_conversion.css?v=20260902-6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/sqe_frappe_theme.css?v=20261013-how-white">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/examic_site.css?v=20261013-site2">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/examic_site.css?v=20261024-user1">
 {% endblock %}
 
 {% block page_content %}
 {%- set ex_guest = frappe.session.user == "Guest" -%}
+{%- set ex_user_name = "" if ex_guest else (frappe.db.get_value("User", frappe.session.user, "full_name") or frappe.session.user) -%}
 <div class="sqe-site ex-site">
 	<a class="ex-skip" href="#ex-main">Skip to content</a>
 	<header class="sqe-header ex-header">
@@ -55,6 +56,7 @@
 				<a class="sqe-btn sqe-btn-ghost" href="/login">Log In</a>
 				<a class="sqe-btn sqe-btn-primary" href="/login#signup">Create Account</a>
 {% else %}
+				<span class="ex-user" title="{{ frappe.session.user }}">Logged in as <strong>{{ ex_user_name }}</strong></span>
 				<a class="sqe-btn sqe-btn-primary" href="/lms">Open my portal</a>
 {% endif %}
 			</div>
@@ -64,6 +66,7 @@
 			<a class="ex-login" href="/login">Log In</a>
 			<a class="sqe-btn sqe-btn-primary ex-cta" href="/login#signup">Create Account</a>
 {% else %}
+			<span class="ex-user" title="{{ frappe.session.user }}">Logged in as <strong>{{ ex_user_name }}</strong></span>
 			<a class="sqe-btn sqe-btn-primary ex-cta" href="/lms">Open my portal</a>
 {% endif %}
 			<button class="ex-menu-toggle" type="button" aria-expanded="false" aria-controls="ex-nav">

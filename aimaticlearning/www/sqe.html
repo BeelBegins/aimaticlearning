@@ -27,7 +27,7 @@
 						<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/sqe1"><span>Explore SQE1</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
 						<a class="sqe-btn sqe-btn-ghost sqe-btn-hero" href="{{ signup_url }}">Create Your Account</a>
 					</div>
-					<p class="sqe-cta-reassurance">First month free <span>·</span> No payment card needed <span>·</span> Then {{ monthly_price }} per month or {{ three_month_price }} for 3 months</p>
+					<p class="sqe-cta-reassurance">First month free <span>·</span> Card added now, charged after {{ trial_days }} days <span>·</span> Then {{ monthly_price }} per month or {{ three_month_price }} for 3 months</p>
 {% else %}
 					<a class="sqe-btn sqe-btn-primary sqe-btn-hero" href="/lms"><span>Open my portal</span><span class="sqe-btn-arrow" aria-hidden="true">→</span></a>
 					<a class="sqe-secondary-link" href="/sqe1">Explore SQE1 <span aria-hidden="true">→</span></a>
@@ -70,7 +70,7 @@
 					<p class="sqe-eyebrow">Introductory offer</p>
 					<h2 id="ex-offer-title">Your first month is free. No payment is needed to start.</h2>
 					<p>Try Examic for {{ trial_days }} days with every published subject course and {{ free_mock_names }}: {{ free_sessions_per_flk }} FLK1 sessions and {{ free_sessions_per_flk }} FLK2 sessions. Then choose full access at {{ monthly_price }} per month or {{ three_month_price }} for three months.</p>
-					<p>No payment card is required for the free month. Your free access will not automatically become a paid subscription.</p>
+					<p>You add a card when you choose your plan, and nothing is charged for the free month. When it ends, your card is charged automatically for the plan you chose unless you cancel first.</p>
 				</div>
 				<div class="ex-offer-actions">
 					<a class="sqe-btn sqe-btn-final" href="{{ signup_url }}">Start free trial</a>
@@ -170,7 +170,7 @@
 			<div class="sqe-cta-actions">
 {% if viewer.mode == "visitor" %}
 				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="{{ signup_url }}">Start free trial <span aria-hidden="true">→</span></a>
-				<span class="sqe-cta-panel-note">First month free · No payment card needed · Then {{ monthly_price }} per month or {{ three_month_price }} for 3 months</span>
+				<span class="sqe-cta-panel-note">First month free · Card added now, charged after {{ trial_days }} days · Then {{ monthly_price }} per month or {{ three_month_price }} for 3 months</span>
 				<a class="sqe-cta-login" href="{{ login_url }}">Already studying? Log in</a>
 {% else %}
 				<a class="sqe-btn sqe-btn-light sqe-btn-final" href="/lms">Open my portal <span aria-hidden="true">→</span></a>

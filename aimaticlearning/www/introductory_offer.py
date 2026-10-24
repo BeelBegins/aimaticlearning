@@ -6,6 +6,6 @@ def get_context(context):
 	context.title = "Introductory Offer Terms | Examic"
 	context.meta_description = (
 		f"Your first {context.trial_days} days on Examic are free, with every published course and "
-		f"{context.free_mock_names}. No payment card and no automatic charge."
+		f"{context.free_mock_names}. Choose a plan and add a card, charged only after the free month."
 	)
 	return context

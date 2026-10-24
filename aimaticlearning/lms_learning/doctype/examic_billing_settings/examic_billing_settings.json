@@ -25,6 +25,7 @@
   "cb3",
   "stripe_monthly_price_id",
   "stripe_three_month_price_id",
+  "stripe_three_month_recurring_price_id",
   "stripe_automatic_tax",
   "stripe_last_event",
   "sec_manual",
@@ -149,6 +150,12 @@
    "fieldname": "stripe_three_month_price_id",
    "fieldtype": "Data",
    "label": "Stripe Price ID: 3-Month (one-off)"
+  },
+  {
+   "fieldname": "stripe_three_month_recurring_price_id",
+   "fieldtype": "Data",
+   "label": "Stripe Price ID: 3-Month (recurring every 3 months)",
+   "description": "Optional. A recurring price of the 3-Month amount billed every 3 months. With it, the 3-Month plan is a Stripe subscription that is charged after the free month and stops after one term."
   },
   {
    "fieldname": "stripe_automatic_tax",

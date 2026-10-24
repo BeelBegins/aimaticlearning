@@ -18,7 +18,7 @@ from aimaticlearning.lms_learning.billing_providers.base import PaymentProvider
 API = "https://api.stripe.com/v1"
 TOLERANCE_SECONDS = 300
 MIN_TRIAL_END_SECONDS = 49 * 3600  # Checkout needs trial_end at least 48 hours ahead
-PLAN_MODE = {"Monthly": "subscription", "3-Month": "payment"}
+PLAN_MONTHS = {"Monthly": 1, "3-Month": 3}
 
 
 def parse_signature_header(header: str) -> tuple[int | None, list[str]]:
@@ -61,15 +61,16 @@ def interpret_event(event: dict) -> dict:
 				"reference": obj.get("payment_intent") or obj.get("id")}
 		if obj.get("mode") == "subscription" and obj.get("payment_status") == "paid":
 			return {**base, "action": "link"}
-		if obj.get("mode") == "subscription":
-			return {"action": "ignore"}
+		if obj.get("mode") == "subscription" and obj.get("payment_status") == "no_payment_required":
+			# Free month: the card is saved and Stripe charges on the day the trial ends.
+			return {**base, "action": "trial"}
 		return {"action": "ignore"}
 	if kind == "invoice.paid":
 		amount = (obj.get("amount_paid") or 0) / 100
 		meta = (obj.get("subscription_details") or {}).get("metadata") or {}
 		if amount <= 0:
 			return {"action": "ignore"}
-		return {"action": "pay", "plan": "Monthly", "user": meta.get("user"), "customer": obj.get("customer"),
+		return {"action": "pay", "plan": meta.get("plan") or "Monthly", "user": meta.get("user"), "customer": obj.get("customer"),
 			"subscription": obj.get("subscription"), "amount": amount, "reference": obj.get("id"),
 			"starts_now": obj.get("billing_reason") == "subscription_create"}
 	if kind == "invoice.payment_failed":
@@ -95,15 +96,33 @@ def _post(path: str, data: dict, secret: str) -> dict:
 	return body
 
 
+def _midnight_utc(day) -> int:
+	import calendar
+
+	return calendar.timegm(day.timetuple())
+
+
+def first_charge_date(trial_ends_on):
+	"""The first charge falls on the day after the free month ends."""
+	from frappe.utils import add_days, getdate
+
+	return getdate(add_days(trial_ends_on, 1))
+
+
 def trial_end_timestamp(trial_ends_on, now: float | None = None) -> int | None:
 	"""First charge the day after the free month ends, if Stripe allows it (>= 48h ahead)."""
 	if not trial_ends_on:
 		return None
-	from frappe.utils import add_days, getdate
-	import calendar
-	first_charge = getdate(add_days(trial_ends_on, 1))
-	stamp = calendar.timegm(first_charge.timetuple())
+	stamp = _midnight_utc(first_charge_date(trial_ends_on))
 	return stamp if stamp - (now if now is not None else time.time()) >= MIN_TRIAL_END_SECONDS else None
+
+
+def plan_end_timestamp(plan: str, trial_ends_on=None, deferred: bool = False, today=None) -> int:
+	"""When a fixed-term plan stops renewing: one term after its first charge."""
+	from frappe.utils import add_months, getdate, nowdate
+
+	start = first_charge_date(trial_ends_on) if deferred and trial_ends_on else getdate(today or nowdate())
+	return _midnight_utc(getdate(add_months(start, PLAN_MONTHS[plan])))
 
 
 class StripeProvider(PaymentProvider):
@@ -112,11 +131,24 @@ class StripeProvider(PaymentProvider):
 	def is_ready(self, cfg: dict) -> bool:
 		return bool(cfg.get("stripe_secret_key") and cfg.get("stripe_monthly_price_id") and cfg.get("stripe_three_month_price_id"))
 
+	def uses_subscription(self, plan: str, cfg: dict) -> bool:
+		"""Monthly always renews. 3-Month is a subscription only when its recurring price is set."""
+		return plan == "Monthly" or bool(cfg.get("stripe_three_month_recurring_price_id"))
+
 	def start_payment(self, user: str, email: str, plan: str, cfg: dict, subscription: dict) -> dict:
-		price = cfg["stripe_monthly_price_id"] if plan == "Monthly" else cfg["stripe_three_month_price_id"]
+		subscribe = self.uses_subscription(plan, cfg)
+		if plan == "Monthly":
+			price = cfg["stripe_monthly_price_id"]
+		elif subscribe:
+			price = cfg["stripe_three_month_recurring_price_id"]
+		else:
+			price = cfg["stripe_three_month_price_id"]
+		trial_end = trial_end_timestamp(subscription.get("trial_ends_on")) if subscription.get("defer_charge") else None
+		if subscription.get("defer_charge") and not subscribe:
+			frappe.throw("The 3-Month plan cannot be started with a card yet. Choose Monthly or email support.")
 		site = frappe.utils.get_url()
 		data = {
-			"mode": PLAN_MODE[plan],
+			"mode": "subscription" if subscribe else "payment",
 			"line_items[0][price]": price,
 			"line_items[0][quantity]": 1,
 			"client_reference_id": user,
@@ -134,12 +166,21 @@ class StripeProvider(PaymentProvider):
 			data["billing_address_collection"] = "required"
 			if subscription.get("stripe_customer"):
 				data["customer_update[address]"] = "auto"
-		if plan == "Monthly":
+		if subscribe:
 			data["subscription_data[metadata][user]"] = user
+			data["subscription_data[metadata][plan]"] = plan
+			if trial_end:
+				data["subscription_data[trial_end]"] = trial_end
+				data["payment_method_collection"] = "always"
+				data["subscription_data[trial_settings][end_behavior][missing_payment_method]"] = "cancel"
 		else:
 			data["payment_intent_data[metadata][user]"] = user
 		session = _post("/checkout/sessions", data, cfg["stripe_secret_key"])
-		return {"url": session["url"]}
+		return {"url": session["url"], "deferred": bool(trial_end)}
+
+	def schedule_end(self, subscription_id: str, cancel_at: int, cfg: dict) -> None:
+		"""Stop a fixed-term subscription renewing after its term. Checkout cannot set this."""
+		_post(f"/subscriptions/{subscription_id}", {"cancel_at": cancel_at}, cfg["stripe_secret_key"])
 
 	def portal_url(self, customer: str, cfg: dict) -> str:
 		session = _post("/billing_portal/sessions", {"customer": customer, "return_url": f"{frappe.utils.get_url()}/billing"}, cfg["stripe_secret_key"])

@@ -12,6 +12,12 @@ Stripe. Provider research and fees: `docs/payment-providers.md`. Resumable recor
 Update this skill and `docs/current-state.md` whenever prices, plans, access rules or
 payment facts change.
 
+## Card at signup (2026-10-24, code only, not deployed)
+
+New signups must choose a plan and add a card before using the portal; Stripe holds the free
+month and the charge. Read `card-at-signup.md` before touching signup, `setup` state, Checkout
+trials or the 3-Month recurring price.
+
 ## Final pricing (owner, 2026-10-07)
 
 - Signup includes a free 30-day period with all courses and Mock 1 and 2. Students who do not subscribe are not charged during it.

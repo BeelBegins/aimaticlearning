@@ -44,8 +44,14 @@
 				} else if (s.state === "paid") {
 					title.textContent = "Your plan is active"; lead.textContent = (s.plan || "Paid") + " plan, paid until " + fmt(s.paid_until) + ". Every course and all mock exams are open.";
 					var go = node("a", "sqe-btn sqe-btn-primary", "Open my portal"); go.href = "/lms"; pay.append(go); pay.classList.remove("is-hidden");
+				} else if (s.state === "setup") {
+					title.textContent = "Choose your plan to start your free month";
+					lead.textContent = "Add a card to begin. Nothing is charged until " + fmt(s.charge_on) + ". On that day your card is charged automatically for the plan you choose. You can cancel before then with Manage card.";
 				} else if (s.state === "trial") {
-					if (s.monthly_subscription_active) {
+					if (s.card_plan) {
+						title.textContent = "Your free month is running";
+						lead.textContent = "Your " + s.card_plan + " plan starts on " + fmt(s.charge_on) + ", when your card is charged " + gbp(s.card_plan_price) + " automatically. Until then you have all courses and Mock 1 and Mock 2.";
+					} else if (s.monthly_subscription_active) {
 						title.textContent = "Your Monthly plan is active";
 						lead.textContent = "All mock exams are unlocked. Your monthly subscription has started.";
 					} else {
@@ -61,11 +67,11 @@
 					lead.textContent = "Please try again later or email hello@examic.study for help.";
 					return;
 				}
-				s.plans.forEach(function (p) {
+				(s.card_plan ? [] : s.plans).forEach(function (p) {
 					var card = node("article", "sx-plan");
 					card.append(node("h3", "", p.name + " plan"), node("p", "sx-price", ""));
 					card.lastChild.append(node("strong", "", gbp(p.price)), document.createTextNode(" " + p.detail));
-				var buttonText = s.state === "trial" ? "Pay " + gbp(p.price) + " now to unlock all mocks" : "Pay by card " + gbp(p.price);
+				var buttonText = s.state === "setup" ? "Choose " + p.name + " and add card" : s.state === "trial" ? "Pay " + gbp(p.price) + " now to unlock all mocks" : "Pay by card " + gbp(p.price);
 				var b = node("button", "sqe-btn sqe-btn-primary", buttonText);
 					b.type = "button";
 					b.addEventListener("click", function () { checkout(b, p); });
@@ -89,13 +95,23 @@
 					throw new Error("none");
 				}).catch(function () { button.disabled = false; document.getElementById("bill-msg").textContent = "We could not open the card page. Try again or email hello@examic.study."; });
 			}
-			if (/[?&]paid=1/.test(window.location.search)) {
-				document.getElementById("bill-msg").textContent = "Thank you. Your payment is being confirmed, this usually takes under a minute. Refresh this page to see your plan.";
+			var returning = /[?&]paid=1/.test(window.location.search);
+			if (returning) {
+				document.getElementById("bill-msg").textContent = "Thank you. We are confirming your card and plan, this usually takes under a minute.";
 			}
-			api("get_billing_state").then(function (r) { render(r.message); }).catch(function () {
-				document.getElementById("bill-title").textContent = "We could not load your plan";
-				document.getElementById("bill-lead").textContent = "Refresh the page or email hello@examic.study.";
-			});
+			function load(attempt) {
+				api("get_billing_state").then(function (r) {
+					var s = r.message;
+					// Right after Checkout the webhook may not have arrived yet, so check again for a short while.
+					if (returning && s.state === "setup" && attempt < 10) { setTimeout(function () { load(attempt + 1); }, 3000); return; }
+					if (returning && s.state === "trial" && s.card_plan) { window.location = "/lms"; return; }
+					render(s);
+				}).catch(function () {
+					document.getElementById("bill-title").textContent = "We could not load your plan";
+					document.getElementById("bill-lead").textContent = "Refresh the page or email hello@examic.study.";
+				});
+			}
+			load(0);
 		})();
 		</script>
 {% endblock %}

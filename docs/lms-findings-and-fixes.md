@@ -803,3 +803,27 @@ restores the snapshot at `sites/examic.study/private/equity_rebuild_snapshot.jso
 **Source wording kept from the site, not the Word file:** two UK spellings, Ch6 Q12
 option C, Ch6 Q20 options B and E (the source has half-finished working). The source's
 own answers to Ch1 Q12, Ch5 Q3 and Ch5 Q4 are doubtful in law and await owner review.
+
+## 2026-10-24 — Signup messages, header name, sidebar exit, card at signup
+
+**Scope:** `/login` signup form, public site header, `/lms` sidebar, billing.
+
+**Finding:** (1) After signup nothing was shown: `.login-success-banner` and
+`.login-error-banner` are `display: none` in Frappe's `login.bundle.scss` and only Frappe's own
+`login.js` shows them; our form removed a `hidden` class instead. This also hid "Already
+Registered". (2) The header said only "Open my portal" for a logged-in visitor. (3) The `/lms`
+sidebar had no way back to the website (no such link in upstream or this app). (4) The free month
+did not collect a card, so nothing could be charged afterwards.
+
+**Correction:** `examic_login.css` shows the banners; `examic_signup_form.html` reports the sent
+email, and an existing account lands on the login form with its email and a notice
+(`www/login.html`); `base.html` shows the name; `lms_student_experience.js` adds the sidebar
+link; billing now defers the charge through a Stripe subscription trial (see `lms-billing`).
+
+**Verification:** `unittest` for `test_billing`, `test_stripe_provider`, `test_signup_enrolment`
+pass (36 tests). The signup template renders and its script passes `node --check`. Not yet
+checked: any browser view, Stripe test mode, or the DocType reload; nothing was deployed.
+
+**Remaining risk:** The 3-Month `cancel_at` behaviour at the term boundary must be proven in
+Stripe test mode. Legal pages need owner review. The Stripe charge happens at 00:00 UTC on the
+day after the free month, so a student can see "checking your payment" for a few minutes.

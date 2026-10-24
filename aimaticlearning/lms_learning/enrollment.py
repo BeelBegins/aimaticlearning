@@ -175,8 +175,12 @@ def create_email_templates() -> None:
 <p>Hello {{ student_name }},</p>
 <p>Your Examic Study account is ready.</p>
 {% if course_titles %}
-<p>Your free month runs for {{ free_days }} days, until {{ free_until }}. It includes every published course and {{ free_mocks }} mock exams (Mock 1 and Mock 2). No payment card is needed, and the free month never turns into a paid plan by itself.</p>
-<p>To keep going afterwards, choose a plan: {{ monthly_price }} per month, or {{ three_month_price }} once for 3 months. Both unlock every mock exam. See <a href="{{ pricing_url }}">pricing</a> and the <a href="{{ offer_url }}">Introductory Offer Terms</a>.</p>
+<p>Your free month runs for {{ free_days }} days, until {{ free_until }}. It includes every published course and {{ free_mocks }} mock exams (Mock 1 and Mock 2).</p>
+{% if card_required %}
+<p>Log in, then choose a plan and add a card: {{ monthly_price }} per month, or {{ three_month_price }} once for 3 months. Nothing is charged during the free month. On {{ charge_date }} your card is charged automatically for the plan you chose. To avoid that, cancel from your <a href="{{ billing_url }}">plan page</a> before then. See <a href="{{ pricing_url }}">pricing</a> and the <a href="{{ offer_url }}">Introductory Offer Terms</a>.</p>
+{% else %}
+<p>No payment card is needed, and the free month never turns into a paid plan by itself. To keep going afterwards, choose a plan: {{ monthly_price }} per month, or {{ three_month_price }} once for 3 months. Both unlock every mock exam. See <a href="{{ pricing_url }}">pricing</a> and the <a href="{{ offer_url }}">Introductory Offer Terms</a>.</p>
+{% endif %}
 <p>You are enrolled in:</p>
 <ul>{% for title in course_titles %}<li>{{ title }}</li>{% endfor %}</ul>
 <p><a href="{{ courses_url }}">Open your courses</a></p>
@@ -193,15 +197,20 @@ def create_email_templates() -> None:
 		response="""
 <p>Hello {{ student_name }},</p>
 {% if days_left|int == 0 %}
-<p>Your {{ ending }} ends today. Choose a plan to keep your access.</p>
+<p>Your {{ ending }} ends today.{% if not charge_plan %} Choose a plan to keep your access.{% endif %}</p>
 {% else %}
-<p>Your {{ ending }} ends in {{ days_left }} days, on {{ end_date }}. Choose a plan to keep your access.</p>
+<p>Your {{ ending }} ends in {{ days_left }} days, on {{ end_date }}.{% if not charge_plan %} Choose a plan to keep your access.{% endif %}</p>
 {% endif %}
+{% if charge_plan %}
+<p>On {{ charge_date }} your card is charged {{ charge_price }} automatically for the {{ charge_plan }} plan. To avoid the charge, cancel from your plan page before then.</p>
+<p><a href="{{ billing_url }}">Manage your plan</a></p>
+{% else %}
 {% if ending == "free month" %}
 <p>Nothing is charged automatically. If you do not choose a plan, your access pauses and your progress is kept.</p>
 {% endif %}
 <p>Monthly is {{ monthly_price }} per month. The 3-month plan is {{ three_month_price }} once and does not renew. Both unlock every mock exam.</p>
 <p><a href="{{ billing_url }}">Choose a plan and pay</a></p>
+{% endif %}
 """,
 	)
 	_upsert_email_template(
@@ -400,6 +409,10 @@ def complete_student_signup(user: str) -> dict:
 				"free_days": billing.settings()["trial_days"],
 				"free_mocks": billing.settings().get("free_mock_count", PRODUCT_SETTINGS["free_mocks"]),
 				"offer_url": get_url("/introductory-offer"),
+				"billing_url": get_url("/billing"),
+				"card_required": billing.card_required_field()
+				and bool(frappe.db.get_value("Examic Subscription", user, "card_required")),
+				"charge_date": frappe.utils.formatdate(billing.first_charge_date(end)),
 			}
 			subject, message = _render_template(WELCOME_TEMPLATE, context)
 			_queue_email(doc.email, subject, message, "User", doc.name)

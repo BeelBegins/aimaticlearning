@@ -26,6 +26,8 @@
 :is(html[data-examic-theme], html) body .ex-site .ex-actions { display: flex; align-items: center; gap: 6px; }
 :is(html[data-examic-theme], html) body .ex-site .ex-login { padding: 8px 12px; border-radius: 6px; color: var(--ex-blue); font-size: 0.9rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 :is(html[data-examic-theme], html) body .ex-site .ex-login:hover { background: var(--ex-tint-2); }
+:is(html[data-examic-theme], html) body .ex-site .ex-user { max-width: 220px; overflow: hidden; color: var(--ex-ink); font-size: 0.9rem; text-overflow: ellipsis; white-space: nowrap; }
+:is(html[data-examic-theme], html) body .ex-site .ex-user strong { color: var(--ex-blue); font-weight: 650; }
 :is(html[data-examic-theme], html) body .ex-site .ex-cta { min-height: 40px; padding: 8px 16px; white-space: nowrap; }
 :is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle { display: none; align-items: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ex-line); border-radius: 8px; background: #fff; color: var(--ex-blue); font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 
@@ -47,10 +49,12 @@
 	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions .sqe-btn { min-height: 44px; }
 	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions .sqe-btn-ghost { border: 1px solid var(--ex-blue); }
+	:is(html[data-examic-theme], html) body .ex-site .ex-nav-actions .ex-user { grid-column: 1 / -1; max-width: none; }
 }
 @media (max-width: 560px) {
 	:is(html[data-examic-theme], html) body .ex-site .ex-header .sqe-brand img { width: min(140px, 36vw); }
 	:is(html[data-examic-theme], html) body .ex-site .ex-login { display: none; }
+	:is(html[data-examic-theme], html) body .ex-site .ex-actions .ex-user { display: none; }
 	:is(html[data-examic-theme], html) body .ex-site .ex-cta { padding: 8px 12px; font-size: 0.85rem; }
 	:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle span { display: none; }
 	:is(html[data-examic-theme], html) body .ex-site .ex-menu-toggle { min-width: 44px; justify-content: center; padding: 8px; }

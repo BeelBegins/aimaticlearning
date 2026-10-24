@@ -100,6 +100,20 @@ Stripe test products, prices, webhook and portal config created and stored in se
 provider left on `Manual`. Throwaway-student lifecycle passed (lock, signed webhooks for
 monthly, 3-month, failure, duplicate, unknown user; test Checkout URLs for both plans). Details: `skills/lms-billing/SKILL.md`.
 
+## Signup, card and website fixes (2026-10-24, code only, not deployed)
+
+Working tree on `equity-rebuild-20261015`, uncommitted until the commit that follows this entry.
+Login/signup: Frappe's CSS hides `.login-success-banner` and `.login-error-banner`, so the
+signup success and "Already Registered" messages never showed. They now show; success says the
+email was sent to the address entered; an existing account is taken to the login form with the
+email filled and a notice. Site header: a logged-in visitor sees "Logged in as <name>" beside
+"Open my portal". `/lms` sidebar: a "Back to website" link at the bottom, built from the same
+classes as the upstream links. New signups must choose Monthly or 3-Month and add a card, then
+Stripe charges after the free month; see "Card at signup" in `skills/lms-billing/SKILL.md`
+for the design and the go-live steps (new Stripe price, DocType reload, email templates).
+The statements in "Billing" above that no card is needed apply to existing students only
+once this is deployed.
+
 ## Equity and Trust Law (2026-10-15)
 
 Rebuilt to its six-chapter Word source (File `bed22e0354`). Notes and chapter quizzes

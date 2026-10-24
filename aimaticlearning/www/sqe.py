@@ -8,7 +8,7 @@ def get_context(context):
 	context.title = "Examic | SQE1 Preparation for England and Wales"
 	context.meta_description = (
 		"Prepare for SQE1 with structured notes, chapter practice questions, flashcards and timed "
-		"mock exams. First month free, no payment card needed."
+		"mock exams. First month free, card charged only after it ends."
 	)
 	context.body_class = "sqe-public-page"
 	# Hardcoded, not frappe.utils.get_url(): examic.study is the public brand and must be
