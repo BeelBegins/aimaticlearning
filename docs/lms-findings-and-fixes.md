@@ -827,3 +827,11 @@ checked: any browser view, Stripe test mode, or the DocType reload; nothing was 
 **Remaining risk:** The 3-Month `cancel_at` behaviour at the term boundary must be proven in
 Stripe test mode. Legal pages need owner review. The Stripe charge happens at 00:00 UTC on the
 day after the free month, so a student can see "checking your payment" for a few minutes.
+
+## 2026-10-25: Back to Website sidebar navigation
+
+Owner requested a website exit matching Mock exams, deployed on Ubuntu. The existing exit targeted the sidebar footer; it now follows the Mock exams row, copies its wrapper spacing, and uses native sidebar link classes with the label `Back to Website`, an exit icon and href `/`. It handles collapsed labels and avoids duplicate insertion. The shared server-rendered learner sidebar includes the same destination after Mock exams.
+
+Deployment: static public assets are symlinked directly from this checkout; public HTTPS fetched the updated JS byte-for-byte. Cleared only the Examic site cache. No Python reload, migration, billing changes, or service restart: the checkout contains separate undeployed signup/billing work. The running renderer still uses its existing immutable JS URL, so existing browsers require a hard refresh to fetch the updated asset.
+
+Validation: Node syntax check and git diff check passed. Headless Chromium using served live CSS and native sidebar markup confirmed matching 28px row height, 13px label font, insertion after Mock exams, one exit after repeated decoration, collapsed label hidden and `/` destination. Authenticated live sidebar verification remains pending. Rollback: revert this task commit and clear the site cache; hard refresh the browser.

@@ -197,31 +197,36 @@
 		insertRailLink(rail, link);
 	}
 
-	// Last item in the left pane: leave the portal for the public website. Built with the same
+	// Follow Mock exams in the left pane, using the same
 	// classes as the upstream sidebar links so it matches them in both expanded and collapsed modes.
 	function addWebsiteExit() {
 		const sidebar = document.querySelector("div.bg-surface-sidebar.border-e");
-		if (!sidebar || !sidebar.querySelector("nav.space-y-1")) return;
+		if (!sidebar) return;
+		const mockLink = Array.from(sidebar.querySelectorAll("button, a")).find(function (node) {
+			return (node.textContent || "").trim().toLowerCase() === "mock exams";
+		});
+		if (!mockLink) return;
+		const mockRow = mockLink.parentElement;
 		const collapsed = sidebar.classList.contains("w-14");
 		let wrap = sidebar.querySelector("[data-examic-website-exit]");
 		if (!wrap) {
-			const footer = sidebar.querySelector(":scope > div.m-2");
-			if (!footer) return;
 			wrap = document.createElement("div");
-			wrap.className = "mx-2";
+			wrap.className = mockRow.className;
 			wrap.setAttribute("data-examic-website-exit", "1");
 			const link = document.createElement("a");
 			link.href = "/";
-			link.title = "Exit the portal and go back to the website";
+			link.title = "Back to Website";
+			link.setAttribute("aria-label", "Back to Website");
 			link.className = "flex w-full h-7 cursor-pointer items-center rounded text-ink-gray-8 duration-300 ease-in-out hover:bg-surface-gray-2 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-outline-gray-3";
 			link.innerHTML = '<div class="flex items-center w-full duration-300 ease-in-out">' +
 				'<span class="grid size-4 flex-shrink-0 place-items-center">' +
 				'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-ink-gray-8" aria-hidden="true">' +
 				'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></span>' +
-				'<span class="min-w-0 truncate text-p-sm duration-300 ease-in-out">Back to website</span></div>';
+				'<span class="min-w-0 truncate text-p-sm duration-300 ease-in-out">Back to Website</span></div>';
 			wrap.appendChild(link);
-			footer.parentNode.insertBefore(wrap, footer);
+			mockRow.insertAdjacentElement("afterend", wrap);
 		}
+		if (mockRow.nextElementSibling !== wrap) mockRow.insertAdjacentElement("afterend", wrap);
 		const row = wrap.querySelector("a > div");
 		const label = row.lastElementChild;
 		row.className = "flex items-center w-full duration-300 ease-in-out " + (collapsed ? "p-1 relative" : "px-2 py-1");
