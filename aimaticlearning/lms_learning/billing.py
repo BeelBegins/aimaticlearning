@@ -18,6 +18,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import add_days, add_months, get_url, getdate, nowdate
 
 from aimaticlearning.lms_learning.billing_providers.stripe import first_charge_date, plan_end_timestamp
@@ -261,6 +262,42 @@ def create_subscription(user: str, start=None):
 	return doc
 
 
+SIGNUP_PLAN_WINDOW_MINUTES = 30
+
+
+def signup_plan_field() -> bool:
+	"""False until the DocType change is loaded on the site, so older sites keep working."""
+	return frappe.get_meta(SUBSCRIPTION).has_field("signup_plan")
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=20, seconds=60 * 60)
+def record_signup_plan(email: str, plan: str) -> dict:
+	"""Keep the plan a new student picked on the signup form.
+
+	Only a brand new, never logged in self-signup is touched, and the answer never says whether
+	the email exists. The plan is a preselection: /billing still asks the student to confirm it.
+	"""
+	if plan not in PLANS or not signup_plan_field():
+		return {}
+	user = frappe.db.get_value(
+		"User",
+		{"name": (email or "").strip().lower(), "enabled": 1, "user_type": "Website User"},
+		["name", "creation", "last_login"],
+		as_dict=True,
+	)
+	if not user or user.last_login:
+		return {}
+	if frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), user.creation) > SIGNUP_PLAN_WINDOW_MINUTES * 60:
+		return {}
+	try:
+		create_subscription(user.name)
+	except frappe.DuplicateEntryError:
+		pass
+	frappe.db.set_value(SUBSCRIPTION, user.name, "signup_plan", plan, update_modified=False)
+	return {}
+
+
 def _reference(user: str) -> str:
 	import hashlib
 
@@ -275,7 +312,8 @@ def get_billing_state() -> dict:
 	cfg = settings()
 	prov = provider()
 	info = dict(access_state(user))
-	sub = frappe.db.get_value(SUBSCRIPTION, user, ["stripe_customer", "last_payment_error"], as_dict=True) or {}
+	sub_fields = ["stripe_customer", "last_payment_error"] + (["signup_plan"] if signup_plan_field() else [])
+	sub = frappe.db.get_value(SUBSCRIPTION, user, sub_fields, as_dict=True) or {}
 	in_trial = info.get("state") in ("trial", "setup")
 	deferred = info.get("state") == "setup"
 	charge_on = frappe.utils.formatdate(info["charge_on"]) if info.get("charge_on") else ""
@@ -306,6 +344,7 @@ def get_billing_state() -> dict:
 			"reference": _reference(user),
 			"can_manage": bool(sub.get("stripe_customer")) and prov.name == "Stripe",
 			"payment_problem": sub.get("last_payment_error") or "",
+			"signup_plan": sub.get("signup_plan") or "",
 			"plans": plans,
 			"card_plan_price": plan_price(info["card_plan"]) if info.get("card_plan") in PLANS else None,
 			"account_holder": cfg["account_holder"],

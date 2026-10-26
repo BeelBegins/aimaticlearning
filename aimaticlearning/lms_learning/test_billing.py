@@ -1,5 +1,5 @@
 import unittest
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from aimaticlearning.lms_learning import billing
 
@@ -73,3 +73,35 @@ class TestEnforcementPaths(unittest.TestCase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+class TestSignupPlan(unittest.TestCase):
+	now = datetime(2026, 11, 1, 12, 0)
+
+	def run_record(self, plan="3-Month", user=None, field=True):
+		from unittest import mock
+
+		db = mock.MagicMock()
+		row = {"name": "a@b.com", "creation": self.now, "last_login": None, **(user or {})}
+		with (
+			mock.patch.object(billing, "signup_plan_field", return_value=field),
+			mock.patch.object(billing.frappe, "db", db),
+			mock.patch("frappe.utils.now_datetime", return_value=self.now + timedelta(minutes=1)),
+			mock.patch.object(billing, "create_subscription"),
+		):
+			db.get_value.return_value = billing.frappe._dict(row)
+			billing.record_signup_plan.__wrapped__("a@b.com", plan)
+		return db.set_value
+
+	def test_new_student_plan_is_saved(self):
+		set_value = self.run_record()
+		set_value.assert_called_once()
+		self.assertEqual(set_value.call_args.args[2:], ("signup_plan", "3-Month"))
+
+	def test_unknown_plan_or_old_schema_is_ignored(self):
+		self.assertFalse(self.run_record(plan="Gold").called)
+		self.assertFalse(self.run_record(field=False).called)
+
+	def test_existing_student_is_not_touched(self):
+		self.assertFalse(self.run_record(user={"last_login": self.now}).called)
+		self.assertFalse(self.run_record(user={"creation": self.now - timedelta(hours=2)}).called)

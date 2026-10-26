@@ -68,7 +68,7 @@
 					return;
 				}
 				var wanted = "";
-				try { wanted = (/[?&]plan=([^&]+)/.exec(window.location.search) || [])[1] || window.localStorage.getItem("examic_plan") || ""; } catch (e) {}
+				try { wanted = s.signup_plan || (/[?&]plan=([^&]+)/.exec(window.location.search) || [])[1] || window.localStorage.getItem("examic_plan") || ""; } catch (e) {}
 				wanted = decodeURIComponent(wanted);
 				var ordered = (s.card_plan ? [] : s.plans).slice().sort(function (a, b) { return (b.name === wanted) - (a.name === wanted); });
 				ordered.forEach(function (p) {

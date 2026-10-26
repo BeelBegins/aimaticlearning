@@ -21,6 +21,7 @@
   "stripe_customer",
   "stripe_subscription",
   "card_required",
+  "signup_plan",
   "column_break_c",
   "last_payment_error",
   "section_payments",
@@ -135,6 +136,14 @@
    "default": "0",
    "read_only": 1,
    "description": "Set at signup when Stripe is active. The student must choose a plan and add a card before using the portal."
+  },
+  {
+   "fieldname": "signup_plan",
+   "fieldtype": "Select",
+   "label": "Plan Chosen at Signup",
+   "options": "\nMonthly\n3-Month",
+   "read_only": 1,
+   "description": "The plan the student picked on the signup form. A preselection only: the student still confirms it and adds a card."
   },
   {
    "fieldname": "column_break_c",

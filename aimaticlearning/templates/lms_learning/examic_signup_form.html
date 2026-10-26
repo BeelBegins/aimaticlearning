@@ -168,8 +168,9 @@
 			return false;
 		}
 
+		const plan = $("input[name='signup_plan']:checked").val() || "";
 		try {
-			window.localStorage.setItem("examic_plan", $("input[name='signup_plan']:checked").val() || "");
+			window.localStorage.setItem("examic_plan", plan);
 		} catch (err) {}
 
 		frappe.call({
@@ -200,11 +201,21 @@
 						show_signup_error(message);
 					}
 				} else if (cint(code) === 1) {
+					save_signup_plan(email, $("input[name='signup_plan']:checked").val() || "");
 					show_signup_sent(email);
 				} else {
 					show_signup_error({{ _("Your account was created, but we could not send the email. Please contact") | tojson }} + " " + {{ support_email | tojson }} + ".");
 				}
 			}
+		});
+	}
+
+	function save_signup_plan(email, plan) {
+		frappe.call({
+			method: "aimaticlearning.lms_learning.billing.record_signup_plan",
+			type: "POST",
+			args: { email: email, plan: plan },
+			error: function () {}
 		});
 	}
 

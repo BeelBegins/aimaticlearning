@@ -35,4 +35,4 @@ changed to match and needs owner or legal review before launch (a charge after a
 
 ## Plan chosen at signup
 
-The signup form shows Monthly and 3-Month with prices and the first charge date. The choice is kept in the browser (`examic_plan`) and `/billing` lists that plan first and marks it. It is a preselection only: the student still confirms the plan and adds the card on `/billing`. Nothing about it is stored server side.
+The signup form shows Monthly and 3-Month with prices and the first charge date. After a successful signup the page calls `billing.record_signup_plan`, which saves the choice in `Examic Subscription.signup_plan`. It only touches a brand new user (created in the last 30 minutes, never logged in), is rate limited, and never says whether the email exists. `/billing` reads `signup_plan` from `get_billing_state`, lists that plan first and marks it. It is a preselection only: the student still confirms the plan and adds the card. Both pieces need the `signup_plan` field, so reload the DocType (`reload-doc "LMS Learning" doctype examic_subscription`) and restart; until then the call does nothing and `/billing` falls back to the browser copy.
