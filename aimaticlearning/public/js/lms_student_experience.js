@@ -202,7 +202,7 @@
 	// Keep the website exit last in the sidebar link list, using the same
 	// classes as the upstream sidebar links so it matches them in both expanded and collapsed modes.
 	function addWebsiteExit() {
-		const sidebar = document.querySelector("div.bg-surface-sidebar.border-e");
+		const sidebar = document.querySelector("div.bg-surface-sidebar.border-e.flex.flex-col");
 		if (!sidebar) return;
 		const mockLink = Array.from(sidebar.querySelectorAll("button, a")).find(function (node) {
 			return (node.textContent || "").trim().toLowerCase() === "mock exams";

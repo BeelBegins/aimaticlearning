@@ -52,7 +52,7 @@ unchanged. A rerunnable maintenance helper is in
 
 ## Website exit navigation (2026-10-25)
 
-The `/lms` script keeps `Back to website` last in its sidebar link list, including after staff-only Mock coverage (updated 2026-10-26), with native sidebar styling and destination `/`. The shared learner sidebar has the same link. As of 2026-10-27, a scoped class observer updates the exit on collapse/expand and hides its collapsed label from layout. Updated static JS is live; existing browsers need a hard refresh because the running renderer retains its immutable asset URL. Browser checks with live CSS and sidebar markup passed; authenticated live review is pending. No Python restart or billing rollout was performed.
+The `/lms` script keeps `Back to website` last in its sidebar link list, including after staff-only Mock coverage (updated 2026-10-26), with native sidebar styling and destination `/`. The shared learner sidebar has the same link. As of 2026-10-27, a scoped class observer updates the exit on collapse/expand and hides its collapsed label from layout. The renderer now uses `lms_student_experience.js?v=20261027-collapse3` to avoid reusing the prior immutable browser cache. The decorator targets the inner flex-column rail rather than its similar outer wrapper. A real course UI browser check with a read-only API proxy confirmed the collapsed exit label has zero width. Browser checks with live CSS and sidebar markup passed; authenticated live review is pending. No Python restart or billing rollout was performed.
 
 ## Public website content (2026-10-13)
 
