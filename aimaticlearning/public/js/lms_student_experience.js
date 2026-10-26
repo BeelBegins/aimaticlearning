@@ -197,6 +197,8 @@
 		insertRailLink(rail, link);
 	}
 
+	const websiteExitSidebars = new WeakSet();
+
 	// Keep the website exit last in the sidebar link list, using the same
 	// classes as the upstream sidebar links so it matches them in both expanded and collapsed modes.
 	function addWebsiteExit() {
@@ -206,6 +208,14 @@
 			return (node.textContent || "").trim().toLowerCase() === "mock exams";
 		});
 		if (!mockLink) return;
+		if (!websiteExitSidebars.has(sidebar)) {
+			// The shared DOM observer watches children only; collapsing changes the rail's class.
+			new MutationObserver(addWebsiteExit).observe(sidebar, {
+				attributes: true,
+				attributeFilter: ["class"],
+			});
+			websiteExitSidebars.add(sidebar);
+		}
 		const mockRow = mockLink.parentElement;
 		const collapsed = sidebar.classList.contains("w-14");
 		let wrap = sidebar.querySelector("[data-examic-website-exit]");
@@ -233,6 +243,7 @@
 		if (lastRow.nextElementSibling !== wrap) lastRow.insertAdjacentElement("afterend", wrap);
 		const row = wrap.querySelector("a > div");
 		const label = row.lastElementChild;
+		label.style.display = collapsed ? "none" : "";
 		row.className = "flex items-center w-full duration-300 ease-in-out " + (collapsed ? "p-1 relative" : "px-2 py-1");
 		label.className = "min-w-0 truncate text-p-sm duration-300 ease-in-out " + (collapsed ? "ms-0 w-0 overflow-hidden opacity-0" : "ms-2 w-auto opacity-100");
 	}

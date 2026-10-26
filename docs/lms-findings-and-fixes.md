@@ -913,3 +913,9 @@ Applied 2026-10-26 with owner approval: the affected row's `plan` was changed fr
 
 Added `billing_health_issues` and `billing_health_job` (hourly, Discord via `payment_needs_review`, once a day per issue) for a locked student whose first charge was due but not recorded, a live Stripe subscription whose paid period lapsed, and a plan set without a payment. `discord_alerts.notify` gained an optional `dedupe_seconds` (default unchanged at 600). Tests: 58 OK across billing, lifecycle, Stripe provider and mock tests. Read-only run of the check against the 13 live rows: no issues now; evaluated as of 2026-11-26 09:00 UTC with nothing recorded it flags the one student whose first charge is due that day. Discord alerts, payment review alerts and a webhook are enabled on the site. The job does not run until its Scheduled Job Type exists and the workers are restarted; see the deployment entry below once done.
 
+
+## 2026-10-27: Collapsed website exit label
+
+Owner screenshot showed the website exit text protruding from the collapsed rail. The shared DOM observer only watches child changes, while the sidebar collapse toggles its class. Added a class-only observer on each sidebar (registered once through a WeakSet) to refresh the exit immediately on collapse/expand. Explicitly removes the collapsed label from layout, retaining the accessible name, title and icon. No global observer or upstream edits.
+
+Validated the actual automatic class-change path in Chromium with served CSS/native sidebar markup: display none on collapse and restored on expansion without manually invoking the decorator; last-row ordering and single insertion still passed. Node syntax and diff checks passed; public HTTPS returns the modified JS byte-for-byte. Existing immutable URL requires hard refresh. No backend restart. Rollback: revert this JS change.
