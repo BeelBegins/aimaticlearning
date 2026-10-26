@@ -37,3 +37,7 @@ registrations exist and prices have a tax behaviour.
   (UK entity, tax ID, UK address, phone, website, ID, bank account). Payouts go to the Wise
   Business GBP account if Stripe accepts it. Fallback provider: Airwallex (not built).
 - Sandbox keys (sk_test, pk_test) were shared in chat on 2026-10-07; rotate them when going live.
+
+## Live verification (2026-10-26)
+
+Examic Live webhook is enabled and includes all four required events; no event edits were needed. The previously absent customer portal configuration was created and verified as the active Live default with payment-method updates and cancellation at period end enabled. Return URL: https://www.examic.study/billing. No keys or prices changed. A real student portal click and payment lifecycle are still pending.

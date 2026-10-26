@@ -80,6 +80,10 @@ apps beyond the Examic LMS stack.
 
 New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Verify the live site's installed code before assuming this behavior is active.
 
+## Stripe portal and webhook check (2026-10-26)
+
+Official Live API verification confirmed the Examic webhook is enabled and already subscribes to all four required billing events. Created the previously missing default active Live customer portal configuration with card updates and cancellation at period end enabled. No prices, credentials, email templates or service restarts changed. Real student portal navigation and live payment testing remain pending.
+
 ## Billing (2026-10-07)
 
 Read-only runtime check on 2026-10-08 confirmed Stripe is the active provider in

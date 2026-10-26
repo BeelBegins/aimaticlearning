@@ -841,3 +841,9 @@ Validation: Node syntax check and git diff check passed. Headless Chromium using
 ## 2026-10-26: Account name in website header
 
 Owner requested only the account name beside Open my portal. Removed the `Logged in as` prefix from both shared-header variants, retaining the dynamic full name. Cleared the Examic site cache. Both Jinja name spans render Nabeel Ahmed without the prefix; git diff check passed. No service restart. Rollback: revert the template change and clear cache.
+
+## 2026-10-26: Live Stripe webhook and customer portal verified
+
+Owner authorized the four webhook events and customer portal cancellation/card settings. Used the official Stripe API with the existing Live credential loaded from Examic Billing Settings in memory; no secret values were printed or changed. The enabled live Examic webhook already contained checkout.session.completed, invoice.paid, invoice.payment_failed and customer.subscription.deleted, so it was left unchanged (including its other event subscriptions).
+
+No portal configurations existed. Created `bpc_1UUldEPQTqb5hoxzrFxCyRhw`, confirmed active, livemode and is_default, with payment_method_update enabled and subscription_cancel enabled at_period_end, no proration, return URL https://www.examic.study/billing. A fresh GET verified the settings. Rollback for this newly created portal configuration: deactivate it through the Stripe API; no earlier configuration existed. No prices, API keys, webhook secrets, email templates, site restarts, customer subscriptions, charges or refunds were changed. A real student portal click and live payment lifecycle remain unverified.

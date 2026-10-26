@@ -93,3 +93,5 @@ Mock locks: `exam_product.is_sitting_locked` and `page_renderer`.
 No keys, tokens, bank numbers or webhook secrets in code, git, tasks or logs; they live in
 Examic Billing Settings. Never mix live and test keys. Terms, Privacy and Refund pages
 are drafts needing owner or legal review. Existing students are never changed without approval.
+
+Live operations verified 2026-10-26: Examic webhook enabled with all four required events; default Live customer portal now supports card updates and cancellation at period end. No prices or credentials changed; see `stripe.md`.
