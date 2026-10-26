@@ -28,6 +28,7 @@ ANSWER_RE = re.compile(
 BARE_ANSWER_RE = re.compile(r"^([A-E])(?:\s*[-–:]\s*|\s+)(.+)$", re.I)
 CORRECT_ANSWER_RE = re.compile(r"^Correct Answer:\s*([A-E])\s*-\s*(.*)$", re.I)
 EXPLANATION_RE = re.compile(r"^(?:Explanation|Reason)\s*:\s*(.*)$", re.I)
+EXPLANATION_REASON_LABEL_RE = re.compile(r"\b(?:Reasoning|Explanations?|Reason)\s*:", re.I)
 LEARNER_SOURCE_TRAIL_RE = re.compile(
 	r"(?:\s|<br\s*/?>)*(?:source|source reference)\s*:\s*(?:file://)?(?:/home/|/private/files/|/files/).*$",
 	re.I | re.S,
@@ -1284,6 +1285,41 @@ def remove_learner_source_traces() -> dict:
 		updated_explanations += len(updates)
 	frappe.db.commit()
 	return {
+		"updated_questions": updated_questions,
+		"updated_explanations": updated_explanations,
+	}
+
+
+def normalize_explanation_reason_labels(dry_run: bool = True) -> dict:
+	"""Standardize LMS Question explanation headings as ``Reason:``."""
+	fields = [f"explanation_{index}" for index in range(1, 11)]
+	rows = frappe.db.get_all("LMS Question", fields=["name", *fields])
+	updated_questions = 0
+	updated_explanations = 0
+
+	try:
+		for row in rows:
+			updates = {}
+			for field in fields:
+				original = row.get(field) or ""
+				cleaned = EXPLANATION_REASON_LABEL_RE.sub("Reason:", original)
+				if cleaned != original:
+					updates[field] = cleaned
+			if not updates:
+				continue
+			if not dry_run:
+				frappe.db.set_value("LMS Question", row.name, updates, update_modified=False)
+			updated_questions += 1
+			updated_explanations += len(updates)
+		if not dry_run:
+			frappe.db.commit()
+	except Exception:
+		if not dry_run:
+			frappe.db.rollback()
+		raise
+
+	return {
+		"dry_run": dry_run,
 		"updated_questions": updated_questions,
 		"updated_explanations": updated_explanations,
 	}

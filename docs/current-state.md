@@ -1,6 +1,6 @@
 # Examic Study — current state
 
-Last updated: 2026-10-08. Verify read-only before any site mutation.
+Last updated: 2026-10-26. Verify read-only before any site mutation.
 
 ## Product
 
@@ -40,6 +40,15 @@ assets returned HTTP 200, `/api/method/ping` returned `pong`, and the web proces
 was running. An authenticated learner browser review remains pending.
 
 The public header shows only the signed-in account full name beside Open my portal (2026-10-26); the `Logged in as` prefix has been removed in both header variants.
+
+## MCQ explanation labels (2026-10-26)
+
+Standardized the existing learner-facing `LMS Question.explanation_1..10`
+headings on `examic.study` to `Reason:`. Updated 152 fields; all 3,175
+questions now have no `Reasoning:` or `Explanation(s):` labels remaining in
+their explanation fields. The question and explanation wording remains
+unchanged. A rerunnable maintenance helper is in
+`aimaticlearning/lms_learning/mcq_import.py`.
 
 ## Website exit navigation (2026-10-25)
 

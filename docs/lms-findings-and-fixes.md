@@ -4,6 +4,32 @@ Use this as the repository record for verified learner-facing quality findings
 and their corrections. It is not a scratchpad and is not a substitute for a
 backup, test result, or source approval.
 
+## 2026-10-26 — MCQ explanation labels normalized
+
+**Scope:** All learner-facing `LMS Question.explanation_1..10` values on
+`examic.study`.
+
+**Finding:** The live question bank used `Reason:`, `Reasoning:`, and
+`Explanation(s):` as interchangeable explanation headings.
+
+**Source checked:** Current live `LMS Question` values. No source files or
+explanation wording were changed.
+
+**Correction:** Added the idempotent `normalize_explanation_reason_labels`
+maintenance helper in `mcq_import.py` and ran it against the live site. It
+changed 152 explanation fields to use `Reason:` and preserved all remaining
+text. Existing `Reason:` labels were retained.
+
+**Verification:** The dry run identified 152 fields. A post-update scan of all
+3,175 questions found zero `Reasoning:` or `Explanation(s):` labels and 393
+`Reason:` labels. The quiz API returned a normalized explanation for a linked
+question. No test suite was run. The existing full database snapshot from
+2026-10-25 17:45 remains available; restoring it would also roll back other
+site changes since then.
+
+**Remaining risk:** Future direct edits or imports can introduce another label
+variant; the maintenance helper is safe to re-run.
+
 ## Entry format
 
 For every entry include:
