@@ -16,7 +16,7 @@ holds both the free month and the charge:
   webhook sets Stripe `cancel_at` one term after the first charge (`_end_fixed_term`), so it never
   renews. Without that price the 3-Month plan is hidden from `setup` students and the old
   one-off price is used only for students who are not deferred.
-- `checkout.session.completed` with `payment_status=no_payment_required` is the `trial` action:
+- `checkout.session.completed` in subscription mode with `amount_total` 0 is the `trial` action (live Stripe reports these as `payment_status=paid`, not `no_payment_required`, so the amount decides):
   it stores `pending_plan`, never `plan`, so mocks stay locked and `monthly_subscription_active`
   stays false until the first `invoice.paid` (which carries the plan in subscription metadata)
   calls `apply_payment`.

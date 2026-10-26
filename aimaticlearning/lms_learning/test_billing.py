@@ -32,6 +32,16 @@ class TestStatus(unittest.TestCase):
 			self.assertFalse(billing.mocks_unlocked(state))
 
 
+class TestMonthlyEarlyUnlock(unittest.TestCase):
+	def test_card_at_signup_student_never_unlocks_on_the_plan_label(self):
+		paid_checkout = billing.monthly_checkout_paid
+		self.assertTrue(paid_checkout("trial", "Monthly", "sub_1", 0))
+		self.assertFalse(paid_checkout("trial", "Monthly", "sub_1", 1))
+		self.assertFalse(paid_checkout("trial", "Monthly", None, 0))
+		self.assertFalse(paid_checkout("trial", "3-Month", "sub_1", 0))
+		self.assertFalse(paid_checkout("locked", "Monthly", "sub_1", 0))
+
+
 class TestPeriods(unittest.TestCase):
 	def test_paid_period_starts_after_the_free_month(self):
 		# Paying on day 5 of the free month: monthly runs from the end of the free month.

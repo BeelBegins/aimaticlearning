@@ -88,6 +88,17 @@ def mocks_unlocked(state: str) -> bool:
 	return state in ("staff", "paid")
 
 
+def monthly_checkout_paid(state: str, plan: str | None, stripe_subscription, card_required) -> bool:
+	"""A Monthly Checkout paid just now, before its invoice webhook sets paid_until.
+
+	A student who had to add a card at signup only saves it for the free month, so the plan label
+	alone never opens the mocks for them: access follows a recorded payment.
+	"""
+	return bool(
+		state in ("trial", "unsubscribed") and plan == "Monthly" and stripe_subscription and not card_required
+	)
+
+
 def settings() -> dict:
 	"""Billing settings with safe defaults. Secrets are decrypted here and never logged."""
 	defaults = {
@@ -170,8 +181,8 @@ def access_state(user: str | None = None) -> dict:
 			if status == "Awaiting Payment" and not row.trial_ends_on and not row.paid_until:
 				state = "unsubscribed"
 			end = row.paid_until if state == "paid" else row.trial_ends_on
-			monthly_subscription_active = bool(
-				state in ("trial", "unsubscribed") and row.plan == "Monthly" and row.stripe_subscription
+			monthly_subscription_active = monthly_checkout_paid(
+				state, row.plan, row.stripe_subscription, row.get("card_required")
 			)
 			card_plan = row.pending_plan if row.stripe_subscription and state == "trial" else None
 			if needs_card_setup(state, row.get("card_required"), row.stripe_subscription):

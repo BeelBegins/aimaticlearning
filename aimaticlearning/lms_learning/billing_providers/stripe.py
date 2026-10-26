@@ -59,11 +59,15 @@ def interpret_event(event: dict) -> dict:
 		if obj.get("mode") == "payment" and obj.get("payment_status") == "paid":
 			return {**base, "action": "pay", "amount": (obj.get("amount_total") or 0) / 100,
 				"reference": obj.get("payment_intent") or obj.get("id")}
+		if obj.get("mode") == "subscription" and (
+			obj.get("payment_status") == "no_payment_required" or obj.get("amount_total") == 0
+		):
+			# Free month: the card is saved and Stripe charges on the day the trial ends. Live
+			# Stripe reports a trial Checkout as payment_status "paid" with amount_total 0, so the
+			# amount decides, not the status.
+			return {**base, "action": "trial"}
 		if obj.get("mode") == "subscription" and obj.get("payment_status") == "paid":
 			return {**base, "action": "link"}
-		if obj.get("mode") == "subscription" and obj.get("payment_status") == "no_payment_required":
-			# Free month: the card is saved and Stripe charges on the day the trial ends.
-			return {**base, "action": "trial"}
 		return {"action": "ignore"}
 	if kind == "invoice.paid":
 		amount = (obj.get("amount_paid") or 0) / 100

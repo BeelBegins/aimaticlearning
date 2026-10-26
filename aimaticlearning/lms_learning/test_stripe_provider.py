@@ -65,6 +65,13 @@ class TestInterpretEvent(unittest.TestCase):
 		self.assertEqual((action["action"], action["plan"], action["user"]), ("trial", "3-Month", "a@b.com"))
 		self.assertEqual((action["customer"], action["subscription"]), ("cus_1", "sub_1"))
 
+	def test_live_trial_checkout_reports_paid_with_zero_total_and_is_still_a_trial(self):
+		# Seen on the live account for a free-month Monthly signup: status paid, nothing charged.
+		event = {"type": "checkout.session.completed", "data": {"object": {
+			"mode": "subscription", "payment_status": "paid", "amount_total": 0,
+			"client_reference_id": "a@b.com", "metadata": {"plan": "Monthly"}, "customer": "cus_1", "subscription": "sub_1"}}}
+		self.assertEqual(sp.interpret_event(event)["action"], "trial")
+
 	def test_invoice_paid_takes_the_plan_from_subscription_metadata(self):
 		paid = {"type": "invoice.paid", "data": {"object": {"id": "in_2", "amount_paid": 9900, "customer": "cus_1",
 			"subscription": "sub_1", "billing_reason": "subscription_cycle",
