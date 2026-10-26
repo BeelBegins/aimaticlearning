@@ -1,11 +1,37 @@
 {% set custom_signup_content = frappe.db.get_single_value("LMS Settings", "custom_signup_content") %}
 {% set user_category = frappe.db.get_single_value("LMS Settings", "user_category") %}
 {% set trial_days = frappe.db.get_single_value("Examic Billing Settings", "trial_days") or 30 %}
+{% set monthly_price = frappe.db.get_single_value("Examic Billing Settings", "monthly_price") or 49 %}
+{% set three_month_price = frappe.db.get_single_value("Examic Billing Settings", "three_month_price") or 99 %}
+{% set charge_date = frappe.utils.formatdate(frappe.utils.add_days(frappe.utils.nowdate(), trial_days + 1)) %}
 {% set support_email = frappe.db.get_single_value("LMS Settings", "contact_us_email") or "hello@examic.study" %}
 <form class="form-signin signup-form" role="form" novalidate>
 	<div class="page-card-body">
 		<div class="login-success-banner examic-signup-banner examic-signup-banner--success hidden" role="status"></div>
 		<div class="login-error-banner examic-signup-banner examic-signup-banner--error hidden" role="alert"></div>
+
+		<fieldset class="examic-signup-plans">
+			<legend class="examic-signup-step">{{ _("Step 1 of 3: choose the plan you want after your free month") }}</legend>
+			<label class="examic-plan-option">
+				<input type="radio" name="signup_plan" value="Monthly" checked>
+				<span class="examic-plan-body">
+					<strong>{{ _("Monthly") }}</strong>
+					<span class="examic-plan-price">&pound;{{ "%g"|format(monthly_price|float) }} {{ _("per month") }}</span>
+					<span class="examic-plan-note">{{ _("Renews every month. Cancel any time.") }}</span>
+				</span>
+			</label>
+			<label class="examic-plan-option">
+				<input type="radio" name="signup_plan" value="3-Month">
+				<span class="examic-plan-body">
+					<strong>{{ _("3-Month") }}</strong>
+					<span class="examic-plan-price">&pound;{{ "%g"|format(three_month_price|float) }} {{ _("for 3 months") }}</span>
+					<span class="examic-plan-note">{{ _("One payment. Does not renew.") }}</span>
+				</span>
+			</label>
+			<p class="examic-plan-today">{{ _("Pay £0 today. Your first charge is on {0}. Cancel before then and you pay nothing.").format(charge_date) }}</p>
+		</fieldset>
+
+		<p class="examic-signup-step">{{ _("Step 2 of 3: your details") }}</p>
 
 		<div class="form-group">
 			<label class="form-label" for="signup_fullname">{{ _("Full Name") }}</label>
@@ -37,7 +63,7 @@
 		</div>
 		{% endif %}
 
-		<p class="examic-signup-note">{{ _("After you log in you choose Monthly or 3-Month and add a card. Nothing is charged for {0} days. Then your card is charged automatically for your plan, unless you cancel before then.").format(trial_days) }}</p>
+		<p class="examic-signup-note"><strong>{{ _("Step 3 of 3: add your card.") }}</strong> {{ _("We email you a link to set your password. After you log in you confirm your plan and add a card on Stripe's secure page. Nothing is charged for {0} days.").format(trial_days) }}</p>
 
 		{% if custom_signup_content %}
 		<div class="form-group examic-signup-terms">
@@ -107,7 +133,8 @@
 
 	function reset_signup_form() {
 		const form = $(".signup-form");
-		form.find("input:not([type='submit'])").val("").prop("checked", false);
+		form.find("input:not([type='submit'], [type='radio'])").val("").prop("checked", false);
+		form.find("input[name='signup_plan'][value='Monthly']").prop("checked", true);
 		form.find("#user_category").val("");
 		form.find(".form-group").removeClass("invalid").find(".field-error").text("");
 		form.find(".examic-signup-banner").addClass("hidden").text("");
@@ -140,6 +167,10 @@
 			show_field_error("signup-terms", {{ _("Please accept the terms to continue.") | tojson }});
 			return false;
 		}
+
+		try {
+			window.localStorage.setItem("examic_plan", $("input[name='signup_plan']:checked").val() || "");
+		} catch (err) {}
 
 		frappe.call({
 			method: "lms.lms.user.sign_up",

@@ -40,7 +40,7 @@ function render(){
   h+='<div class="inline-flex flex-col"><label><input type="checkbox" id="mfr" '+(state.flag[n]?'checked':'')+'> Mark for review</label></div><div class="flex flex-wrap pager">'+
   '<button aria-label="Previous question" class="rounded-full" '+(n==1?'disabled':'')+' id="pv"></button>';
   var s=Math.floor((n-1)/5)*5+1;for(var k=s;k<Math.min(s+5,N+1);k++)h+='<button class="w-6 h-6 rounded-full" data-p="'+k+'">'+k+'</button>';
-  h+='<button aria-label="Next question" class="rounded-full" '+(n==N?'disabled':'')+' id="nx"></button><button id="submitbtn" class="ms-auto">Submit</button></div></div>';}
+  h+='<button aria-label="Next question" class="rounded-full" '+(n==N?'disabled':'')+' id="nx"></button>'+(n==N?'<button id="submitbtn" class="ms-auto">Submit</button>':'')+'</div></div>';}
  h+='</div></main></div>';
  var r=document.getElementById('root');r.innerHTML=h;
  var sb=r.querySelector('#startbtn'); if(sb)sb.onclick=function(){localStorage.removeItem(TITLE);setActive(1);};

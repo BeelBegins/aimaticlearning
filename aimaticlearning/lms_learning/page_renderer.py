@@ -52,7 +52,7 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_experience.css?v=20261008-themelock1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_student_dashboard.css?v=20261005-dash6">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/examic_sessions.css?v=20260917-flash1">
-<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261005-pearson6">
+<link rel="stylesheet" href="/assets/aimaticlearning/css/lms_exam_tools.css?v=20261026-pearson7">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lesson_audio.css?v=20260907-1">
 <link rel="stylesheet" href="/assets/aimaticlearning/css/lms_soft_themes.css?v=20261008-themelock5">
 <script defer src="/assets/aimaticlearning/js/lms_dom_observe.js?v=20260902-1"></script>
@@ -63,7 +63,7 @@ ASSET_TAGS = f'''<!-- {ASSET_MARKER} -->
 <script defer src="/assets/aimaticlearning/js/lms_student_experience.js?v=20261024-exit1"></script>
 <script defer src="/assets/aimaticlearning/js/lms_student_dashboard.js?v=20261005-dash6"></script>
 <script defer src="/assets/aimaticlearning/js/examic_sessions.js?v=20260925-flashcard1"></script>
-<script defer src="/assets/aimaticlearning/js/lms_exam_tools.js?v=20261005-pearson6"></script>
+<script defer src="/assets/aimaticlearning/js/lms_exam_tools.js?v=20261026-pearson7"></script>
 <script defer src="/assets/aimaticlearning/js/lesson_audio.js?v=20260909-1"></script>'''
 
 

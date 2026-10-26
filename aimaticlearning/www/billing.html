@@ -67,9 +67,13 @@
 					lead.textContent = "Please try again later or email hello@examic.study for help.";
 					return;
 				}
-				(s.card_plan ? [] : s.plans).forEach(function (p) {
+				var wanted = "";
+				try { wanted = (/[?&]plan=([^&]+)/.exec(window.location.search) || [])[1] || window.localStorage.getItem("examic_plan") || ""; } catch (e) {}
+				wanted = decodeURIComponent(wanted);
+				var ordered = (s.card_plan ? [] : s.plans).slice().sort(function (a, b) { return (b.name === wanted) - (a.name === wanted); });
+				ordered.forEach(function (p) {
 					var card = node("article", "sx-plan");
-					card.append(node("h3", "", p.name + " plan"), node("p", "sx-price", ""));
+					card.append(node("h3", "", p.name + " plan" + (p.name === wanted && s.state === "setup" ? " (your choice at signup)" : "")), node("p", "sx-price", ""));
 					card.lastChild.append(node("strong", "", gbp(p.price)), document.createTextNode(" " + p.detail));
 				var buttonText = s.state === "setup" ? "Choose " + p.name + " and add card" : s.state === "trial" ? "Pay " + gbp(p.price) + " now to unlock all mocks" : "Pay by card " + gbp(p.price);
 				var b = node("button", "sqe-btn sqe-btn-primary", buttonText);

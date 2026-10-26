@@ -32,3 +32,7 @@ test clock advance, 3-Month `cancel_at` not producing a second invoice). Public 
 `/pricing`, `/introductory-offer`, `/terms`, `/refund-policy`, `/how-it-works` and `/sqe` was
 changed to match and needs owner or legal review before launch (a charge after a free trial).
 
+
+## Plan chosen at signup
+
+The signup form shows Monthly and 3-Month with prices and the first charge date. The choice is kept in the browser (`examic_plan`) and `/billing` lists that plan first and marks it. It is a preselection only: the student still confirms the plan and adds the card on `/billing`. Nothing about it is stored server side.

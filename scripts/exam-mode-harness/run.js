@@ -4,6 +4,7 @@ const PUB=path.join(__dirname,'..','..','aimaticlearning','public');
 const S=__dirname; fs.mkdirSync(S+'/shots',{recursive:true});
 const srv=http.createServer((q,r)=>{
   const u=q.url.split('?')[0];
+  if(u==='/favicon.ico'){r.statusCode=204;return r.end();}
   if(u.startsWith('/lms/quiz/')){r.setHeader('content-type','text/html');return r.end(fs.readFileSync(S+'/harness.html'));}
   if(u.startsWith('/assets/aimaticlearning/')){const f=path.join(PUB,u.replace('/assets/aimaticlearning/',''));
     if(fs.existsSync(f)){r.setHeader('content-type',f.endsWith('.css')?'text/css':'application/javascript');return r.end(fs.readFileSync(f));}}
@@ -13,7 +14,7 @@ const res=[];const ok=(n,c,d='')=>{res.push((c?'PASS ':'FAIL ')+n+(d?' | '+d:'')
 (async()=>{
  const b=await chromium.launch({executablePath:process.env.CHROME_PATH,args:['--no-sandbox']});
  const ctx=await b.newContext({viewport:{width:1100,height:760}});
- const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>m.type()==='error'&&errs.push(m.text()));
+ const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>m.type()==='error'&&errs.push(m.text()+' @ '+m.location().url)); p.on('response',r=>r.status()>=400&&errs.push(r.status()+' '+r.url()));
  const U='http://localhost:18765/lms/quiz/mock-test';
  const shot=n=>p.screenshot({path:S+'/shots/'+n+'.png'});
  const cur=()=>p.evaluate(()=>{const e=[...document.querySelectorAll('.text-sm.text-ink-gray-5')].find(n=>/^Question\s+\d+/.test(n.textContent));return e?+e.textContent.match(/\d+/)[0]:0;});
@@ -74,9 +75,11 @@ const res=[];const ok=(n,c,d='')=>{res.push((c?'PASS ':'FAIL ')+n+(d?' | '+d:'')
  await p.click('[data-pearson=review]'); await p.waitForTimeout(200);
  await p.locator('.aimatic-pearson-row').nth(0).click(); await p.waitForTimeout(1500);
  ok('jump to Q1 keeps its answer', await cur()===1 && (await p.locator('label:has-text("Irrationality") input').isChecked()), 'cur='+await cur());
- // End Test dialog
+ // End Test dialog: the stock page has Submit only on the last question, and we are on Q1 here
  await p.click('[data-pearson=review]'); await p.waitForTimeout(300);
- await p.click('[data-pearson=end]'); await p.waitForTimeout(600);
+ ok('stand-in has no Submit on Q1', (await p.locator('#submitbtn').count())===0);
+ await p.click('[data-pearson=end]'); await p.waitForTimeout(2500);
+ ok('End Test from Q1 went to the last question', await cur()===50, 'cur='+await cur());
  const top=await p.evaluate(()=>{const d=document.querySelector('#dlgwrap [role=dialog]');if(!d)return 'nodialog';const r=d.getBoundingClientRect();const e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return d.contains(e)?'dialog-on-top':'covered:'+e.className;});
  ok('End Test confirm dialog above review', top==='dialog-on-top', top);
  await shot('07-end-dialog');

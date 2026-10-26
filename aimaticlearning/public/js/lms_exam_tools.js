@@ -547,9 +547,28 @@
 		}
 	}
 
-	function endTest() {
-		const submit = buttonByLabel(/^(Submit|End session & submit)$/);
-		if (submit) submit.click();
+	// The stock quiz page only renders Submit on the last question, so End Test from any other
+	// question first goes there. The native confirm dialog then opens above the review screen.
+	let endingTest = false;
+
+	async function endTest() {
+		if (endingTest) return;
+		endingTest = true;
+		try {
+			const submitPattern = /^(Submit|End session & submit)$/;
+			let submit = buttonByLabel(submitPattern);
+			if (!submit) {
+				const total = questionTotal();
+				if (total) await goToQuestion(total);
+				for (let tick = 0; tick < 50 && !submit; tick += 1) {
+					submit = buttonByLabel(submitPattern);
+					if (!submit) await wait(40);
+				}
+			}
+			if (submit) submit.click();
+		} finally {
+			endingTest = false;
+		}
 	}
 
 	function styleKey() {
