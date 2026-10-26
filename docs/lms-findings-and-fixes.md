@@ -837,3 +837,7 @@ Deployment: static public assets are symlinked directly from this checkout; publ
 Validation: Node syntax check and git diff check passed. Headless Chromium using served live CSS and native sidebar markup confirmed matching 28px row height, 13px label font, insertion after Mock exams, one exit after repeated decoration, collapsed label hidden and `/` destination. Authenticated live sidebar verification remains pending. Rollback: revert this task commit and clear the site cache; hard refresh the browser.
 
 2026-10-25 follow-up: owner requested sentence case, `Back to website`. Updated both sidebar render paths, including the JS title and accessible label. Node syntax and public served-asset checks passed; site cache cleared. Existing browsers still require a hard refresh.
+
+## 2026-10-26: Account name in website header
+
+Owner requested only the account name beside Open my portal. Removed the `Logged in as` prefix from both shared-header variants, retaining the dynamic full name. Cleared the Examic site cache. Both Jinja name spans render Nabeel Ahmed without the prefix; git diff check passed. No service restart. Rollback: revert the template change and clear cache.
