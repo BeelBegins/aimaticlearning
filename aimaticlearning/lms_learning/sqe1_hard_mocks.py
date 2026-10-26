@@ -1,6 +1,7 @@
 """Assemble January 2027 SQE1 hard mock sittings from the reviewed 5-option bank.
 
-Do not invent keys. Do not copy Kaplan. Do not reuse a question across sittings.
+Do not invent keys. Do not copy Kaplan. Mocks 1-4 never share a question; Mocks 5-10
+may repeat questions from earlier mocks (never inside one mock), least-used first.
 Quiz lessons keep EditorJS content empty.
 """
 
@@ -55,8 +56,78 @@ FLK1_COUNTS = (
 	{"blp": 33, "dr": 25, "legal_services": 27, "tort": 30, "contract": 28, "legal_system": 27},
 	{"blp": 34, "dr": 25, "legal_services": 26, "tort": 30, "contract": 29, "legal_system": 26},
 	{"blp": 32, "dr": 27, "legal_services": 26, "tort": 31, "contract": 27, "legal_system": 27},
+	{"blp": 31, "dr": 27, "legal_services": 27, "tort": 30, "contract": 28, "legal_system": 27},
+	{"blp": 33, "dr": 26, "legal_services": 26, "tort": 29, "contract": 29, "legal_system": 27},
+	{"blp": 32, "dr": 26, "legal_services": 27, "tort": 30, "contract": 28, "legal_system": 27},
+	{"blp": 31, "dr": 28, "legal_services": 26, "tort": 31, "contract": 27, "legal_system": 27},
+	{"blp": 32, "dr": 27, "legal_services": 26, "tort": 28, "contract": 30, "legal_system": 27},
+	{"blp": 31, "dr": 27, "legal_services": 27, "tort": 29, "contract": 29, "legal_system": 27},
 )
+# Mocks 1-4 are live and unique across each other; later mocks reuse questions.
+UNIQUE_MOCKS = 4
+MAX_PAIRWISE_OVERLAP = 0.5
+FIRST_REUSE_MOCK = UNIQUE_MOCKS + 1
 FLK2_COUNTS = (
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
+	{
+		"wills": 21,
+		"accounts_wills": 8,
+		"trusts": 28,
+		"land": 28,
+		"property": 21,
+		"accounts_property": 8,
+		"criminal_liability": 28,
+		"criminal_practice": 28,
+	},
 	{
 		"wills": 21,
 		"accounts_wills": 8,
@@ -225,8 +296,8 @@ def allocate(
 	tuples) and seed_used (question names already live in other, untouched
 	mocks) to build only new sittings without touching already-built ones.
 	"""
-	flk1_counts = FLK1_COUNTS if flk1_counts is None else flk1_counts
-	flk2_counts = FLK2_COUNTS if flk2_counts is None else flk2_counts
+	flk1_counts = FLK1_COUNTS[:UNIQUE_MOCKS] if flk1_counts is None else flk1_counts
+	flk2_counts = FLK2_COUNTS[:UNIQUE_MOCKS] if flk2_counts is None else flk2_counts
 	used: set[str] = set(seed_used or ())
 
 	def take(src: str, counts: list[int]) -> list[list[dict]]:
@@ -313,13 +384,156 @@ def allocate(
 	return {"papers": papers, "gaps": _gaps(pools, papers)}
 
 
+def _mock_questions(paper: dict) -> set[str]:
+	return {row["name"] for session in SESSION_AREAS for row in session_rows(paper, session)}
+
+
+def allocate_with_reuse(
+	pools: dict[str, list[dict]],
+	mock_numbers: list[int],
+	prior_mocks: dict[int, set[str]],
+) -> dict:
+	"""Allocate later mocks that may repeat questions from earlier ones.
+
+	prior_mocks maps mock number -> question names already live in that mock. Each
+	mock takes the least-used questions of every area first (unused ones, then the
+	fewest repeats), hardest first within a use level, and never repeats a question
+	inside the one mock. Mocks are dealt in order, so each counts the ones before it.
+	"""
+	use: dict[str, int] = {}
+	for names in prior_mocks.values():
+		for name in names:
+			use[name] = use.get(name, 0) + 1
+	sets = {number: set(names) for number, names in prior_mocks.items()}
+	papers = []
+	for number in mock_numbers:
+		c1, c2 = FLK1_COUNTS[number - 1], FLK2_COUNTS[number - 1]
+		in_mock: set[str] = set()
+
+		def pick(pool, n, prefer=None, need_flag=None):
+			prefer = prefer or (lambda row: 0)
+			ranked = sorted(
+				(row for row in pool if row["name"] not in in_mock),
+				key=lambda row: (use.get(row["name"], 0), prefer(row), hardness_key(row)),
+			)
+			if len(ranked) < n:
+				raise ValueError(f"Mock {number}: pool has {len(ranked)} items, need {n}")
+			chosen = ranked[:n]
+			if need_flag and not any(flag_text(row)[need_flag] for row in chosen):
+				extra = next((row for row in ranked[n:] if flag_text(row)[need_flag]), None)
+				if extra:
+					chosen[-1] = extra
+			for row in chosen:
+				in_mock.add(row["name"])
+			return chosen
+
+		flk1 = {
+			"blp": pick(pools["blp"], c1["blp"], need_flag="tax"),
+			"dr": pick(pools["dr"], c1["dr"]),
+			"legal_services": pick(pools["legal_services"], c1["legal_services"]),
+			"tort": pick(pools["tort"], c1["tort"]),
+			"contract": pick(pools["contract"], c1["contract"]),
+			"legal_system": pick(pools["legal_system"], c1["legal_system"], need_flag="ethics_aml"),
+		}
+		accounts = pools.get("accounts", [])
+
+		def acc_rank(kind):
+			return lambda row: 0 if classify_accounts(row) == kind else 1
+
+		accounts_pool = [row for row in accounts if classify_accounts(row) != "accounts_wills"]
+		acc_property = pick(accounts_pool, c2["accounts_property"], prefer=acc_rank("accounts_property"))
+		accounts_pool = [row for row in accounts if classify_accounts(row) != "accounts_property"]
+		acc_wills = pick(accounts_pool, c2["accounts_wills"], prefer=acc_rank("accounts_wills"))
+		crim_law_names = {row["name"] for row in pools.get("criminal_law", [])}
+		liability_pool = list(pools.get("criminal_law", [])) + list(pools.get("criminal_litigation", []))
+		flk2 = {
+			"wills": pick(pools["wills"], c2["wills"], need_flag="tax"),
+			"accounts_wills": acc_wills,
+			"trusts": pick(pools["trusts"], c2["trusts"], need_flag="ethics_aml"),
+			"land": pick(pools["land"], c2["land"]),
+			"property": pick(pools["property"], c2["property"], need_flag="tax"),
+			"accounts_property": acc_property,
+			"criminal_liability": pick(
+				liability_pool,
+				c2["criminal_liability"],
+				prefer=lambda row: 0 if row["name"] in crim_law_names else 1,
+			),
+		}
+		flk2["criminal_practice"] = pick(
+			pools.get("criminal_litigation", []), c2["criminal_practice"], need_flag="ethics_aml"
+		)
+		paper = {"mock": number, "flk1": flk1, "flk2": flk2}
+		names = _mock_questions(paper)
+		for name in names:
+			use[name] = use.get(name, 0) + 1
+		sets[number] = names
+		papers.append(paper)
+	return {"papers": papers, "gaps": _reuse_gaps(pools, papers), "mock_sets": sets}
+
+
+def _reuse_gaps(pools: dict, papers: list) -> list[str]:
+	gaps = [
+		"Eligible Hard tags are all 4-option or AI-generated; hardness is Hard-then-Medium plus longer application stems.",
+	]
+	crim = len(pools.get("criminal_law", [])) + len(pools.get("criminal_litigation", []))
+	slots = sum(c["criminal_liability"] + c["criminal_practice"] for c in FLK2_COUNTS)
+	if crim < slots:
+		gaps.append(
+			f"Criminal pool is small: {crim} reviewed items fill {slots} slots across "
+			f"{len(FLK2_COUNTS)} mocks, so criminal questions repeat across mocks."
+		)
+	return gaps
+
+
+def repeat_stats(mock_sets: dict[int, set[str]]) -> dict:
+	"""Per mock: questions seen in any earlier mock, and the largest overlap with one earlier mock."""
+	out = {}
+	seen: set[str] = set()
+	for number in sorted(mock_sets):
+		names = mock_sets[number]
+		overlaps = {
+			other: len(names & mock_sets[other]) / len(names)
+			for other in mock_sets
+			if other < number and names
+		}
+		worst = max(overlaps, key=overlaps.get) if overlaps else None
+		out[number] = {
+			"questions": len(names),
+			"repeated": len(names & seen),
+			"repeated_share": round(len(names & seen) / len(names), 3) if names else 0,
+			"max_pairwise_overlap": round(overlaps[worst], 3) if worst else 0,
+			"max_pairwise_with": worst,
+		}
+		seen |= names
+	return out
+
+
+def validate_reuse(allocation: dict) -> list[str]:
+	"""Hard checks. An empty list means every new mock is safe to write."""
+	problems = []
+	for paper in allocation["papers"]:
+		n = paper["mock"]
+		everything = [row["name"] for s in SESSION_AREAS for row in session_rows(paper, s)]
+		if len(everything) != len(set(everything)):
+			problems.append(f"Mock {n} repeats a question inside itself")
+		for session in SESSION_AREAS:
+			if len(session_rows(paper, session)) != 85:
+				problems.append(f"Mock {n} {session} is not 85 questions")
+	for number, stat in repeat_stats(allocation["mock_sets"]).items():
+		if stat["max_pairwise_overlap"] > MAX_PAIRWISE_OVERLAP:
+			problems.append(
+				f"Mock {number} shares {stat['max_pairwise_overlap']:.0%} with Mock {stat['max_pairwise_with']}"
+			)
+	return problems
+
+
 def _gaps(pools: dict, papers: list) -> list[str]:
 	gaps = [
 		"Eligible Hard tags are all 4-option or AI-generated; hardness is Hard-then-Medium plus longer application stems.",
 	]
 	crim_law_count = len(pools.get("criminal_law", []))
 	crim_lit_count = len(pools.get("criminal_litigation", []))
-	crim_need = sum(c["criminal_liability"] + c["criminal_practice"] for c in FLK2_COUNTS)
+	crim_need = sum(c["criminal_liability"] + c["criminal_practice"] for c in FLK2_COUNTS[:UNIQUE_MOCKS])
 	crim_have = crim_law_count + crim_lit_count
 	if crim_law_count:
 		gaps.append(
@@ -338,13 +552,13 @@ def _gaps(pools: dict, papers: list) -> list[str]:
 			"Criminal Law and Practice combined."
 		)
 	for area, need in (
-		("blp", sum(c["blp"] for c in FLK1_COUNTS)),
-		("dr", sum(c["dr"] for c in FLK1_COUNTS)),
-		("legal_services", sum(c["legal_services"] for c in FLK1_COUNTS)),
-		("legal_system", sum(c["legal_system"] for c in FLK1_COUNTS)),
-		("wills", sum(c["wills"] for c in FLK2_COUNTS)),
-		("trusts", sum(c["trusts"] for c in FLK2_COUNTS)),
-		("land", sum(c["land"] for c in FLK2_COUNTS)),
+		("blp", sum(c["blp"] for c in FLK1_COUNTS[:UNIQUE_MOCKS])),
+		("dr", sum(c["dr"] for c in FLK1_COUNTS[:UNIQUE_MOCKS])),
+		("legal_services", sum(c["legal_services"] for c in FLK1_COUNTS[:UNIQUE_MOCKS])),
+		("legal_system", sum(c["legal_system"] for c in FLK1_COUNTS[:UNIQUE_MOCKS])),
+		("wills", sum(c["wills"] for c in FLK2_COUNTS[:UNIQUE_MOCKS])),
+		("trusts", sum(c["trusts"] for c in FLK2_COUNTS[:UNIQUE_MOCKS])),
+		("land", sum(c["land"] for c in FLK2_COUNTS[:UNIQUE_MOCKS])),
 	):
 		have = len(pools.get(area, []))
 		if have < need + 10:
@@ -669,6 +883,15 @@ def explain_gap(text: str | dict) -> dict:
 				"They are not SRA-primary Criminal Liability items."
 			),
 		}
+	if text.startswith("Criminal pool is small"):
+		return {
+			"id": "criminal-repeats",
+			"title": "Criminal questions repeat across mocks",
+			"detail": (
+				"The reviewed criminal bank is smaller than ten mocks need, so some criminal "
+				"questions appear in more than one mock, never twice in the same mock."
+			),
+		}
 	if text.startswith("Eligible Hard"):
 		return {
 			"id": "hard-tags",
@@ -778,7 +1001,8 @@ def report_lesson_body(payload: dict) -> str:
 		payload.get("format") or "",
 		"",
 		f"{int(payload.get('unique_questions') or 0)} unique reviewed five-option questions. "
-		"No question is reused across the three sittings.",
+		f"Mocks 1 to {UNIQUE_MOCKS} share no question. Later mocks may repeat questions from "
+		"earlier mocks, never twice inside one mock.",
 		"",
 		"## Gaps",
 		"",
@@ -949,10 +1173,49 @@ def _live_used_question_names() -> set[str]:
 	return {row.question for row in rows}
 
 
+def live_mock_sets() -> dict[int, set[str]]:
+	"""Question names in each mock already built in the course, keyed by mock number."""
+	rows = frappe.db.sql(
+		"""
+		SELECT q.title, qq.question
+		FROM `tabLMS Quiz Question` qq
+		INNER JOIN `tabLMS Quiz` q ON q.name = qq.parent
+		WHERE q.course = %s AND q.title LIKE 'Mock %%'
+		""",
+		(COURSE_NAME,),
+		as_dict=True,
+	)
+	sets: dict[int, set[str]] = {}
+	for row in rows:
+		match = re.match(r"Mock (\d+)\b", row.title or "")
+		if match:
+			sets.setdefault(int(match.group(1)), set()).add(row.question)
+	return sets
+
+
+def dry_run_reuse(first: int = FIRST_REUSE_MOCK, last: int | None = None) -> dict:
+	"""Read-only plan for mocks first..last that may repeat earlier questions."""
+	last = last or len(FLK1_COUNTS)
+	prior = {n: names for n, names in live_mock_sets().items() if n < first}
+	allocation = allocate_with_reuse(load_pools(), list(range(first, last + 1)), prior)
+	report = summarise(allocation)
+	report["problems"] = validate_reuse(allocation)
+	report["repeat"] = repeat_stats(allocation["mock_sets"])
+	report["live_mocks_seen"] = sorted(prior)
+	report["selection"] = {
+		f"mock{paper['mock']}": {s: [row["name"] for row in session_rows(paper, s)] for s in SESSION_AREAS}
+		for paper in allocation["papers"]
+	}
+	return report
+
+
 def apply_mock(mock_number: int) -> dict:
 	"""Build exactly one new sitting without touching any mock already live in
 	the course (their quizzes keep whatever questions real submissions were
-	scored against). Refuses if that mock's chapter already exists.
+	scored against). Refuses if that mock's chapter already exists. Mocks after
+	UNIQUE_MOCKS may repeat earlier questions, least-used first; the build is
+	refused if validation finds a duplicate inside the mock, a session that is not
+	85, or an overlap with one earlier mock above MAX_PAIRWISE_OVERLAP.
 	"""
 	chapter_title = f"Mock {mock_number}"
 	if frappe.db.exists("Course Chapter", {"course": COURSE_NAME, "title": chapter_title}):
@@ -960,14 +1223,23 @@ def apply_mock(mock_number: int) -> dict:
 	if mock_number < 1 or mock_number > len(FLK1_COUNTS) or mock_number > len(FLK2_COUNTS):
 		frappe.throw(f"Mock {mock_number} has no configured counts in FLK1_COUNTS/FLK2_COUNTS.")
 
-	seed_used = _live_used_question_names()
-	allocation = allocate(
-		load_pools(),
-		flk1_counts=[FLK1_COUNTS[mock_number - 1]],
-		flk2_counts=[FLK2_COUNTS[mock_number - 1]],
-		seed_used=seed_used,
-		mock_offset=mock_number - 1,
-	)
+	live = live_mock_sets()
+	if mock_number > UNIQUE_MOCKS:
+		missing = [n for n in range(1, mock_number) if n not in live]
+		if missing:
+			frappe.throw(f"Build earlier mocks first; missing {missing}.")
+		allocation = allocate_with_reuse(load_pools(), [mock_number], live)
+		problems = validate_reuse(allocation)
+		if problems:
+			frappe.throw("; ".join(problems))
+	else:
+		allocation = allocate(
+			load_pools(),
+			flk1_counts=[FLK1_COUNTS[mock_number - 1]],
+			flk2_counts=[FLK2_COUNTS[mock_number - 1]],
+			seed_used=_live_used_question_names(),
+			mock_offset=mock_number - 1,
+		)
 	paper = allocation["papers"][0]
 	course = _ensure_course()
 	chapter = _ensure_chapter(paper["mock"], chapter_title)
@@ -988,7 +1260,8 @@ def apply_mock(mock_number: int) -> dict:
 				"count": len(names),
 			}
 		)
-	overlap = {row["name"] for s in SESSION_TITLES for row in session_rows(paper, s)} & seed_used
+	earlier = set().union(*[names for n, names in live.items() if n < mock_number] or [set()])
+	overlap = _mock_questions(paper) & earlier
 	frappe.db.commit()
 	return {
 		"mock": paper["mock"],

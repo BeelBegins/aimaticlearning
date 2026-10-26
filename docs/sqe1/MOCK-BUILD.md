@@ -18,7 +18,7 @@ For each mock **sitting** (FLK1 + FLK2):
 6. Solicitors Accounts sampled in **both** FLK2 sessions.
 7. Combined-subject items exist, but the **primary** tag stays inside the
    session list.
-8. Across the three sittings, every heading in `FLK1-TOPICS.md` and
+8. Across all built sittings, every heading in `FLK1-TOPICS.md` and
    `FLK2-TOPICS.md` is either used or explicitly listed as “bank has no
    reviewed 5-option item”.
 
@@ -53,8 +53,16 @@ Use only `LMS Question` rows that are:
 - reviewed answer + explanation + source locator;
 - not the historically ambiguous Criminal Law notes-only items.
 
-Never invent a key. Never pad by duplicating a question across sittings.
-Never copy Kaplan wording.
+Never invent a key. Never copy Kaplan wording.
+
+**Reuse across sittings (decided 2026-10-26).** Mocks 1 to 4 share no question.
+Mocks 5 to 10 may repeat questions from earlier mocks (about 30% of all slots
+across ten mocks, owner estimate of up to 40% accepted). A question never appears
+twice inside one mock. `allocate_with_reuse` takes the least-used questions of each
+area first, hardest first within a use level, and `validate_reuse` refuses a build
+where a session is not 85, a mock repeats a question, or one earlier mock overlaps
+more than 50%. Mocks 1 to 4 are never edited, because real submissions are scored
+against them.
 
 Prefer Hard, then Medium. Easy only if a heading would otherwise be empty.
 
@@ -138,10 +146,16 @@ questions silently.
 - 4-option questions are ineligible.
 - `ai_generated = 1` items are ineligible.
 
-Current build: 4 unique sittings (Mocks 1–4), built 2026-09-30. A 5th sitting
-is blocked only by the criminal-item shortfall above — closing it needs more
-reviewed Criminal Law content, not a script change. Until it closes, the
-honest product stays at 4 sittings — never a fake full cover.
+Plan for ten mocks (2026-10-26): 10 sittings, 3,400 question slots from about
+2,415 unique questions. Criminal (243 reviewed items for 560 slots) repeats most;
+every other area is below the owner's 40% estimate. Closing the criminal gap still
+needs more reviewed Criminal Law content. Dry run: `dry_run_reuse(5, 10)`; build one
+mock at a time with `apply_mock(n)`.
+
+Built so far: 4 unique sittings (Mocks 1 to 4, built 2026-09-30). Mocks 5 to 10 are
+planned with repeats allowed and are not written until the dry run is approved.
+A mock with repeated criminal items is honest only if the coverage report says so
+(`explain_gap` id `criminal-repeats`).
 
 ## Kaplan
 
