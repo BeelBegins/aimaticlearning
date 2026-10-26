@@ -36,3 +36,8 @@ changed to match and needs owner or legal review before launch (a charge after a
 ## Plan chosen at signup
 
 The signup form shows Monthly and 3-Month with prices and the first charge date. After a successful signup the page calls `billing.record_signup_plan`, which saves the choice in `Examic Subscription.signup_plan`. It only touches a brand new user (created in the last 30 minutes, never logged in), is rate limited, and never says whether the email exists. `/billing` reads `signup_plan` from `get_billing_state`, lists that plan first and marks it. It is a preselection only: the student still confirms the plan and adds the card. Both pieces need the `signup_plan` field, so reload the DocType (`reload-doc "LMS Learning" doctype examic_subscription`) and restart; until then the call does nothing and `/billing` falls back to the browser copy.
+
+## Lifecycle test
+
+`test_billing_lifecycle.py` drives the real `process_stripe_event` with an in-memory student and events in the shape the live account sends. It covers the free-month Checkout (stays locked, plan pending), a repeated delivery, the 0.00 first invoice, the first charge day before and after its webhook, the next monthly invoice, 3-Month (fixed term scheduled, one term of access), a failed first charge, cancelling in the free month, an unknown student, and the old pay-at-checkout path. It never touches the database or Stripe, so it proves the code's logic, not that Stripe delivers each event. The live account has no test-mode keys, so the first real end-to-end proof is a real student's first charge: check that row on the morning after their free month ends.
+
