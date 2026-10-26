@@ -877,3 +877,13 @@ No portal configurations existed. Created `bpc_1UUldEPQTqb5hoxzrFxCyRhw`, confir
 ## 2026-10-26: Website exit remains last
 
 Owner reported Mock coverage appearing after Back to website. Changed the sidebar decorator to place the exit after the final navigation row, excluding itself, instead of immediately after Mock exams. This handles staff-only and asynchronously added entries. Live HTTPS serves the changed script byte-for-byte; Node syntax and diff checks passed. Chromium fixture with native markup/live CSS checks placement after dynamically inserted Mock coverage, idempotence, matching row sizing, and collapsed mode. Existing immutable asset URL still requires browser hard refresh. No restart or backend change. Rollback: revert this JS change.
+
+## 2026-10-26: Mocks 5 to 10 added, reuse allowed
+
+Owner asked for 10 mocks in total with questions allowed to repeat (about 40% estimate). Added `allocate_with_reuse`, `validate_reuse`, `dry_run_reuse`, `live_summary` and `refresh_report_from_live` to `sqe1_hard_mocks.py` (commits e1ef296, d152e15, not pushed) and the reuse rule to `docs/sqe1/MOCK-BUILD.md`. Mocks 1 to 4 were not touched.
+
+Built on `examic.study` by the owner running `apply_mock(5..10)`, then `sync_from_hard_mock_course()` and `refresh_report_from_live()`. Course stays unpublished; no enrolments created (sync reported 0); pricing, billing and access rules unchanged. No backup was taken (not requested).
+
+Verified read-only afterwards: 40 quizzes, every session 85 questions, 340 per mock, 10 mocks in the lobby record (40 sessions) and the public report, 2,415 unique questions over 3,400 slots. Share of each mock already seen earlier: Mock 5 12%, 6 25%, 7 56%, 8 58%, 9 69%, 10 70%; largest overlap with any single earlier mock 27% (Mock 10 with Mock 4). Every mock has ethics items in at least two sessions plus tax and Wales items. Unit tests: 11 OK (`test_sqe1_hard_mocks`).
+
+Remaining risk: criminal questions repeat heavily until more Criminal Law content is reviewed; 8 Easy criminal-law items sit in each of Mocks 5, 6 and 10 against the "Easy only if a heading is empty" rule; the lobby and an exam sitting were not opened as a signed-in student. Rollback: delete the "Mock 5" to "Mock 10" Course Chapters with their 24 LMS Quizzes and Course Lessons, then re-run the two sync functions. Mocks 1 to 4 and their submissions are unaffected.

@@ -150,6 +150,15 @@ Operational diary (incidents, backups, content publishes) is
 `docs/lms-operational-log.md` in this repo. Older entries may refer to the
 retired server and must be treated as historical evidence.
 
+**SQE1 hard mocks, ten sittings (2026-10-26):** Mocks 5 to 10 were added to
+`sqe1-hard-mocks` (40 quizzes, 40 lobby sessions, all 85 questions, course still
+unpublished). Mocks 1 to 4 share no question; Mocks 5 to 10 repeat earlier questions,
+least-used first and never twice inside one mock. 3,400 slots, 2,415 unique questions
+(29% repeats); the criminal bank (243 reviewed items for 560 slots) repeats most.
+Mocks 5, 6 and 10 hold 8 Easy criminal-law items each. Coverage at
+`/learning-mock-report` is built from the live quizzes by `refresh_report_from_live()`.
+Details in `docs/lms-findings-and-fixes.md` (2026-10-26) and `docs/sqe1/MOCK-BUILD.md`.
+
 **SQE1 hard mocks (2026-09-30):** Exam product `Learning Mock Exam` `sqe1-hard-mocks`
 holds four January 2027 sittings (16 timed 85-question sessions, 1360 unique
 reviewed 5-option items; Mock 4 added 2026-09-30 without touching Mocks 1–3).
