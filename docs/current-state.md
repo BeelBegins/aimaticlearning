@@ -43,7 +43,7 @@ The public header shows only the signed-in account full name beside Open my port
 
 ## Website exit navigation (2026-10-25)
 
-The `/lms` script adds `Back to website` directly after Mock exams with native sidebar styling, linking to `/`. The shared learner sidebar has the same link. Updated static JS is live; existing browsers need a hard refresh because the running renderer retains its immutable asset URL. Browser checks with live CSS and sidebar markup passed; authenticated live review is pending. No Python restart or billing rollout was performed.
+The `/lms` script keeps `Back to website` last in its sidebar link list, including after staff-only Mock coverage (updated 2026-10-26), with native sidebar styling and destination `/`. The shared learner sidebar has the same link. Updated static JS is live; existing browsers need a hard refresh because the running renderer retains its immutable asset URL. Browser checks with live CSS and sidebar markup passed; authenticated live review is pending. No Python restart or billing rollout was performed.
 
 ## Public website content (2026-10-13)
 

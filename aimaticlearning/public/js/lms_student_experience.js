@@ -197,7 +197,7 @@
 		insertRailLink(rail, link);
 	}
 
-	// Follow Mock exams in the left pane, using the same
+	// Keep the website exit last in the sidebar link list, using the same
 	// classes as the upstream sidebar links so it matches them in both expanded and collapsed modes.
 	function addWebsiteExit() {
 		const sidebar = document.querySelector("div.bg-surface-sidebar.border-e");
@@ -224,9 +224,13 @@
 				'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></span>' +
 				'<span class="min-w-0 truncate text-p-sm duration-300 ease-in-out">Back to website</span></div>';
 			wrap.appendChild(link);
-			mockRow.insertAdjacentElement("afterend", wrap);
+
 		}
-		if (mockRow.nextElementSibling !== wrap) mockRow.insertAdjacentElement("afterend", wrap);
+		const rows = Array.from(mockRow.parentElement.children).filter(function (node) {
+			return node !== wrap && node.querySelector("button, a");
+		});
+		const lastRow = rows[rows.length - 1] || mockRow;
+		if (lastRow.nextElementSibling !== wrap) lastRow.insertAdjacentElement("afterend", wrap);
 		const row = wrap.querySelector("a > div");
 		const label = row.lastElementChild;
 		row.className = "flex items-center w-full duration-300 ease-in-out " + (collapsed ? "p-1 relative" : "px-2 py-1");
