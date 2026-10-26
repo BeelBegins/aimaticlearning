@@ -899,7 +899,7 @@ def explain_gap(text: str | dict) -> dict:
 			"detail": (
 				"Every Hard-tagged question is four-option or AI-generated. "
 				"These papers use the hardest reviewed five-option Medium items "
-				"(longer application stems), spread across the three sittings."
+				"(longer application stems), spread across the mocks."
 			),
 		}
 	if text.startswith("dr pool"):
@@ -1100,6 +1100,73 @@ def sync_frontend_report() -> dict:
 	payload["coverage_lesson"] = lesson
 	frappe.db.commit()
 	return payload
+
+
+def live_summary() -> dict:
+	"""Coverage summary read from the quizzes live in the course (all built mocks)."""
+	rows = {}
+	for pool in load_pools().values():
+		for row in pool:
+			rows[row["name"]] = row
+	quizzes = frappe.db.sql(
+		"""
+		SELECT q.title, qq.question
+		FROM `tabLMS Quiz Question` qq
+		INNER JOIN `tabLMS Quiz` q ON q.name = qq.parent
+		WHERE q.course = %s AND q.title LIKE 'Mock %%'
+		""",
+		(COURSE_NAME,),
+		as_dict=True,
+	)
+	by_session: dict[tuple[int, str], list[str]] = {}
+	for quiz in quizzes:
+		match = re.match(r"Mock (\d+) (FLK\d) Session (\d)", quiz.title or "")
+		if match:
+			key = (int(match.group(1)), f"{match.group(2).lower()}_s{match.group(3)}")
+			by_session.setdefault(key, []).append(quiz.question)
+	mocks = []
+	mock_sets: dict[int, set[str]] = {}
+	for number in sorted({n for n, _ in by_session}):
+		counts = {**FLK1_COUNTS[number - 1], **FLK2_COUNTS[number - 1]}
+		sessions = {}
+		for session, areas in SESSION_AREAS.items():
+			names = by_session.get((number, session), [])
+			mock_sets.setdefault(number, set()).update(names)
+			flags = [flag_text(rows[name]) for name in names if name in rows]
+			difficulty: dict[str, int] = {}
+			for name in names:
+				level = (rows.get(name, {}).get("difficulty") or "Medium")
+				difficulty[level] = difficulty.get(level, 0) + 1
+			sessions[session] = {
+				"count": len(names),
+				"areas": {area: counts[area] for area in areas},
+				"difficulty": difficulty,
+				"ethics_aml": sum(1 for f in flags if f["ethics_aml"]),
+				"tax": sum(1 for f in flags if f["tax"]),
+				"wales": sum(1 for f in flags if f["wales"]),
+			}
+		mocks.append({"mock": number, "sessions": sessions})
+	every = [name for names in mock_sets.values() for name in names]
+	return {
+		"mocks": mocks,
+		"gaps": _reuse_gaps(load_pools(), []),
+		"unique_questions": len(set(every)),
+		"duplicate": False,
+		"repeat": repeat_stats(mock_sets),
+	}
+
+
+def refresh_report_from_live() -> dict:
+	"""Rewrite the stored and public coverage reports from the live mocks, then sync the notes lesson."""
+	summary = live_summary()
+	generated = str(now_datetime())
+	private = Path(frappe.get_site_path("private", "files", "lms_learning_exports"))
+	private.mkdir(parents=True, exist_ok=True)
+	(private / "sqe1-hard-mocks-dry-run.json").write_text(
+		json.dumps({"generated": generated, "summary": summary, "gaps": summary["gaps"]}, indent=2, default=str),
+		encoding="utf-8",
+	)
+	return sync_frontend_report()
 
 
 def publish_course() -> dict:
