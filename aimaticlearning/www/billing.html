@@ -13,7 +13,7 @@
 				<p id="bill-lead"></p>
 			</div>
 			<div id="bill-plans" class="sx-plans sx-plans-pay is-hidden"></div>
-			<div id="bill-pay" class="sx-pay is-hidden"></div>
+			<div id="bill-pay" class="sx-billing-actions is-hidden"></div>
 			<p id="bill-msg" class="sx-fine" role="status"></p>
 		</section>
 		<script>
@@ -46,7 +46,7 @@
 					var go = node("a", "sqe-btn sqe-btn-primary", "Open my portal"); go.href = "/lms"; pay.append(go); pay.classList.remove("is-hidden");
 				} else if (s.state === "setup") {
 					title.textContent = "Choose your plan to start your free month";
-					lead.textContent = "Add a card to begin. Nothing is charged until " + fmt(s.charge_on) + ". On that day your card is charged automatically for the plan you choose. You can cancel before then with Manage card.";
+					lead.textContent = "Add a card to begin. Nothing is charged until " + fmt(s.charge_on) + ". On that day your card is charged automatically for the plan you choose. You can cancel before then under Manage subscription.";
 				} else if (s.state === "trial") {
 					if (s.card_plan) {
 						title.textContent = "Your free month is running";
@@ -83,14 +83,17 @@
 				});
 				if (s.payment_problem) document.getElementById("bill-msg").textContent = s.payment_problem;
 				if (s.can_manage) {
-					var manage = node("button", "sqe-btn sqe-btn-ghost", "Manage card and cancel"); manage.type = "button";
+					var manage = node("button", "sqe-btn sqe-btn-ghost", "Manage subscription"); manage.type = "button";
 					manage.addEventListener("click", function () {
 						manage.disabled = true;
 						api("open_portal", {}).then(function (r) { if (r.message && r.message.url) window.location = r.message.url; else manage.disabled = false; });
 					});
-					pay.append(manage); pay.classList.remove("is-hidden");
+					manage.setAttribute("aria-describedby", "bill-manage-help");
+					var help = node("p", "sx-fine", "Update your payment card or cancel your subscription.");
+					help.id = "bill-manage-help";
+					pay.append(manage, help); pay.classList.remove("is-hidden");
 				}
-				plans.classList.remove("is-hidden");
+				plans.classList.toggle("is-hidden", ordered.length === 0);
 			}
 			function checkout(button, plan) {
 				button.disabled = true;
