@@ -41,3 +41,13 @@ The signup form shows Monthly and 3-Month with prices and the first charge date.
 
 `test_billing_lifecycle.py` drives the real `process_stripe_event` with an in-memory student and events in the shape the live account sends. It covers the free-month Checkout (stays locked, plan pending), a repeated delivery, the 0.00 first invoice, the first charge day before and after its webhook, the next monthly invoice, 3-Month (fixed term scheduled, one term of access), a failed first charge, cancelling in the free month, an unknown student, and the old pay-at-checkout path. It never touches the database or Stripe, so it proves the code's logic, not that Stripe delivers each event. The live account has no test-mode keys, so the first real end-to-end proof is a real student's first charge: check that row on the morning after their free month ends.
 
+## Billing health alert
+
+`billing.billing_health_job` runs hourly (`hooks.py` `scheduler_events`) and posts to Discord through the `payment_needs_review` alert (needs Discord alerts and "payment review" on in Examic Study Settings). Each problem is reported once a day until it clears. It reads only local rows and makes no Stripe call. `billing_health_issues` is the pure check:
+
+- `charge_not_recorded`: a card is on file for a plan, the free month is over, the first charge was due more than 3 hours ago (midnight UTC on the first charge day), and no paid period is recorded. The student is locked out and may have paid. Check Stripe for the invoice and whether `invoice.paid` was delivered.
+- `renewal_not_recorded`: the Stripe subscription is still live but the paid period ended more than a day ago.
+- `plan_without_payment`: a card-at-signup student with a plan set but no paid period, the state that once opened every mock.
+
+The daily job stays silent on "Awaiting Payment" for a student with a Stripe subscription, because that is normal for a few minutes after a charge; this alert covers the case where it does not clear. A new scheduler event is only registered by `bench migrate`; without a migrate, create the Scheduled Job Type for the method (see the 2026-10-26 entry in `docs/lms-findings-and-fixes.md`) and restart the workers.
+

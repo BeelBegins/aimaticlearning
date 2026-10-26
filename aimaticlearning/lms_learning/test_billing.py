@@ -1,5 +1,6 @@
 import unittest
 from datetime import date, datetime, timedelta
+from unittest import mock
 
 from aimaticlearning.lms_learning import billing
 
@@ -115,3 +116,63 @@ class TestSignupPlan(unittest.TestCase):
 	def test_existing_student_is_not_touched(self):
 		self.assertFalse(self.run_record(user={"last_login": self.now}).called)
 		self.assertFalse(self.run_record(user={"creation": self.now - timedelta(hours=2)}).called)
+
+
+class TestBillingHealth(unittest.TestCase):
+	def row(self, **over):
+		base = {"name": "a@b.com", "plan": "", "pending_plan": "Monthly", "trial_ends_on": date(2026, 11, 25),
+			"paid_until": None, "stripe_subscription": "sub_1", "card_required": 1}
+		base.update(over)
+		return base
+
+	def kinds(self, rows, now):
+		return [i["kind"] for i in billing.billing_health_issues(rows, now)]
+
+	def test_unrecorded_first_charge_alerts_only_after_the_grace_period(self):
+		before_due = datetime(2026, 11, 26, 2, 59)
+		after_due = datetime(2026, 11, 26, 3, 0)
+		self.assertEqual(self.kinds([self.row()], datetime(2026, 11, 25, 23, 0)), [])
+		self.assertEqual(self.kinds([self.row()], before_due), [])
+		self.assertEqual(self.kinds([self.row()], after_due), ["charge_not_recorded"])
+
+	def test_a_recorded_payment_clears_the_first_charge_alert(self):
+		paid = self.row(plan="Monthly", pending_plan=None, paid_until=date(2026, 12, 26))
+		self.assertEqual(self.kinds([paid], datetime(2026, 11, 27, 12, 0)), [])
+
+	def test_free_month_student_with_a_saved_card_is_healthy(self):
+		self.assertEqual(self.kinds([self.row()], datetime(2026, 11, 10, 12, 0)), [])
+
+	def test_no_card_student_waiting_for_a_manual_payment_is_not_flagged(self):
+		manual = self.row(stripe_subscription=None, card_required=0)
+		self.assertEqual(self.kinds([manual], datetime(2026, 12, 1, 12, 0)), [])
+
+	def test_plan_label_without_a_payment_is_flagged_for_card_at_signup_students(self):
+		bad = self.row(plan="Monthly", pending_plan=None)
+		self.assertEqual(self.kinds([bad], datetime(2026, 10, 27, 12, 0)), ["plan_without_payment"])
+		self.assertEqual(self.kinds([dict(bad, card_required=0)], datetime(2026, 10, 27, 12, 0)), [])
+
+	def test_live_subscription_with_an_ended_paid_period_is_flagged_after_a_day(self):
+		lapsed = self.row(plan="Monthly", pending_plan=None, paid_until=date(2026, 12, 26))
+		self.assertEqual(self.kinds([lapsed], datetime(2026, 12, 27, 12, 0)), [])
+		self.assertEqual(self.kinds([lapsed], datetime(2026, 12, 28, 12, 0)), ["renewal_not_recorded"])
+		cancelled = dict(lapsed, stripe_subscription=None)
+		self.assertEqual(self.kinds([cancelled], datetime(2026, 12, 28, 12, 0)), [])
+
+	def test_job_alerts_staff_once_a_day_per_issue(self):
+		rows = [self.row(), self.row(name="ok@b.com", paid_until=date(2099, 1, 1), plan="Monthly", pending_plan=None)]
+		sent = []
+		real = billing.billing_health_issues
+		with (
+			mock.patch.object(billing, "frappe") as fake,
+			mock.patch.object(billing, "card_required_field", lambda: True),
+			mock.patch.object(billing, "billing_health_issues", lambda r: real(r, datetime(2026, 11, 27, 9, 0))),
+			mock.patch.object(billing, "_discord", lambda *a: sent.append(a)),
+		):
+			fake.get_all.return_value = rows
+			result = billing.billing_health_job()
+		self.assertEqual(result, {"issues": 1})
+		event, title, text, key, seconds = sent[0]
+		self.assertEqual((event, title, key, seconds), ("payment_needs_review", "Charge not recorded", "health:charge_not_recorded:a@b.com", 23 * 3600))
+		self.assertIn("a@b.com", text)
+		self.assertIn("2026-11-26", text)
+

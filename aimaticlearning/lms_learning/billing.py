@@ -621,11 +621,12 @@ def stripe_webhook():
 	return {"status": status}
 
 
-def _discord(event: str, title: str, description: str, dedupe_key: str) -> None:
+def _discord(event: str, title: str, description: str, dedupe_key: str, dedupe_seconds: int | None = None) -> None:
 	try:
-		from aimaticlearning.lms_learning.discord_alerts import notify
+		from aimaticlearning.lms_learning.discord_alerts import DEDUPE_SECONDS, notify
 
-		notify(event, title=title, description=description, dedupe_key=dedupe_key)
+		notify(event, title=title, description=description, dedupe_key=dedupe_key,
+			dedupe_seconds=dedupe_seconds or DEDUPE_SECONDS)
 	except Exception:
 		frappe.log_error(title="Discord alert failed")
 
@@ -675,3 +676,82 @@ def daily_billing_job() -> dict:
 				counts["reminded"] += 1
 	frappe.db.commit()
 	return counts
+
+
+CHARGE_GRACE_HOURS = 3
+HEALTH_ALERT_SECONDS = 23 * 3600
+
+
+def billing_health_issues(rows: list[dict], now=None) -> list[dict]:
+	"""Billing states that should never persist. Pure, so every case is testable.
+
+	charge_not_recorded: a card is on file for a plan, the free month is over and the first charge
+	was due more than CHARGE_GRACE_HOURS ago, yet no paid period is recorded. Either the payment
+	failed in a way the student was not told about, or Stripe's `invoice.paid` never reached us.
+	The student is locked out whilst possibly having paid.
+
+	plan_without_payment: a card-at-signup student whose plan is set but who has no paid period.
+	That is the state that once opened every mock for a free-month student.
+
+	renewal_not_recorded: a Stripe subscription is still live but the paid period ended more than a
+	day ago, so a renewal charge was not recorded.
+	"""
+	from datetime import datetime, time, timedelta, timezone
+
+	now = now or datetime.now(timezone.utc).replace(tzinfo=None)
+	today = now.date()
+	issues = []
+	for row in rows:
+		paid_valid = bool(row.get("paid_until")) and getdate(row["paid_until"]) >= today
+		if (
+			row.get("stripe_subscription")
+			and row.get("pending_plan") in PLANS
+			and row.get("trial_ends_on")
+			and not paid_valid
+		):
+			due = datetime.combine(first_charge_date(row["trial_ends_on"]), time(0, 0)) + timedelta(hours=CHARGE_GRACE_HOURS)
+			if now >= due:
+				issues.append({"user": row["name"], "kind": "charge_not_recorded", "plan": row["pending_plan"],
+					"charge_date": str(first_charge_date(row["trial_ends_on"]))})
+		if (
+			row.get("stripe_subscription")
+			and row.get("plan") in PLANS
+			and row.get("paid_until")
+			and getdate(row["paid_until"]) < getdate(add_days(today, -1))
+		):
+			issues.append({"user": row["name"], "kind": "renewal_not_recorded", "plan": row["plan"],
+				"paid_until": str(row["paid_until"])})
+		if row.get("card_required") and row.get("plan") in PLANS and not row.get("paid_until"):
+			issues.append({"user": row["name"], "kind": "plan_without_payment", "plan": row["plan"]})
+	return issues
+
+
+def billing_health_job() -> dict:
+	"""Hourly: tell staff about any state from billing_health_issues, once a day each until it clears."""
+	fields = ["name", "plan", "pending_plan", "trial_ends_on", "paid_until", "stripe_subscription"]
+	if card_required_field():
+		fields.append("card_required")
+	issues = billing_health_issues(frappe.get_all(SUBSCRIPTION, fields=fields))
+	for issue in issues:
+		if issue["kind"] == "charge_not_recorded":
+			title = "Charge not recorded"
+			text = (
+				f"{issue['user']} has a card on file for {issue['plan']} and the first charge was due on "
+				f"{issue['charge_date']}, but no payment is recorded, so they are locked out. Check Stripe for "
+				"the invoice and confirm the invoice.paid webhook arrived."
+			)
+		elif issue["kind"] == "renewal_not_recorded":
+			title = "Renewal not recorded"
+			text = (
+				f"{issue['user']} still has a live Stripe subscription for {issue['plan']} but their paid period "
+				f"ended on {issue['paid_until']}. Check Stripe for the renewal invoice and the invoice.paid webhook."
+			)
+		else:
+			title = "Plan set without a payment"
+			text = (
+				f"{issue['user']} shows the {issue['plan']} plan but has no paid period, which can open the "
+				"mocks without payment. Check their Stripe subscription."
+			)
+		_discord("payment_needs_review", title, text, f"health:{issue['kind']}:{issue['user']}", HEALTH_ALERT_SECONDS)
+	return {"issues": len(issues)}
+

@@ -27,9 +27,9 @@ def build_payload(title: str, description: str) -> dict:
 	}
 
 
-def notify(event: str, *, title: str, description: str, dedupe_key: str) -> None:
+def notify(event: str, *, title: str, description: str, dedupe_key: str, dedupe_seconds: int = DEDUPE_SECONDS) -> None:
 	try:
-		_notify(event, title=title, description=description, dedupe_key=dedupe_key)
+		_notify(event, title=title, description=description, dedupe_key=dedupe_key, dedupe_seconds=dedupe_seconds)
 	except Exception:
 		frappe.log_error(title="Discord alert failed")
 
@@ -46,7 +46,7 @@ def send_test_alert() -> dict:
 	return {"ok": True, "message": "Test alert sent."}
 
 
-def _notify(event: str, *, title: str, description: str, dedupe_key: str) -> None:
+def _notify(event: str, *, title: str, description: str, dedupe_key: str, dedupe_seconds: int = DEDUPE_SECONDS) -> None:
 	field = ALERT_FIELDS.get(event)
 	if not field:
 		return
@@ -60,7 +60,7 @@ def _notify(event: str, *, title: str, description: str, dedupe_key: str) -> Non
 	if _seen(cache_key):
 		return
 	if _post(url, build_payload(title, description)):
-		_mark(cache_key)
+		_mark(cache_key, dedupe_seconds)
 
 
 def _post(url: str, payload: dict) -> bool:
@@ -95,11 +95,11 @@ def _seen(key: str) -> bool:
 		return False
 
 
-def _mark(key: str) -> None:
+def _mark(key: str, seconds: int = DEDUPE_SECONDS) -> None:
 	cache = _cache()
 	if cache is None:
 		return
 	try:
-		cache.set_value(key, "1", expires_in_sec=DEDUPE_SECONDS)
+		cache.set_value(key, "1", expires_in_sec=seconds)
 	except Exception:
 		return

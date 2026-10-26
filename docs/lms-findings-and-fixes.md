@@ -909,3 +909,7 @@ Applied 2026-10-26 with owner approval: the affected row's `plan` was changed fr
 
 2026-10-26 follow-up: added `test_billing_lifecycle.py` (6 tests, offline) so the free-month to paid path is checked end to end in code. Against the pre-fix `interpret_event` it fails with the exact state the live row had (plan `Monthly`, nothing pending); against the fix it passes. Still unproven live: Stripe delivering `invoice.paid` at the first charge (the live account has no test-mode keys), a declined first charge, and the 3-Month recurring price in practice. First real check: the student above, the morning of 2026-11-26.
 
+## 2026-10-26: Billing health alert added (not yet scheduled live)
+
+Added `billing_health_issues` and `billing_health_job` (hourly, Discord via `payment_needs_review`, once a day per issue) for a locked student whose first charge was due but not recorded, a live Stripe subscription whose paid period lapsed, and a plan set without a payment. `discord_alerts.notify` gained an optional `dedupe_seconds` (default unchanged at 600). Tests: 58 OK across billing, lifecycle, Stripe provider and mock tests. Read-only run of the check against the 13 live rows: no issues now; evaluated as of 2026-11-26 09:00 UTC with nothing recorded it flags the one student whose first charge is due that day. Discord alerts, payment review alerts and a webhook are enabled on the site. The job does not run until its Scheduled Job Type exists and the workers are restarted; see the deployment entry below once done.
+

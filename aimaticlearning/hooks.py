@@ -14,6 +14,7 @@ after_install = "aimaticlearning.setup.after_install"
 before_request = ["aimaticlearning.lms_learning.billing.enforce_access"]
 
 scheduler_events = {
+	"hourly": ["aimaticlearning.lms_learning.billing.billing_health_job"],
 	"daily": ["aimaticlearning.lms_learning.billing.daily_billing_job"],
 }
 
