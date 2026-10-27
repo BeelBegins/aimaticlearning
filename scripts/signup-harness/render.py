@@ -21,7 +21,7 @@ class F:
 	class utils:
 		nowdate = staticmethod(lambda: "2026-10-27")
 		add_days = staticmethod(lambda d, n: "2026-11-27")
-		formatdate = staticmethod(lambda d: "27 November 2026")
+		formatdate = staticmethod(lambda d, fmt=None: "27 November 2026")
 
 
 pathlib.Path(sys.argv[1]).write_text(env.from_string(src).render(frappe=F, _=lambda s: s))
