@@ -39,7 +39,7 @@ const res = []; const ok = (n, c, d = '') => res.push((c ? 'PASS ' : 'FAIL ') + 
   const answer = body => p.evaluate(b => { window.__answer = (m, a) => (typeof b === 'function' ? b(m, a) : b); }, body);
   const fill = async () => {
     await p.fill('#signup_fullname', 'Jane Doe'); await p.fill('#signup_email', 'jane@example.com');
-    await p.fill('#signup_password', 'correct horse'); await p.check('#signup-terms');
+    await p.fill('#signup_password', 'correct horse'); await p.fill('#signup_password_confirm', 'correct horse'); await p.check('#signup-terms');
   };
   await p.goto(U); await p.waitForTimeout(300);
   await shot('01-empty');
@@ -50,6 +50,16 @@ const res = []; const ok = (n, c, d = '') => res.push((c ? 'PASS ' : 'FAIL ') + 
   await p.fill('#signup_password', 'short'); await p.click('.btn-signup');
   ok('short password blocked on the page, no server call', (await calls()).length === 0 && /at least 8/.test(await p.locator('#signup_password').locator('xpath=ancestor::div[contains(@class,"form-group")]').innerText()));
   await p.fill('#signup_password', 'correct horse');
+  await p.fill('#signup_password_confirm', 'correct horsX'); await p.click('.btn-signup');
+  ok('mismatched passwords blocked with a message, no server call', (await calls()).length === 0 && /do not match/.test(await p.locator('#signup_password_confirm').locator('xpath=ancestor::div[contains(@class,"form-group")]').innerText()));
+  await p.fill('#signup_password_confirm', 'correct horse');
+  const eye = await p.evaluate(() => { const i = document.querySelector('#signup_password').getBoundingClientRect(), e = document.querySelector('.examic-password-toggle').getBoundingClientRect(); return { inside: e.left >= i.left && e.right <= i.right && e.top >= i.top && e.bottom <= i.bottom, w: e.width, text: document.querySelector('.examic-password-toggle').textContent.trim() }; });
+  ok('eye icon sits inside the password field, small, no text label', eye.inside && eye.w <= 36 && eye.text === '', JSON.stringify(eye));
+  await p.click('.examic-password-toggle'); 
+  ok('eye shows both passwords', await p.getAttribute('#signup_password', 'type') === 'text' && await p.getAttribute('#signup_password_confirm', 'type') === 'text');
+  await shot('00-eye');
+  await p.click('.examic-password-toggle');
+  ok('eye hides them again', await p.getAttribute('#signup_password', 'type') === 'password' && await p.getAttribute('#signup_password_confirm', 'type') === 'password');
   // sent
   await p.evaluate(() => { window.__answer = () => ({ status: 'sent', email: 'jane@example.com', wait: 3, expires_in: 900 }); });
   await p.click('.btn-signup'); await p.waitForTimeout(250);

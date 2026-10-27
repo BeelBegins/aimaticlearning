@@ -46,12 +46,26 @@
 
 		<div class="form-group">
 			<label class="form-label" for="signup_password">{{ _("Password") }}</label>
-			<div class="examic-password-row">
+			<div class="examic-password-field">
 				<input type="password" id="signup_password" class="form-control" required minlength="8"
 					autocomplete="new-password" aria-describedby="signup_password_hint">
-				<button type="button" class="btn btn-default examic-password-toggle" aria-controls="signup_password" aria-pressed="false">{{ _("Show") }}</button>
+				<button type="button" class="examic-password-toggle" aria-label="{{ _('Show password') }}" aria-pressed="false">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><path class="examic-eye-slash" d="M3 3l18 18"/></svg>
+				</button>
 			</div>
 			<p class="examic-signup-hint" id="signup_password_hint">{{ _("At least 8 characters.") }}</p>
+			<p class="field-error"></p>
+		</div>
+
+		<div class="form-group">
+			<label class="form-label" for="signup_password_confirm">{{ _("Confirm password") }}</label>
+			<div class="examic-password-field">
+				<input type="password" id="signup_password_confirm" class="form-control" required
+					autocomplete="new-password">
+				<button type="button" class="examic-password-toggle" aria-label="{{ _('Show password') }}" aria-pressed="false">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><path class="examic-eye-slash" d="M3 3l18 18"/></svg>
+				</button>
+			</div>
 			<p class="field-error"></p>
 		</div>
 
@@ -121,16 +135,15 @@
 			clear_field_error("user_category");
 		});
 
-		$("#signup_fullname, #signup_email, #signup_password, #signup-terms").on("input change", function () {
+		$("#signup_fullname, #signup_email, #signup_password, #signup_password_confirm, #signup-terms").on("input change", function () {
 			clear_field_error(this.id);
 			toggle_signup_button();
 		});
 
 		$(".examic-password-toggle").on("click", function () {
-			const input = $("#signup_password");
-			const show = input.attr("type") === "password";
-			input.attr("type", show ? "text" : "password");
-			$(this).text(show ? {{ _("Hide") | tojson }} : {{ _("Show") | tojson }}).attr("aria-pressed", show ? "true" : "false");
+			const show = $("#signup_password").attr("type") === "password";
+			set_password_visible(show);
+			$(this).closest(".examic-password-field").find("input").trigger("focus");
 		});
 
 		$(window).on("hashchange", function () {
@@ -166,6 +179,14 @@
 		toggle_signup_button();
 	});
 
+	function set_password_visible(show) {
+		$("#signup_password, #signup_password_confirm").attr("type", show ? "text" : "password");
+		$(".examic-password-toggle")
+			.attr("aria-pressed", show ? "true" : "false")
+			.attr("aria-label", show ? {{ _("Hide password") | tojson }} : {{ _("Show password") | tojson }})
+			.toggleClass("is-showing", show);
+	}
+
 	function clear_field_error(field) {
 		const $field = $("#" + field);
 		$field.closest(".form-group").removeClass("invalid").find(".field-error").text("");
@@ -178,7 +199,7 @@
 	}
 
 	function toggle_signup_button() {
-		const filled = ($("#signup_fullname").val() || "").trim() && ($("#signup_email").val() || "").trim() && ($("#signup_password").val() || "");
+		const filled = ($("#signup_fullname").val() || "").trim() && ($("#signup_email").val() || "").trim() && ($("#signup_password").val() || "") && ($("#signup_password_confirm").val() || "");
 		const terms_ok = !$("#signup-terms").length || $("#signup-terms").prop("checked");
 		$(".signup-form .btn-signup").prop("disabled", busy || !(filled && terms_ok));
 	}
@@ -190,8 +211,7 @@
 		form.find("input:not([type='submit'], [type='radio'])").val("").prop("checked", false).prop("disabled", false);
 		form.find("input[name='signup_plan']").prop("disabled", false);
 		form.find("input[name='signup_plan'][value='Monthly']").prop("checked", true);
-		form.find("#signup_password").attr("type", "password");
-		form.find(".examic-password-toggle").text({{ _("Show") | tojson }}).attr("aria-pressed", "false");
+		set_password_visible(false);
 		form.find("#user_category").val("").prop("disabled", false);
 		form.find(".form-group").removeClass("invalid").find(".field-error").text("");
 		form.find(".examic-signup-banner").addClass("hidden");
@@ -204,6 +224,7 @@
 			email: ($("#signup_email").val() || "").trim(),
 			full_name: ($("#signup_fullname").val() || "").trim(),
 			password: $("#signup_password").val() || "",
+			password_confirm: $("#signup_password_confirm").val() || "",
 			plan: $("input[name='signup_plan']:checked").val() || "",
 			verify_terms: $("#signup-terms").length ? ($("#signup-terms").prop("checked") ? 1 : 0) : 1,
 			user_category: $("#user_category").length ? $("#user_category").val() : ""
@@ -216,6 +237,7 @@
 		if (!v.full_name) { show_field_error("signup_fullname", {{ _("Full name is required.") | tojson }}); return false; }
 		if (!v.email || !validate_email(v.email)) { show_field_error("signup_email", {{ _("Please enter a valid email.") | tojson }}); return false; }
 		if (v.password.length < 8) { show_field_error("signup_password", {{ _("Choose a password of at least 8 characters.") | tojson }}); return false; }
+		if (v.password !== v.password_confirm) { show_field_error("signup_password_confirm", {{ _("The two passwords do not match.") | tojson }}); return false; }
 		if ($("#user_category").length && !v.user_category) { show_field_error("user_category", {{ _("Please select a category.") | tojson }}); return false; }
 		if ($("#signup-terms").length && !v.verify_terms) { show_field_error("signup-terms", {{ _("Please accept the terms to continue.") | tojson }}); return false; }
 		try { window.localStorage.setItem("examic_plan", v.plan); } catch (err) {}
@@ -261,7 +283,7 @@
 	}
 
 	function lock_details(locked) {
-		$(".signup-form").find("#signup_fullname, #signup_email, #signup_password, #user_category, #signup-terms, input[name='signup_plan']").prop("disabled", locked);
+		$(".signup-form").find("#signup_fullname, #signup_email, #signup_password, #signup_password_confirm, #user_category, #signup-terms, input[name='signup_plan']").prop("disabled", locked);
 		$(".signup-form .btn-signup").toggleClass("hidden", locked);
 	}
 

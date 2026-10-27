@@ -110,6 +110,7 @@ def request_signup_code(
 	plan: str,
 	verify_terms: int = 0,
 	user_category: str = "",
+	password_confirm: str | None = None,
 ) -> dict:
 	"""Check the form, keep it pending and email the code. Creates no user."""
 	if is_signup_disabled():
@@ -127,6 +128,8 @@ def request_signup_code(
 		return {"status": "invalid", "field": "signup_password", "message": problem}
 	if not cint(verify_terms):
 		return {"status": "invalid", "field": "signup-terms", "message": _("Please accept the terms to continue.")}
+	if password_confirm is not None and password_confirm != password:
+		return {"status": "invalid", "field": "signup_password_confirm", "message": _("The two passwords do not match.")}
 	existing = _existing_account_answer(email)
 	if existing:
 		return existing

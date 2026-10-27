@@ -359,18 +359,42 @@ body[data-path="login"] .signup-form .examic-plan-today {
 	margin: 2px 0 0;
 }
 
-body[data-path="login"] .signup-form .examic-password-row {
-	display: flex;
-	gap: 8px;
+body[data-path="login"] .signup-form .examic-password-field {
+	position: relative;
 }
 
-body[data-path="login"] .signup-form .examic-password-row .form-control {
-	flex: 1;
-	min-width: 0;
+body[data-path="login"] .signup-form .examic-password-field .form-control {
+	padding-right: 40px;
 }
 
 body[data-path="login"] .signup-form .examic-password-toggle {
-	min-width: 64px;
+	position: absolute;
+	top: 50%;
+	right: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #4b5766;
+	cursor: pointer;
+	transform: translateY(-50%);
+}
+
+body[data-path="login"] .signup-form .examic-password-toggle:hover,
+body[data-path="login"] .signup-form .examic-password-toggle:focus-visible {
+	color: #00247d;
+}
+
+body[data-path="login"] .signup-form .examic-password-toggle .examic-eye-slash {
+	display: none;
+}
+
+body[data-path="login"] .signup-form .examic-password-toggle.is-showing .examic-eye-slash {
+	display: inline;
 }
 
 body[data-path="login"] .signup-form .examic-signup-hint {

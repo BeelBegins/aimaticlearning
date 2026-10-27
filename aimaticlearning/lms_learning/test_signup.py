@@ -105,6 +105,7 @@ class TestRequestCode(SignupCase):
 		self.assertEqual(self.request(password="short")["field"], "signup_password")
 		self.assertEqual(self.request(password=EMAIL)["field"], "signup_password")
 		self.assertEqual(self.request(verify_terms=0)["field"], "signup-terms")
+		self.assertEqual(self.request(password_confirm="different one")["field"], "signup_password_confirm")
 		self.assertEqual(self.mail, [])
 
 	def test_existing_and_disabled_accounts_get_no_code(self):
