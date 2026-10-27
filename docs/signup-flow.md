@@ -24,3 +24,7 @@ One continuous flow: details and plan, an emailed code, then the Stripe card pag
 ## Checks
 
 `python -m unittest aimaticlearning.lms_learning.test_signup` covers the server rules with an in-memory cache. `scripts/signup-harness/run.js` drives the real form in Chromium against stubbed answers (notice placement, inbox and spam wording, lock, countdown, wrong code, redirect, existing account, errors, 420 px width). Neither proves mail delivery or Stripe: do one real signup with a throwaway address after a deploy.
+
+## Deploying
+
+Restart web and workers, then run `bench --site examic.study clear-cache`. Frappe caches hooks in Redis, so without it the `override_whitelisted_methods` entries are not read and the stock `sign_up` stays open. Check with `frappe.get_hooks("override_whitelisted_methods")`, and probe with an address that already exists so a failed check creates nothing.
