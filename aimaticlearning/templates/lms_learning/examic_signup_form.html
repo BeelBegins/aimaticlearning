@@ -7,11 +7,8 @@
 {% set support_email = frappe.db.get_single_value("LMS Settings", "contact_us_email") or "hello@examic.study" %}
 <form class="form-signin signup-form" role="form" novalidate>
 	<div class="page-card-body">
-		<div class="login-success-banner examic-signup-banner examic-signup-banner--success hidden" role="status"></div>
-		<div class="login-error-banner examic-signup-banner examic-signup-banner--error hidden" role="alert"></div>
-
 		<fieldset class="examic-signup-plans">
-			<legend class="examic-signup-step">{{ _("Step 1 of 3: choose the plan you want after your free month") }}</legend>
+			<legend class="examic-signup-step">{{ _("Choose the plan you want after your free month") }}</legend>
 			<label class="examic-plan-option">
 				<input type="radio" name="signup_plan" value="Monthly" checked>
 				<span class="examic-plan-body">
@@ -31,7 +28,7 @@
 			<p class="examic-plan-today">{{ _("Pay £0 today. Your first charge is on {0}. Cancel before then and you pay nothing.").format(charge_date) }}</p>
 		</fieldset>
 
-		<p class="examic-signup-step">{{ _("Step 2 of 3: your details") }}</p>
+		<p class="examic-signup-step">{{ _("Your details") }}</p>
 
 		<div class="form-group">
 			<label class="form-label" for="signup_fullname">{{ _("Full Name") }}</label>
@@ -44,6 +41,17 @@
 			<label class="form-label" for="signup_email">{{ _("Email") }}</label>
 			<input type="email" id="signup_email" class="form-control"
 				placeholder="{{ _('jane@example.com') }}" required autocomplete="email">
+			<p class="field-error"></p>
+		</div>
+
+		<div class="form-group">
+			<label class="form-label" for="signup_password">{{ _("Password") }}</label>
+			<div class="examic-password-row">
+				<input type="password" id="signup_password" class="form-control" required minlength="8"
+					autocomplete="new-password" aria-describedby="signup_password_hint">
+				<button type="button" class="btn btn-default examic-password-toggle" aria-controls="signup_password" aria-pressed="false">{{ _("Show") }}</button>
+			</div>
+			<p class="examic-signup-hint" id="signup_password_hint">{{ _("At least 8 characters.") }}</p>
 			<p class="field-error"></p>
 		</div>
 
@@ -63,7 +71,7 @@
 		</div>
 		{% endif %}
 
-		<p class="examic-signup-note"><strong>{{ _("Step 3 of 3: add your card.") }}</strong> {{ _("We email you a link to set your password. After you log in you confirm your plan and add a card on Stripe's secure page. Nothing is charged for {0} days.").format(trial_days) }}</p>
+		<p class="examic-signup-note">{{ _("We email you a 6-digit code to confirm your address. Then you go straight to Stripe's secure page to add your card. Nothing is charged for {0} days.").format(trial_days) }}</p>
 
 		{% if custom_signup_content %}
 		<div class="form-group examic-signup-terms">
@@ -78,6 +86,21 @@
 
 	<div class="page-card-actions">
 		<button class="btn btn-primary btn-block btn-signup" type="submit" disabled>{{ _("Sign up") }}</button>
+		<div class="examic-signup-banner examic-signup-banner--error hidden" id="signup-error" role="alert"></div>
+		<div class="examic-signup-banner examic-signup-banner--success examic-signup-sent hidden" id="signup-sent" role="status" aria-live="polite">
+			<p class="examic-signup-sent-text"></p>
+			<div class="form-group examic-signup-code">
+				<label class="form-label" for="signup_code">{{ _("6-digit code") }}</label>
+				<input type="text" id="signup_code" class="form-control" inputmode="numeric" pattern="[0-9]*"
+					maxlength="6" autocomplete="one-time-code">
+				<p class="field-error"></p>
+			</div>
+			<button class="btn btn-primary btn-block examic-signup-verify" type="button">{{ _("Confirm and add card") }}</button>
+			<p class="examic-signup-sent-links">
+				<button type="button" class="btn-link examic-signup-resend" disabled></button>
+				<button type="button" class="btn-link examic-signup-change">{{ _("Use a different email") }}</button>
+			</p>
+		</div>
 		<p class="text-center sign-up-message">
 			<a href="#login">{{ _("Have an account? Login") }}</a>
 		</p>
@@ -87,6 +110,9 @@
 <script>
 	let signup_button_label = "";
 	let login_notice_pending = false;
+	let resend_timer = null;
+	let busy = false;
+	const CODE_API = "aimaticlearning.lms_learning.signup.";
 
 	frappe.ready(function () {
 		signup_button_label = $(".signup-form .btn-signup").text().trim();
@@ -95,8 +121,16 @@
 			clear_field_error("user_category");
 		});
 
-		$("#signup_fullname, #signup_email, #signup-terms").on("input change", function () {
+		$("#signup_fullname, #signup_email, #signup_password, #signup-terms").on("input change", function () {
+			clear_field_error(this.id);
 			toggle_signup_button();
+		});
+
+		$(".examic-password-toggle").on("click", function () {
+			const input = $("#signup_password");
+			const show = input.attr("type") === "password";
+			input.attr("type", show ? "text" : "password");
+			$(this).text(show ? {{ _("Hide") | tojson }} : {{ _("Show") | tojson }}).attr("aria-pressed", show ? "true" : "false");
 		});
 
 		$(window).on("hashchange", function () {
@@ -109,8 +143,25 @@
 		});
 
 		$(".signup-form").on("submit", function (e) {
-			signup(e);
+			request_code(e);
 		});
+		$(".examic-signup-verify").on("click", verify_code);
+		$("#signup_code").on("input", function () {
+			this.value = this.value.replace(/\D/g, "").slice(0, 6);
+			clear_field_error("signup_code");
+			if (this.value.length === 6) {
+				verify_code();
+			}
+		}).on("keydown", function (e) {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				verify_code();
+			}
+		});
+		$(".examic-signup-resend").on("click", function () {
+			send_code(true);
+		});
+		$(".examic-signup-change").on("click", unlock_details);
 
 		toggle_signup_button();
 	});
@@ -123,118 +174,170 @@
 	function show_field_error(field, message) {
 		const $field = $("#" + field);
 		$field.closest(".form-group").addClass("invalid").find(".field-error").text(message);
+		$field.trigger("focus");
 	}
 
 	function toggle_signup_button() {
-		const filled = ($("#signup_fullname").val() || "").trim() && ($("#signup_email").val() || "").trim();
+		const filled = ($("#signup_fullname").val() || "").trim() && ($("#signup_email").val() || "").trim() && ($("#signup_password").val() || "");
 		const terms_ok = !$("#signup-terms").length || $("#signup-terms").prop("checked");
-		$(".signup-form .btn-signup").prop("disabled", !(filled && terms_ok));
+		$(".signup-form .btn-signup").prop("disabled", busy || !(filled && terms_ok));
 	}
 
 	function reset_signup_form() {
 		const form = $(".signup-form");
-		form.find("input:not([type='submit'], [type='radio'])").val("").prop("checked", false);
+		clearInterval(resend_timer);
+		busy = false;
+		form.find("input:not([type='submit'], [type='radio'])").val("").prop("checked", false).prop("disabled", false);
+		form.find("input[name='signup_plan']").prop("disabled", false);
 		form.find("input[name='signup_plan'][value='Monthly']").prop("checked", true);
-		form.find("#user_category").val("");
+		form.find("#signup_password").attr("type", "password");
+		form.find(".examic-password-toggle").text({{ _("Show") | tojson }}).attr("aria-pressed", "false");
+		form.find("#user_category").val("").prop("disabled", false);
 		form.find(".form-group").removeClass("invalid").find(".field-error").text("");
-		form.find(".examic-signup-banner").addClass("hidden").text("");
+		form.find(".examic-signup-banner").addClass("hidden");
 		form.find(".btn-signup").removeAttr("aria-busy").text(signup_button_label);
 		toggle_signup_button();
 	}
 
-	function signup(e) {
+	function form_values() {
+		return {
+			email: ($("#signup_email").val() || "").trim(),
+			full_name: ($("#signup_fullname").val() || "").trim(),
+			password: $("#signup_password").val() || "",
+			plan: $("input[name='signup_plan']:checked").val() || "",
+			verify_terms: $("#signup-terms").length ? ($("#signup-terms").prop("checked") ? 1 : 0) : 1,
+			user_category: $("#user_category").length ? $("#user_category").val() : ""
+		};
+	}
+
+	function request_code(e) {
 		e.preventDefault();
-		const email = ($("#signup_email").val() || "").trim();
-		const full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
-		const user_category = $("#user_category").length ? $("#user_category").val() : "";
-
-		if (!full_name) {
-			show_field_error("signup_fullname", {{ _("Full name is required.") | tojson }});
-			return false;
-		}
-
-		if (!email || !validate_email(email)) {
-			show_field_error("signup_email", {{ _("Please enter a valid email.") | tojson }});
-			return false;
-		}
-
-		if ($("#user_category").length && !user_category) {
-			show_field_error("user_category", {{ _("Please select a category.") | tojson }});
-			return false;
-		}
-
-		if ($("#signup-terms").length && !$("#signup-terms").prop("checked")) {
-			show_field_error("signup-terms", {{ _("Please accept the terms to continue.") | tojson }});
-			return false;
-		}
-
-		const plan = $("input[name='signup_plan']:checked").val() || "";
-		try {
-			window.localStorage.setItem("examic_plan", plan);
-		} catch (err) {}
-
-		frappe.call({
-			method: "lms.lms.user.sign_up",
-			args: {
-				email: email,
-				full_name: full_name,
-				verify_terms: $("#signup-terms").prop("checked") ? 1 : 0,
-				user_category: user_category
-			},
-			statusCode: signup_handlers()
-		});
+		const v = form_values();
+		if (!v.full_name) { show_field_error("signup_fullname", {{ _("Full name is required.") | tojson }}); return false; }
+		if (!v.email || !validate_email(v.email)) { show_field_error("signup_email", {{ _("Please enter a valid email.") | tojson }}); return false; }
+		if (v.password.length < 8) { show_field_error("signup_password", {{ _("Choose a password of at least 8 characters.") | tojson }}); return false; }
+		if ($("#user_category").length && !v.user_category) { show_field_error("user_category", {{ _("Please select a category.") | tojson }}); return false; }
+		if ($("#signup-terms").length && !v.verify_terms) { show_field_error("signup-terms", {{ _("Please accept the terms to continue.") | tojson }}); return false; }
+		try { window.localStorage.setItem("examic_plan", v.plan); } catch (err) {}
+		send_code(false);
 		return false;
 	}
 
-	function signup_handlers() {
-		return Object.assign({}, login.login_handlers, {
-			200: function (data) {
-				const [code, message] = data.message;
-				const email = ($("#signup_email").val() || "").trim();
+	function set_busy(on, label) {
+		busy = on;
+		const btn = $(".signup-form .btn-signup");
+		if (on) { btn.attr("aria-busy", "true").text(label); } else { btn.removeAttr("aria-busy").text(signup_button_label); }
+		toggle_signup_button();
+	}
 
-				if (cint(code) === 0) {
-					hide_signup_loading();
-					$(".signup-form .login-success-banner").addClass("hidden");
-					if (message === {{ _("Already Registered") | tojson }}) {
-						go_to_login_for_existing_account(email);
-					} else {
-						show_signup_error(message);
-					}
-				} else if (cint(code) === 1) {
-					save_signup_plan(email, $("input[name='signup_plan']:checked").val() || "");
-					show_signup_sent(email);
+	function send_code(is_resend) {
+		const v = form_values();
+		hide_error();
+		set_busy(true, {{ _("Sending your code...") | tojson }});
+		frappe.call({
+			method: CODE_API + "request_signup_code",
+			type: "POST",
+			args: v,
+			callback: function (r) {
+				set_busy(false);
+				const d = r.message || {};
+				if (d.status === "sent") {
+					show_sent(d.email, d.wait);
+				} else if (d.status === "exists") {
+					go_to_login_for_existing_account(v.email);
+				} else if (d.status === "wait") {
+					show_sent(v.email, d.wait);
+				} else if (d.status === "invalid" && d.field) {
+					show_field_error(d.field, d.message);
 				} else {
-					show_signup_error({{ _("Your account was created, but we could not send the email. Please contact") | tojson }} + " " + {{ support_email | tojson }} + ".");
+					show_error(d.message || {{ _("Something went wrong. Please try again.") | tojson }});
 				}
+			},
+			error: function () {
+				set_busy(false);
+				show_error({{ _("We could not reach the server. Check your connection and try again.") | tojson }});
 			}
 		});
 	}
 
-	function save_signup_plan(email, plan) {
+	function lock_details(locked) {
+		$(".signup-form").find("#signup_fullname, #signup_email, #signup_password, #user_category, #signup-terms, input[name='signup_plan']").prop("disabled", locked);
+		$(".signup-form .btn-signup").toggleClass("hidden", locked);
+	}
+
+	function show_sent(email, wait) {
+		hide_error();
+		lock_details(true);
+		const box = $("#signup-sent").removeClass("hidden");
+		box.find(".examic-signup-sent-text").empty()
+			.append($("<strong>").text({{ _("We have emailed a 6-digit code to") | tojson }} + " " + email + "."))
+			.append(document.createTextNode(" " +
+				{{ _("Please check your inbox and your spam or junk folder. It can take a few minutes to arrive. Enter the code here to confirm your email and add your card. The code works for 15 minutes.") | tojson }}));
+		$("#signup_code").val("").trigger("focus");
+		start_resend_timer(wait || 60);
+	}
+
+	function start_resend_timer(seconds) {
+		clearInterval(resend_timer);
+		const btn = $(".examic-signup-resend");
+		let left = seconds;
+		const paint = function () {
+			if (left > 0) {
+				btn.prop("disabled", true).text({{ _("Send the code again in") | tojson }} + " " + left + "s");
+			} else {
+				btn.prop("disabled", false).text({{ _("Send the code again") | tojson }});
+				clearInterval(resend_timer);
+			}
+		};
+		paint();
+		resend_timer = setInterval(function () { left -= 1; paint(); }, 1000);
+	}
+
+	function unlock_details() {
+		clearInterval(resend_timer);
+		$("#signup-sent").addClass("hidden");
+		hide_error();
+		lock_details(false);
+		toggle_signup_button();
+		$("#signup_email").trigger("focus");
+	}
+
+	function verify_code() {
+		if (busy) { return; }
+		const code = ($("#signup_code").val() || "").trim();
+		if (!/^\d{6}$/.test(code)) {
+			show_field_error("signup_code", {{ _("Enter the 6-digit code from your email.") | tojson }});
+			return;
+		}
+		busy = true;
+		const btn = $(".examic-signup-verify").prop("disabled", true).text({{ _("Checking...") | tojson }});
+		const restore = function () { busy = false; btn.prop("disabled", false).text({{ _("Confirm and add card") | tojson }}); };
 		frappe.call({
-			method: "aimaticlearning.lms_learning.billing.record_signup_plan",
+			method: CODE_API + "verify_signup_code",
 			type: "POST",
-			args: { email: email, plan: plan },
-			error: function () {}
+			args: { email: ($("#signup_email").val() || "").trim(), code: code },
+			callback: function (r) {
+				const d = r.message || {};
+				if (d.status === "ok") {
+					btn.text({{ _("Email confirmed. Opening the card page...") | tojson }});
+					window.location.href = d.url || d.billing || "/billing";
+				} else if (d.status === "exists") {
+					restore();
+					go_to_login_for_existing_account(($("#signup_email").val() || "").trim());
+				} else if (d.status === "expired" || d.status === "locked") {
+					restore();
+					show_field_error("signup_code", d.message);
+					$(".examic-signup-resend").prop("disabled", false).text({{ _("Send the code again") | tojson }});
+				} else {
+					restore();
+					show_field_error("signup_code", d.message || {{ _("That code is not right.") | tojson }});
+				}
+			},
+			error: function () {
+				restore();
+				show_field_error("signup_code", {{ _("We could not reach the server. Try again.") | tojson }});
+			}
 		});
-	}
-
-	function hide_signup_loading() {
-		$(".signup-form .btn-signup").removeAttr("aria-busy").text(signup_button_label);
-	}
-
-	function show_signup_sent(email) {
-		$(".signup-form .login-error-banner").addClass("hidden");
-		const banner = $(".signup-form .login-success-banner").empty().removeClass("hidden");
-		$("<strong>").text({{ _("Check your inbox.") | tojson }}).appendTo(banner);
-		banner.append(document.createTextNode(" "));
-		banner.append(document.createTextNode(
-			{{ _("We have sent a sign up email to") | tojson }} + " " + email + ". " +
-			{{ _("Open it and use the link to set your password, then log in. If it does not arrive within a few minutes, check your spam folder.") | tojson }}
-		));
-		$(".signup-form .btn-signup").prop("disabled", true).text(signup_button_label);
-		banner.append(document.createTextNode(" "));
-		$("<a>").attr("href", "#login").text({{ _("Go to login") | tojson }}).appendTo(banner);
 	}
 
 	function go_to_login_for_existing_account(email) {
@@ -252,8 +355,11 @@
 		$("#login_password").trigger("focus");
 	}
 
-	function show_signup_error(message) {
-		$(".signup-form .login-success-banner").addClass("hidden");
-		$(".signup-form .login-error-banner").text(message).removeClass("hidden");
+	function show_error(message) {
+		$("#signup-error").text(message).removeClass("hidden");
+	}
+
+	function hide_error() {
+		$("#signup-error").addClass("hidden").text("");
 	}
 </script>

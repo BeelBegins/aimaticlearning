@@ -72,6 +72,8 @@ update_website_context = [
 signup_form_template = "aimaticlearning.lms_learning.enrollment.show_student_signup_form"
 
 override_whitelisted_methods = {
+	"lms.lms.user.sign_up": "aimaticlearning.lms_learning.signup.refuse_direct_signup",
+	"frappe.core.doctype.user.user.sign_up": "aimaticlearning.lms_learning.signup.refuse_direct_signup",
 	"lms.lms.api.get_chart_details": "aimaticlearning.lms_learning.statistics.get_chart_details",
 	"lms.lms.api.get_sidebar_settings": "aimaticlearning.lms_learning.statistics.get_sidebar_settings",
 	"lms.lms.utils.get_chart_data": "aimaticlearning.lms_learning.statistics.get_chart_data",

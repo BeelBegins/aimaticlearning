@@ -87,6 +87,8 @@ this server before operational changes.
 `required_apps` is `lms` only. Study Buddy has no dependency on other Frappe
 apps beyond the Examic LMS stack.
 
+Signup (built 2026-10-27, not yet deployed): one form with plan and password, emailed 6-digit code, then Stripe card page; see `docs/signup-flow.md`.
+
 New self-service signups are enrolled in every published course (`complete_student_signup`, 2026-10-05); existing and staff-invited students are not backfilled without approval. Verify the live site's installed code before assuming this behavior is active.
 
 ## Billing management layout (2026-10-27)

@@ -935,3 +935,11 @@ Validation: headless Chromium loaded the real BLP course UI with existing learne
 Owner found the card/cancellation control awkward. Replaced the large grey sx-pay panel on billing with a compact centered action group, renamed the control Manage subscription, and added an associated explanation: Update your payment card or cancel your subscription. Empty plan grids stay hidden, and setup wording refers to the new label. Existing portal endpoint and payment behavior are unchanged. Added scoped theme CSS and bumped its shared-template version to 20261027-billing-actions1; site cache cleared, no service restart. Rollback: revert this task commit and clear site cache.
 
 Verification: public billing HTML contains the new markup and asset URL; Chromium loaded the live page with a simulated trial billing-state response at 1280px and 390px. Both showed no grey action background or border, no empty plan grid, and no horizontal overflow. Desktop screenshot inspected. No real customer state, payment, cancellation or card action was triggered. git diff check and guidance audit passed.
+
+## 2026-10-27: Signup rebuilt as one flow with an emailed code (built, not deployed)
+
+Problem: an account (course enrolments, subscription row, Discord alert) was created before the email was proven, the plan was asked twice, the form promised a card step that came after an email link round trip, and the stock `sign_up` endpoints stayed open to guests.
+
+Fix in code: `lms_learning/signup.py` (`request_signup_code`, `verify_signup_code`), the signup form, `hooks.py` overrides that refuse the stock `sign_up` endpoints, `docs/signup-flow.md` with each step. After submit a notice below the Sign up button names the address and says to check inbox and spam. Ten wrong codes lock a pending signup. No DocType change.
+
+Verification: `test_signup` (20 tests) plus billing, lifecycle, Stripe provider and enrolment tests, 74 OK; `scripts/signup-harness/run.js` 24 checks PASS in Chromium. Not verified: real mail delivery and the live Stripe redirect. Needs a web and worker restart, then one real signup with a throwaway address.

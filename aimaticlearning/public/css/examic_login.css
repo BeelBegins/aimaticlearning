@@ -358,3 +358,61 @@ body[data-path="login"] .signup-form .examic-plan-today {
 body[data-path="login"] .signup-form .examic-plan-today {
 	margin: 2px 0 0;
 }
+
+body[data-path="login"] .signup-form .examic-password-row {
+	display: flex;
+	gap: 8px;
+}
+
+body[data-path="login"] .signup-form .examic-password-row .form-control {
+	flex: 1;
+	min-width: 0;
+}
+
+body[data-path="login"] .signup-form .examic-password-toggle {
+	min-width: 64px;
+}
+
+body[data-path="login"] .signup-form .examic-signup-hint {
+	margin: 4px 0 0;
+	color: #4b5766;
+	font-size: 0.85rem;
+}
+
+body[data-path="login"] .signup-form .page-card-actions .examic-signup-banner {
+	margin: 12px 0 0;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent {
+	color: #1f2a37;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-text {
+	margin: 0 0 10px;
+}
+
+body[data-path="login"] .signup-form .examic-signup-code .form-control {
+	font-size: 1.4rem;
+	letter-spacing: 0.35em;
+	text-align: center;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	justify-content: space-between;
+	margin: 10px 0 0;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link {
+	padding: 0;
+	color: #00247d;
+	font-size: 0.9rem;
+	text-decoration: underline;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link:disabled {
+	color: #4b5766;
+	text-decoration: none;
+}

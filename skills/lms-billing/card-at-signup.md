@@ -33,7 +33,11 @@ test clock advance, 3-Month `cancel_at` not producing a second invoice). Public 
 changed to match and needs owner or legal review before launch (a charge after a free trial).
 
 
-## Plan chosen at signup
+## Signup is one flow
+
+Signup now collects plan, details and password on one form, verifies the email with a 6-digit code, signs the student in and opens Stripe Checkout straight away. See `docs/signup-flow.md`. `record_signup_plan` is no longer called by the form (kept for compatibility); `verify_signup_code` sets `signup_plan` itself and creates the subscription row before Checkout so the card step always defers the charge.
+
+## Plan chosen at signup (older flow)
 
 The signup form shows Monthly and 3-Month with prices and the first charge date. After a successful signup the page calls `billing.record_signup_plan`, which saves the choice in `Examic Subscription.signup_plan`. It only touches a brand new user (created in the last 30 minutes, never logged in), is rate limited, and never says whether the email exists. `/billing` reads `signup_plan` from `get_billing_state`, lists that plan first and marks it. It is a preselection only: the student still confirms the plan and adds the card. Both pieces need the `signup_plan` field, so reload the DocType (`reload-doc "LMS Learning" doctype examic_subscription`) and restart; until then the call does nothing and `/billing` falls back to the browser copy.
 
