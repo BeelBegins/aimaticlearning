@@ -3,7 +3,7 @@
 {% set trial_days = frappe.db.get_single_value("Examic Billing Settings", "trial_days") or 30 %}
 {% set monthly_price = frappe.db.get_single_value("Examic Billing Settings", "monthly_price") or 49 %}
 {% set three_month_price = frappe.db.get_single_value("Examic Billing Settings", "three_month_price") or 99 %}
-{% set charge_date = frappe.utils.formatdate(frappe.utils.add_days(frappe.utils.nowdate(), trial_days + 1)) %}
+{% set charge_date = frappe.utils.formatdate(frappe.utils.add_days(frappe.utils.nowdate(), trial_days + 1), "d MMMM yyyy") %}
 {% set support_email = frappe.db.get_single_value("LMS Settings", "contact_us_email") or "hello@examic.study" %}
 <form class="form-signin signup-form" role="form" novalidate>
 	<div class="page-card-body">
