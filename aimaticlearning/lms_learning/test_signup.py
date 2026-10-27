@@ -34,8 +34,11 @@ class SignupCase(unittest.TestCase):
 		self.fake_frappe = mock.MagicMock()
 		self.fake_frappe.cache = self.cache
 		self.fake_frappe.DuplicateEntryError = type("DuplicateEntryError", (Exception,), {})
-		self.fake_frappe.sendmail = lambda **kw: self.mail.append(kw)
-		self.fake_frappe.db.get_value = lambda *a, **k: self.existing
+		self.mail_status = "Sent"
+		self.commit_error = None
+		self.fake_frappe.db.commit = self._commit
+		self.fake_frappe.sendmail = self._sendmail
+		self.fake_frappe.db.get_value = lambda *a, **k: self.mail_status if a[0] == "Email Queue" else self.existing
 		self.fake_frappe.session.user = "Guest"
 		patches = [
 			mock.patch.object(signup, "frappe", self.fake_frappe),
@@ -56,6 +59,14 @@ class SignupCase(unittest.TestCase):
 		self.encrypt = mock.patch("frappe.utils.password.encrypt", lambda text: "enc:" + text)
 		self.encrypt.start()
 		self.addCleanup(self.encrypt.stop)
+
+	def _commit(self):
+		if self.commit_error:
+			raise self.commit_error
+
+	def _sendmail(self, **kw):
+		self.mail.append(kw)
+		return SimpleNamespace(name="EQ-1")
 
 	def _create(self, email, pending):
 		self.created.append((email, pending))
@@ -136,6 +147,21 @@ class TestRequestCode(SignupCase):
 		self.assertEqual(answer["status"], "mail_failed")
 		self.assertIsNone(self.cache.get_value(signup.PENDING_KEY.format(EMAIL)))
 		self.assertIsNone(self.cache.get_value(signup.SENDS_KEY.format(EMAIL)))
+
+	def test_a_refused_send_is_reported_and_leaves_nothing_pending(self):
+		self.mail_status = "Not Sent"
+		answer = self.request()
+		self.assertEqual(answer["status"], "mail_failed")
+		self.assertIsNone(self.cache.get_value(signup.PENDING_KEY.format(EMAIL)))
+		self.assertIsNone(self.cache.get_value(signup.SENDS_KEY.format(EMAIL)))
+		self.fake_frappe.delete_doc.assert_called_once()
+
+	def test_a_send_that_raises_at_commit_is_reported_and_cleaned_up(self):
+		self.commit_error = OSError("501 Recipient address reserved")
+		answer = self.request()
+		self.assertEqual(answer["status"], "mail_failed")
+		self.assertIsNone(self.cache.get_value(signup.PENDING_KEY.format(EMAIL)))
+		self.fake_frappe.delete_doc.assert_called_once()
 
 	def test_name_is_escaped_in_the_email(self):
 		self.request(full_name="<b>Eve</b>")

@@ -17,7 +17,8 @@ One continuous flow: details and plan, an emailed code, then the Stripe card pag
 - Sending: 60 s between codes, 5 codes per email per hour, plus a per-IP limit on both endpoints.
 - Existing enabled account: told to log in, no code. Disabled account: told it is registered but disabled.
 - Stripe unreachable at step 4: the student still exists and is signed in; the page sends them to `/billing`.
-- Mail failure at step 2: nothing is kept and the student is told it was not sent.
+- Mail failure at step 2: nothing is kept and the student is told it was not sent. Frappe sends a `now=True` email at database commit, after the function returns, and a refused address (for example a reserved `example.com`) raises there. `_send_code_email` therefore commits itself, checks the outcome, deletes the failed queue row and reports `mail_failed`. Without this the request crashed with a 502.
+- The page gives up waiting after 45 s, so a server error can never leave the button stuck on "Sending your code...".
 - The stock `lms.lms.user.sign_up` and `frappe.core.doctype.user.user.sign_up` are overridden (`hooks.py`) to refuse, so no unverified account can be created around the code.
 - Cache loss only means the student asks for a new code.
 

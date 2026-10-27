@@ -299,81 +299,6 @@ body[data-path="login"] .signup-form .sign-up-message {
 	}
 }
 
-body[data-path="login"] .signup-form .examic-signup-plans {
-	margin: 0 0 16px;
-	padding: 0;
-	border: 0;
-	display: grid;
-	gap: 10px;
-}
-
-body[data-path="login"] .signup-form .examic-signup-step {
-	margin: 0 0 8px;
-	padding: 0;
-	color: #1f2a37;
-	font-size: 0.95rem;
-	font-weight: 600;
-	line-height: 1.4;
-}
-
-body[data-path="login"] .signup-form .examic-plan-option {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	margin: 0;
-	padding: 12px 14px;
-	border: 1px solid #d5dbe3;
-	border-radius: 8px;
-	background: #fff;
-	cursor: pointer;
-}
-
-body[data-path="login"] .signup-form .examic-plan-option:has(input:checked) {
-	border-color: #1f4fd8;
-	box-shadow: 0 0 0 1px #1f4fd8;
-}
-
-body[data-path="login"] .signup-form .examic-plan-option input {
-	appearance: none;
-	flex: 0 0 20px;
-	width: 20px;
-	height: 20px;
-	margin: 2px 0 0;
-	border: 2px solid #9aa6b5;
-	border-radius: 50%;
-	background: #fff;
-}
-
-body[data-path="login"] .signup-form .examic-plan-option input:checked {
-	border-color: #00247d;
-	background: radial-gradient(circle, #00247d 0 5px, #fff 6px);
-}
-
-body[data-path="login"] .signup-form .examic-plan-option input:focus-visible {
-	outline: 2px solid #1f4fd8;
-	outline-offset: 2px;
-}
-
-body[data-path="login"] .signup-form .examic-plan-body {
-	display: grid;
-	gap: 2px;
-}
-
-body[data-path="login"] .signup-form .examic-plan-price {
-	font-size: 0.95rem;
-}
-
-body[data-path="login"] .signup-form .examic-plan-note,
-body[data-path="login"] .signup-form .examic-plan-today {
-	color: #4b5766;
-	font-size: 0.88rem;
-	line-height: 1.4;
-}
-
-body[data-path="login"] .signup-form .examic-plan-today {
-	margin: 2px 0 0;
-}
-
 body[data-path="login"] .signup-form .examic-password-field {
 	position: relative;
 	width: 100%;
@@ -423,18 +348,167 @@ body[data-path="login"] .signup-form .page-card-actions .examic-signup-banner {
 	margin: 12px 0 0;
 }
 
+body[data-path="login"] .signup-form .examic-signup-plans {
+	min-width: 0;
+	margin: 0 0 20px;
+	padding: 0;
+	border: 0;
+}
+
+body[data-path="login"] .signup-form .examic-signup-step {
+	margin: 0 0 10px;
+	padding: 0;
+	color: #1f2a37;
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+body[data-path="login"] .signup-form .examic-plan-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 10px;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option {
+	position: relative;
+	display: block;
+	min-width: 0;
+	margin: 0;
+	padding: 14px;
+	border: 1.5px solid #d5dbe3;
+	border-radius: 12px;
+	background: #fff;
+	cursor: pointer;
+	transition: border-color 0.12s, background-color 0.12s;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option:hover {
+	border-color: #8fa0c4;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option:has(input:checked) {
+	border-color: #00247d;
+	background: #f2f5fc;
+	box-shadow: 0 0 0 1px #00247d;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option:has(input:focus-visible) {
+	outline: 2px solid #1f4fd8;
+	outline-offset: 2px;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option input {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+}
+
+body[data-path="login"] .signup-form .examic-plan-body {
+	display: grid;
+	gap: 4px;
+	padding-right: 26px;
+}
+
+body[data-path="login"] .signup-form .examic-plan-name {
+	color: #1f2a37;
+	font-size: 0.95rem;
+	font-weight: 600;
+}
+
+body[data-path="login"] .signup-form .examic-plan-price {
+	color: #4b5766;
+	font-size: 0.88rem;
+}
+
+body[data-path="login"] .signup-form .examic-plan-price b {
+	color: #00247d;
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+body[data-path="login"] .signup-form .examic-plan-note {
+	color: #4b5766;
+	font-size: 0.82rem;
+	line-height: 1.4;
+}
+
+body[data-path="login"] .signup-form .examic-plan-tick {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #00247d;
+	color: #fff;
+}
+
+body[data-path="login"] .signup-form .examic-plan-option:has(input:checked) .examic-plan-tick {
+	display: flex;
+}
+
+body[data-path="login"] .signup-form .examic-plan-today {
+	margin: 10px 0 0;
+	color: #4b5766;
+	font-size: 0.88rem;
+	line-height: 1.4;
+}
+
 body[data-path="login"] .signup-form .examic-signup-sent {
+	display: block;
+	margin: 16px 0 0;
+	padding: 18px 16px;
+	border: 1px solid #c9d4ee;
+	border-radius: 12px;
+	background: #f2f5fc;
 	color: #1f2a37;
 }
 
+body[data-path="login"] .signup-form .examic-signup-sent.hidden {
+	display: none;
+}
+
+body[data-path="login"] .signup-form .examic-sent-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 8px;
+	color: #00247d;
+	font-size: 1.1rem;
+}
+
 body[data-path="login"] .signup-form .examic-signup-sent-text {
-	margin: 0 0 10px;
+	margin: 0 0 14px;
+	font-size: 0.95rem;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+body[data-path="login"] .signup-form .examic-sent-hint {
+	display: block;
+	margin-top: 6px;
+	color: #4b5766;
+	font-size: 0.88rem;
+}
+
+body[data-path="login"] .signup-form .examic-signup-code {
+	margin-bottom: 12px;
 }
 
 body[data-path="login"] .signup-form .examic-signup-code .form-control {
-	font-size: 1.4rem;
-	letter-spacing: 0.35em;
+	background: #fff;
+	font-size: 1.5rem;
+	font-weight: 600;
+	letter-spacing: 0.4em;
 	text-align: center;
+	text-indent: 0.4em;
 }
 
 body[data-path="login"] .signup-form .examic-signup-sent-links {
@@ -442,17 +516,39 @@ body[data-path="login"] .signup-form .examic-signup-sent-links {
 	flex-wrap: wrap;
 	gap: 8px 16px;
 	justify-content: space-between;
-	margin: 10px 0 0;
+	margin: 12px 0 0;
 }
 
 body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link {
 	padding: 0;
 	color: #00247d;
-	font-size: 0.9rem;
+	font-size: 0.88rem;
 	text-decoration: underline;
 }
 
 body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link:disabled {
 	color: #4b5766;
 	text-decoration: none;
+}
+
+body[data-path="login"] .signup-form .examic-plan-price b {
+	display: block;
+}
+
+body[data-path="login"] .signup-form .examic-signup-verify {
+	width: 100%;
+	min-height: 50px;
+	border-radius: 10px;
+	font-size: 1rem;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link {
+	border: 0;
+	background: none;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+body[data-path="login"] .signup-form .examic-signup-sent-links .btn-link:disabled {
+	cursor: default;
 }

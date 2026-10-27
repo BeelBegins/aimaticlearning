@@ -78,7 +78,7 @@ def seconds_until_resend(email: str, now: float | None = None) -> int:
 def _send_code_email(email: str, full_name: str, code: str) -> None:
 	"""Sent now, not queued, so a failure is known before the student is told it was sent."""
 	minutes = PENDING_SECONDS // 60
-	frappe.sendmail(
+	queued = frappe.sendmail(
 		recipients=[email],
 		subject=_("Your Examic Study code: {0}").format(code),
 		message=(
@@ -90,6 +90,19 @@ def _send_code_email(email: str, full_name: str, code: str) -> None:
 		),
 		now=True,
 	)
+	name = getattr(queued, "name", None)
+	# Frappe sends a now=True email at commit, after this function returns, and a refused or failed
+	# send raises there. Commit here so the outcome is known and can be handled.
+	try:
+		frappe.db.commit()
+		failed = bool(name) and frappe.db.get_value("Email Queue", name, "status") != "Sent"
+	except Exception:
+		failed = True
+	if failed:
+		if name:
+			frappe.delete_doc("Email Queue", name, force=True, ignore_permissions=True)
+			frappe.db.commit()
+		raise OSError(f"The code email to {email} was not delivered")
 
 
 def _existing_account_answer(email: str) -> dict | None:
